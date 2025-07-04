@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Layout } from '@/components/layout';
+import { PageHeader } from '@/components/page-header';
 
 export default function SetupPage() {
   const [channelSlug, setChannelSlug] = useState('');
@@ -85,18 +86,14 @@ export default function SetupPage() {
 
   return (
     <Layout>
-      <div className="py-12">
-        <div className="max-w-md mx-auto">
+      <PageHeader 
+        title="Airena Setup"
+        subtitle="Connect your Are.na channel to create an intelligent agent"
+        variant="narrow"
+      />
+      <div className="max-w-md mx-auto pb-12">
         <Card className="p-8">
-          <CardHeader className="text-center pb-6">
-            <CardTitle className="text-3xl mb-2">
-              Airena Setup
-            </CardTitle>
-            <CardDescription className="text-base">
-              Connect your Are.na channel to create an intelligent agent
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 pt-8">
 
             <form onSubmit={handleSync} className="space-y-6">
               <div>
@@ -193,7 +190,6 @@ export default function SetupPage() {
             </div>
           </CardContent>
         </Card>
-        </div>
       </div>
     </Layout>
   );

@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DIGEST_TEMPLATES, buildPrompt, type DigestTemplate } from '@/lib/digest-templates';
 import { Layout } from '@/components/layout';
+import { PageHeader } from '@/components/page-header';
 
 type GenerationStage = 'template-selection' | 'customization' | 'generation' | 'result';
 
@@ -128,18 +129,11 @@ function GenerateContent() {
   if (stage === 'template-selection') {
     return (
       <Layout>
-        <div className="max-w-4xl mx-auto py-16 px-4">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-foreground mb-4">
-              Choose Your Digest Template
-            </h1>
-            <p className="text-xl text-muted-foreground mb-2">
-              Channel: <span className="font-medium text-foreground">{channelSlug}</span>
-            </p>
-            <p className="text-lg text-muted-foreground">
-              Select a template to structure your AI-generated content
-            </p>
-          </div>
+        <PageHeader 
+          title="Choose Your Digest Template"
+          subtitle={`Channel: ${channelSlug} • Select a template to structure your AI-generated content`}
+        />
+        <div className="max-w-4xl mx-auto pb-16 px-4">
 
           <div className="space-y-6">
             {DIGEST_TEMPLATES.map((template) => (
@@ -178,18 +172,11 @@ function GenerateContent() {
   if (stage === 'customization') {
     return (
       <Layout>
-        <div className="max-w-4xl mx-auto py-16 px-4">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-foreground mb-4">
-              Customize Your {selectedTemplate?.name}
-            </h1>
-            <p className="text-xl text-muted-foreground mb-2">
-              Channel: <span className="font-medium text-foreground">{channelSlug}</span>
-            </p>
-            <p className="text-lg text-muted-foreground">
-              Fine-tune the generation options
-            </p>
-          </div>
+        <PageHeader 
+          title={`Customize Your ${selectedTemplate?.name}`}
+          subtitle={`Channel: ${channelSlug} • Fine-tune the generation options`}
+        />
+        <div className="max-w-4xl mx-auto pb-16 px-4">
 
           <Card className="mb-8">
             <CardHeader>
@@ -277,12 +264,15 @@ function GenerateContent() {
   if (stage === 'generation') {
     return (
       <Layout>
-        <div className="min-h-[60vh] flex items-center justify-center">
+        <PageHeader 
+          title="Generating Your Digest"
+          subtitle={`Processing your curated research from ${channelSlug}...`}
+        />
+        <div className="min-h-[40vh] flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-6"></div>
-            <h2 className="text-2xl font-bold text-foreground mb-2">Generating Your Digest</h2>
             <p className="text-lg text-muted-foreground">
-              Processing your curated research from {channelSlug}...
+              Please wait while we analyze your content...
             </p>
           </div>
         </div>
@@ -293,15 +283,11 @@ function GenerateContent() {
   // Result Stage
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto py-16 px-4">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-4">
-            Your {selectedTemplate?.name} ✨
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            Generated from {channelSlug}
-          </p>
-        </div>
+      <PageHeader 
+        title={`Your ${selectedTemplate?.name} ✨`}
+        subtitle={`Generated from ${channelSlug}`}
+      />
+      <div className="max-w-4xl mx-auto pb-16 px-4">
 
         <Card className="mb-8">
           <CardHeader>

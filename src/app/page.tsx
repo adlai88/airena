@@ -1,22 +1,11 @@
-'use client';
-
-import { useRouter } from 'next/navigation';
 import { Layout } from '@/components/layout';
-import Link from "next/link"
+import { Button } from '@/components/ui/button';
+import Link from "next/link";
 
 export default function HomePage() {
-  const router = useRouter();
 
   return (
-    <Layout hideNavigation>
-      {/* Top navigation: Log in / Sign up */}
-      <div className="w-full border-b border-border">
-        <div className="max-w-3xl mx-auto flex justify-end items-center py-4 px-4">
-          <a href="#" className="text-sm font-medium text-foreground hover:text-muted-foreground mr-8">Log in</a>
-          <a href="#" className="text-sm font-medium text-foreground hover:text-muted-foreground">Sign up</a>
-        </div>
-      </div>
-
+    <Layout homeNav>
       {/* Main content */}
       <div className="py-12">
         <div className="max-w-3xl mx-auto">
@@ -28,23 +17,22 @@ export default function HomePage() {
           </p>
 
           <div className="flex gap-4 mb-16">
-            <Link href="/setup">
-              <button className="border border-border text-foreground px-6 py-3 hover:bg-muted transition">
-                Try Demo
-              </button>
-            </Link>
-            <button 
-              className="border border-border text-foreground px-6 py-3 opacity-50 cursor-not-allowed" 
+            <Button variant="outline" size="sm" className="font-medium" asChild>
+              <Link href="/setup">Try Demo</Link>
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="font-medium opacity-50" 
               disabled
             >
               Join Waitlist
-            </button>
+            </Button>
           </div>
 
           <div className="mb-16">
             <h2 className="text-2xl font-bold mb-4 text-foreground">Features</h2>
             <ul className="list-disc pl-6 space-y-2 text-foreground">
-              <li>Extract content from websites, PDFs, videos</li>
               <li>Generate AI newsletters from your are.na channel</li>
               <li>Chat with your are.na channel</li>
               <li>Real-time streaming responses</li>

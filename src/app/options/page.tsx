@@ -5,6 +5,7 @@ import { Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Layout } from '@/components/layout';
+import { PageHeader } from '@/components/page-header';
 
 function OptionsContent() {
   const router = useRouter();
@@ -21,19 +22,11 @@ function OptionsContent() {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto py-16 px-4">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-foreground mb-4">
-            Channel Synced Successfully! ✨
-          </h1>
-          <p className="text-xl text-muted-foreground mb-2">
-            Your channel <span className="font-medium text-foreground">{channelSlug}</span> is ready
-          </p>
-          <p className="text-lg text-muted-foreground">
-            Choose how you&apos;d like to interact with your research:
-          </p>
-        </div>
+      <PageHeader 
+        title="Channel Synced Successfully! ✨"
+        subtitle={`Your channel ${channelSlug} is ready • Choose how you'd like to interact with your research`}
+      />
+      <div className="max-w-4xl mx-auto pb-16 px-4">
 
         {/* Mode Selection */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">

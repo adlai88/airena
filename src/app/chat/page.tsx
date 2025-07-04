@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Layout } from '@/components/layout';
+import { PageHeader } from '@/components/page-header';
 
 function ChatContent() {
   const searchParams = useSearchParams();
@@ -110,16 +111,11 @@ function ChatContent() {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto py-8 px-4">
-        {/* Header */}
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Chat with Your Research
-          </h1>
-          <p className="text-muted-foreground">
-            Ask questions about your curated Are.na content
-          </p>
-        </div>
+      <PageHeader 
+        title="Chat with Your Research"
+        subtitle="Ask questions about your curated Are.na content"
+      />
+      <div className="max-w-4xl mx-auto pb-12 px-4">
 
         {/* Channel Selector */}
         <Card className="mb-6">
