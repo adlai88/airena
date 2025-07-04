@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Layout } from '@/components/layout';
@@ -11,7 +11,6 @@ import { PageHeader } from '@/components/page-header';
 
 function ChatContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const [channelSlug, setChannelSlug] = useState('r-startups-founder-mode'); // fallback
 
   // Get actual connected channel on mount
