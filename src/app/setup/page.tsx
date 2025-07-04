@@ -138,7 +138,7 @@ export default function SetupPage() {
     <Layout>
       <PageHeader 
         title="Sync Are.na Channel"
-        subtitle="Connect your Are.na channel to create an intelligent agent"
+        subtitle="Connect your Are.na channel to start"
         variant="narrow"
       />
       <div className="max-w-md mx-auto pb-8 sm:pb-12 px-4 sm:px-0">
