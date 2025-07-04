@@ -25,7 +25,7 @@ function ChatContent() {
             setChannelSlug(data.channelSlug);
           }
         }
-      } catch (err) {
+      } catch {
         console.log('Using fallback channel');
       }
     };

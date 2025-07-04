@@ -15,7 +15,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const isActive = (path: string) => pathname === path;
+  // const isActive = (path: string) => pathname === path;
   
   // Determine if we're on an app page (not homepage)
   const isAppPage = !homeNav && pathname !== '/';

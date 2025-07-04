@@ -40,7 +40,7 @@ export default function SetupPage() {
             setConnectedChannel(data.channelSlug);
           }
         }
-      } catch (err) {
+      } catch {
         // If no channel info available, that's fine - user hasn't synced yet
         console.log('No existing channel found');
       }
