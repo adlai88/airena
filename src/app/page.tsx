@@ -16,14 +16,14 @@ export default function HomePage() {
             Generate newsletters, reports, and insights using AI
           </p>
 
-          <div className="flex gap-4 mb-16">
-            <Button variant="outline" size="sm" className="font-medium" asChild>
+          <div className="flex flex-col sm:flex-row gap-4 mb-16">
+            <Button variant="outline" size="lg" className="font-medium min-h-[52px] px-8" asChild>
               <Link href="/setup">Try Demo</Link>
             </Button>
             <Button 
               variant="outline" 
-              size="sm" 
-              className="font-medium opacity-50" 
+              size="lg" 
+              className="font-medium min-h-[52px] px-8 opacity-50" 
               disabled
             >
               Join Waitlist

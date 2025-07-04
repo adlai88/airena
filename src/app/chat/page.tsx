@@ -10,6 +10,7 @@ import { Layout } from '@/components/layout';
 function ChatContent() {
   const searchParams = useSearchParams();
   const [channelSlug, setChannelSlug] = useState('r-startups-founder-mode'); // fallback
+  const [previousChannelSlug, setPreviousChannelSlug] = useState<string | null>(null);
 
   // Get actual connected channel on mount
   useEffect(() => {
@@ -71,6 +72,17 @@ function ChatContent() {
       sessionStorage.removeItem('airena-chat-messages');
     }
   }, [messages]);
+
+  // Clear chat history when channel changes (but not on initial load)
+  useEffect(() => {
+    if (previousChannelSlug && channelSlug !== previousChannelSlug) {
+      console.log(`Channel switched from ${previousChannelSlug} to ${channelSlug} - clearing chat history`);
+      setMessages([]);
+      sessionStorage.removeItem('airena-chat-messages');
+      setError(null);
+    }
+    setPreviousChannelSlug(channelSlug);
+  }, [channelSlug, previousChannelSlug]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
@@ -256,7 +268,7 @@ function ChatContent() {
     <Layout>
       {/* Messages Area - with bottom padding for fixed input */}
       <div className="px-4 sm:px-6 lg:px-8 py-6 pb-32">
-        <div className="max-w-4xl mx-auto space-y-4">
+        <div className="max-w-3xl mx-auto space-y-4">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -291,7 +303,7 @@ function ChatContent() {
 
       {/* Fixed Input Area - always visible above footer */}
       <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           {/* Error Display */}
           {error && (
             <div className="mb-4">

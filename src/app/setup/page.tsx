@@ -262,11 +262,11 @@ export default function SetupPage() {
             <div className="space-y-3">
               <Button 
                 onClick={() => handleModalAction('chat')}
-                className="w-full h-auto p-4 text-left min-h-[56px] sm:min-h-auto cursor-pointer"
+                className="w-full h-auto p-4 text-left min-h-[56px] sm:min-h-auto cursor-pointer justify-start"
                 variant="outline"
               >
-                <div className="space-y-1">
-                  <div className="font-medium">💬 Chat with Your Channel</div>
+                <div className="space-y-1 text-left">
+                  <div className="font-medium">Chat with Your Channel</div>
                   <div className="text-sm text-muted-foreground font-normal">
                     Ask questions and explore your channel conversationally
                   </div>
@@ -275,11 +275,11 @@ export default function SetupPage() {
               
               <Button 
                 onClick={() => handleModalAction('generate')}
-                className="w-full h-auto p-4 text-left min-h-[56px] sm:min-h-auto cursor-pointer"
+                className="w-full h-auto p-4 text-left min-h-[56px] sm:min-h-auto cursor-pointer justify-start"
                 variant="outline"
               >
-                <div className="space-y-1">
-                  <div className="font-medium">📝 Generate Content</div>
+                <div className="space-y-1 text-left">
+                  <div className="font-medium">Generate Content</div>
                   <div className="text-sm text-muted-foreground font-normal">
                     Create newsletters, summaries, and insights from your channel
                   </div>
