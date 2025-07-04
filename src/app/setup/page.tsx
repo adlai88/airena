@@ -137,8 +137,8 @@ export default function SetupPage() {
   return (
     <Layout>
       <PageHeader 
-        title="Sync Are.na Channel"
-        subtitle="Connect an Are.na channel to start"
+        title="Channel Setup"
+        subtitle="Manage your Are.na channel connection"
         variant="narrow"
       />
       <div className="max-w-md mx-auto pb-8 sm:pb-12 px-4 sm:px-0">

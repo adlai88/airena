@@ -22,10 +22,10 @@ export function Navigation({ homeNav = false }: NavigationProps) {
   
   // Determine active tab based on current route
   const getActiveTab = () => {
-    if (pathname === '/setup' || pathname === '/options') return 'sync';
+    if (pathname === '/setup' || pathname === '/options') return 'setup';
     if (pathname === '/generate' || pathname.startsWith('/generate')) return 'generate';
     if (pathname === '/chat' || pathname.startsWith('/chat')) return 'chat';
-    return 'sync';
+    return 'setup';
   };
 
   const handleTabClick = (tabId: string) => {
@@ -35,7 +35,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
     
     let path = '';
     switch (tabId) {
-      case 'sync':
+      case 'setup':
         path = '/setup';
         break;
       case 'generate':
@@ -72,7 +72,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
             <div className="flex justify-center flex-1">
               <Tabs value={getActiveTab()} onValueChange={handleTabClick}>
                 <TabsList className="grid w-full grid-cols-3 max-w-xs sm:max-w-md overflow-x-auto min-w-0">
-                  <TabsTrigger value="sync" className="cursor-pointer hover:bg-muted transition">Sync</TabsTrigger>
+                  <TabsTrigger value="setup" className="cursor-pointer hover:bg-muted transition">Setup</TabsTrigger>
                   <TabsTrigger value="chat" className="cursor-pointer hover:bg-muted transition">Chat</TabsTrigger>
                   <TabsTrigger value="generate" className="cursor-pointer hover:bg-muted transition">Generate</TabsTrigger>
                 </TabsList>
