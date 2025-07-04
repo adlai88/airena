@@ -52,7 +52,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                   variant="ghost"
                   onClick={() => router.push('/')}
                   size="sm"
-                  className={isActive('/') ? 'bg-black text-white hover:bg-black dark:bg-white dark:text-black dark:hover:bg-white' : ''}
+                  className={isActive('/') ? 'bg-black text-white hover:bg-black hover:text-white dark:bg-white dark:text-black dark:hover:bg-white dark:hover:text-black' : ''}
                 >
                   Home
                 </Button>
@@ -60,7 +60,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                   variant="ghost"
                   onClick={() => router.push('/setup')}
                   size="sm"
-                  className={isActive('/setup') ? 'bg-black text-white hover:bg-black dark:bg-white dark:text-black dark:hover:bg-white' : ''}
+                  className={isActive('/setup') ? 'bg-black text-white hover:bg-black hover:text-white dark:bg-white dark:text-black dark:hover:bg-white dark:hover:text-black' : ''}
                 >
                   Setup
                 </Button>
@@ -68,7 +68,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                   variant="ghost"
                   onClick={() => router.push('/generate')}
                   size="sm"
-                  className={isActive('/generate') || pathname.startsWith('/generate') ? 'bg-black text-white hover:bg-black dark:bg-white dark:text-black dark:hover:bg-white' : ''}
+                  className={isActive('/generate') || pathname.startsWith('/generate') ? 'bg-black text-white hover:bg-black hover:text-white dark:bg-white dark:text-black dark:hover:bg-white dark:hover:text-black' : ''}
                 >
                   Generate
                 </Button>
@@ -76,7 +76,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                   variant="ghost"
                   onClick={() => router.push('/chat')}
                   size="sm"
-                  className={isActive('/chat') || pathname.startsWith('/chat') ? 'bg-black text-white hover:bg-black dark:bg-white dark:text-black dark:hover:bg-white' : ''}
+                  className={isActive('/chat') || pathname.startsWith('/chat') ? 'bg-black text-white hover:bg-black hover:text-white dark:bg-white dark:text-black dark:hover:bg-white dark:hover:text-black' : ''}
                 >
                   Chat
                 </Button>
