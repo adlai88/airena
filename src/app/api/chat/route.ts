@@ -54,9 +54,10 @@ export async function POST(req: Request) {
       const embeddingService = new EmbeddingService();
       const queryEmbedding = await embeddingService.createEmbedding(lastMessage.content);
 
-      // Search for similar blocks
+      // Search for similar blocks within the specific channel
       const { data: searchResults, error: searchError } = await supabase.rpc('search_blocks', {
         query_embedding: queryEmbedding,
+        channel_filter: channel.arena_id, // Filter by current channel
         similarity_threshold: 0.3, // Lower threshold to get more results
         match_count: 5
       }) as { data: ContextBlock[] | null; error: unknown };
