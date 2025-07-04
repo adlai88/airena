@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,13 +8,39 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DIGEST_TEMPLATES, buildPrompt, type DigestTemplate } from '@/lib/digest-templates';
 import { Layout } from '@/components/layout';
 import { PageHeader } from '@/components/page-header';
+import { Badge } from '@/components/ui/badge';
 
 type GenerationStage = 'template-selection' | 'customization' | 'generation' | 'result';
 
 function GenerateContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [channelSlug] = useState(searchParams.get('channel') || 'r-startups-founder-mode');
+  const [channelSlug, setChannelSlug] = useState('r-startups-founder-mode'); // fallback
+
+  // Get actual connected channel on mount
+  useEffect(() => {
+    const getConnectedChannel = async () => {
+      try {
+        const response = await fetch('/api/channel-info');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.channelSlug) {
+            setChannelSlug(data.channelSlug);
+          }
+        }
+      } catch (err) {
+        console.log('Using fallback channel');
+      }
+    };
+
+    // Check URL params first, then database
+    const urlChannel = searchParams.get('channel');
+    if (urlChannel) {
+      setChannelSlug(urlChannel);
+    } else {
+      getConnectedChannel();
+    }
+  }, [searchParams]);
   const [stage, setStage] = useState<GenerationStage>('template-selection');
   const [selectedTemplate, setSelectedTemplate] = useState<DigestTemplate | null>(null);
   const [options, setOptions] = useState<{
@@ -130,10 +156,16 @@ function GenerateContent() {
     return (
       <Layout>
         <PageHeader 
-          title="Choose Your Digest Template"
-          subtitle={`Channel: ${channelSlug} • Select a template to structure your AI-generated content`}
+          title="Generate content with your channel"
+          subtitle="Select a template to structure your AI-generated content"
         />
-        <div className="max-w-4xl mx-auto pb-16 px-4">
+        <div className="max-w-4xl mx-auto pb-8 sm:pb-16 px-4 sm:px-6">
+          {/* Connected Channel Badge */}
+          <div className="flex justify-center mb-8">
+            <Badge variant="secondary" className="px-3 py-1">
+              🔗 Connected to: {channelSlug}
+            </Badge>
+          </div>
 
           <div className="space-y-6">
             {DIGEST_TEMPLATES.map((template) => (
@@ -145,7 +177,7 @@ function GenerateContent() {
                 <CardContent>
                   <Button 
                     onClick={() => handleTemplateSelect(template)}
-                    className="w-full"
+                    className="w-full min-h-[48px] sm:min-h-auto"
                     size="lg"
                   >
                     Use This Template
@@ -174,9 +206,15 @@ function GenerateContent() {
       <Layout>
         <PageHeader 
           title={`Customize Your ${selectedTemplate?.name}`}
-          subtitle={`Channel: ${channelSlug} • Fine-tune the generation options`}
+          subtitle="Fine-tune the generation options"
         />
-        <div className="max-w-4xl mx-auto pb-16 px-4">
+        <div className="max-w-4xl mx-auto pb-8 sm:pb-16 px-4 sm:px-6">
+          {/* Connected Channel Badge */}
+          <div className="flex justify-center mb-8">
+            <Badge variant="secondary" className="px-3 py-1">
+              🔗 Connected to: {channelSlug}
+            </Badge>
+          </div>
 
           <Card className="mb-8">
             <CardHeader>
@@ -236,11 +274,11 @@ function GenerateContent() {
                 </div>
               </div>
 
-              <div className="flex gap-4 pt-4">
-                <Button onClick={handleGenerate} className="flex-1" size="lg">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
+                <Button onClick={handleGenerate} className="flex-1 min-h-[48px] sm:min-h-auto" size="lg">
                   Generate Digest
                 </Button>
-                <Button variant="outline" onClick={() => setStage('template-selection')}>
+                <Button variant="outline" onClick={() => setStage('template-selection')} className="min-h-[48px] sm:min-h-auto">
                   Change Template
                 </Button>
               </div>
@@ -266,8 +304,13 @@ function GenerateContent() {
       <Layout>
         <PageHeader 
           title="Generating Your Digest"
-          subtitle={`Processing your curated research from ${channelSlug}...`}
+          subtitle="Processing your curated research..."
         />
+        <div className="flex justify-center mb-8">
+          <Badge variant="secondary" className="px-3 py-1">
+            📊 Connected to: {channelSlug}
+          </Badge>
+        </div>
         <div className="min-h-[40vh] flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-6"></div>
@@ -285,9 +328,15 @@ function GenerateContent() {
     <Layout>
       <PageHeader 
         title={`Your ${selectedTemplate?.name} ✨`}
-        subtitle={`Generated from ${channelSlug}`}
+        subtitle="Generated from your curated research"
       />
-      <div className="max-w-4xl mx-auto pb-16 px-4">
+      <div className="max-w-4xl mx-auto pb-8 sm:pb-16 px-4 sm:px-6">
+        {/* Connected Channel Badge */}
+        <div className="flex justify-center mb-8">
+          <Badge variant="secondary" className="px-3 py-1">
+            📊 Generated from: {channelSlug}
+          </Badge>
+        </div>
 
         <Card className="mb-8">
           <CardHeader>

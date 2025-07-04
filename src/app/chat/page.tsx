@@ -1,17 +1,43 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { Layout } from '@/components/layout';
 import { PageHeader } from '@/components/page-header';
 
 function ChatContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [channelSlug, setChannelSlug] = useState(searchParams.get('channel') || 'r-startups-founder-mode');
+  const [channelSlug, setChannelSlug] = useState('r-startups-founder-mode'); // fallback
+
+  // Get actual connected channel on mount
+  useEffect(() => {
+    const getConnectedChannel = async () => {
+      try {
+        const response = await fetch('/api/channel-info');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.channelSlug) {
+            setChannelSlug(data.channelSlug);
+          }
+        }
+      } catch (err) {
+        console.log('Using fallback channel');
+      }
+    };
+
+    // Check URL params first, then database
+    const urlChannel = searchParams.get('channel');
+    if (urlChannel) {
+      setChannelSlug(urlChannel);
+    } else {
+      getConnectedChannel();
+    }
+  }, [searchParams]);
 
   const [messages, setMessages] = useState<Array<{
     id: string;
@@ -112,60 +138,41 @@ function ChatContent() {
   return (
     <Layout>
       <PageHeader 
-        title="Chat with Your Research"
-        subtitle="Ask questions about your curated Are.na content"
+        title="Chat with Your Channel"
+        subtitle="Jam with your Are.na content"
       />
-      <div className="max-w-4xl mx-auto pb-12 px-4">
-
-        {/* Channel Selector */}
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <div className="flex gap-4 items-end">
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Channel Slug
-                </label>
-                <Input
-                  type="text"
-                  value={channelSlug}
-                  onChange={(e) => setChannelSlug(e.target.value)}
-                  placeholder="r-startups-founder-mode"
-                />
-              </div>
-              <Button
-                variant="outline"
-                onClick={() => router.push(`/generate?channel=${channelSlug}`)}
-              >
-                Switch to Generate
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="max-w-4xl mx-auto pb-8 sm:pb-12 px-4 sm:px-6">
+        {/* Connected Channel Badge */}
+        <div className="flex justify-center mb-6">
+          <Badge variant="secondary" className="px-3 py-1">
+            🔗 Connected to: {channelSlug}
+          </Badge>
+        </div>
 
         {/* Chat Container */}
         <Card>
           {/* Messages */}
-          <div className="h-96 overflow-y-auto p-6 space-y-4">
+          <div className="h-64 sm:h-96 overflow-y-auto p-4 sm:p-6 space-y-3 sm:space-y-4">
             {messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-3xl px-4 py-3 rounded-lg ${
+                  className={`max-w-[85%] sm:max-w-3xl px-3 sm:px-4 py-2 sm:py-3 rounded-lg ${
                     message.role === 'user'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted text-muted-foreground'
                   }`}
                 >
-                  <div className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</div>
+                  <div className="whitespace-pre-wrap text-sm sm:text-base leading-relaxed">{message.content}</div>
                 </div>
               </div>
             ))}
             
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-muted text-muted-foreground px-4 py-3 rounded-lg">
+                <div className="bg-muted text-muted-foreground px-3 sm:px-4 py-2 sm:py-3 rounded-lg">
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
                     <span className="text-sm">Thinking...</span>
@@ -185,19 +192,20 @@ function ChatContent() {
           )}
 
           {/* Input Form */}
-          <div className="border-t border-border p-6">
-            <form onSubmit={handleChatSubmit} className="flex gap-4">
+          <div className="border-t border-border p-4 sm:p-6">
+            <form onSubmit={handleChatSubmit} className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <Input
                 type="text"
                 value={input}
                 onChange={handleInputChange}
                 placeholder="Ask about your research... (e.g., 'What are the key insights about founder mode?')"
                 disabled={isLoading}
-                className="flex-1"
+                className="flex-1 min-h-[44px]"
               />
               <Button
                 type="submit"
                 disabled={isLoading || !input.trim() || !channelSlug.trim()}
+                className="min-h-[44px] sm:min-h-auto px-6 sm:px-4"
               >
                 Send
               </Button>
