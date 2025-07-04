@@ -250,13 +250,7 @@ export default function SetupPage() {
                   required
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  {connectedChannel ? 
-                    (isDefaultChannel ? 
-                      'Switch to your own Are.na channel or re-sync the current channel' :
-                      'Enter a different channel slug to switch, or re-sync the current channel'
-                    ) :
-                    'Enter a channel slug (e.g., "r-startups-founder-mode") or paste the full URL'
-                  }
+                  Enter any channel slug or channel URL
                 </p>
               </div>
 
