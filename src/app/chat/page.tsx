@@ -47,7 +47,7 @@ function ChatContent() {
     {
       id: 'welcome',
       role: 'assistant' as const,
-      content: `Hi! I'm your AI assistant with access to content from the "${channelSlug}" channel. Ask me anything about the curated research, and I'll provide insights based on the embedded content.`,
+      content: `Hi! I'm Airena. Ask me anything about your Are.na content.`,
     },
   ]);
   const [input, setInput] = useState('');
@@ -198,7 +198,7 @@ function ChatContent() {
                 type="text"
                 value={input}
                 onChange={handleInputChange}
-                placeholder="Ask about your research... (e.g., 'What are the key insights about founder mode?')"
+                placeholder="Ask about your channel... (e.g., 'What are the key insights?')"
                 disabled={isLoading}
                 className="flex-1 min-h-[44px]"
               />
@@ -214,46 +214,27 @@ function ChatContent() {
         </Card>
 
         {/* Suggested Questions */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="text-lg">Suggested Questions</CardTitle>
-            <CardDescription>Click any question to get started</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {[
-                "What are the main themes in this research?",
-                "Summarize the key insights",
-                "What tools or resources are mentioned?",
-                "What are the practical takeaways?",
-                "How do these ideas connect together?",
-                "What trends are emerging?"
-              ].map((question, index) => (
-                <Button
-                  key={index}
-                  variant="ghost"
-                  onClick={() => setInput(question)}
-                  className="text-left justify-start h-auto p-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted"
-                >
-                  {question}
-                </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Navigation */}
-        <div className="mt-8 text-center">
-          <p className="text-sm text-muted-foreground">
-            Need to sync a different channel?{' '}
-            <Button
-              variant="link"
-              onClick={() => router.push('/setup')}
-              className="p-0 h-auto text-sm"
-            >
-              Back to Setup
-            </Button>
-          </p>
+        <div className="mt-8">
+          <div className="mb-2 text-sm text-muted-foreground font-medium">Suggested Questions</div>
+          <div className="flex flex-wrap gap-2">
+            {[
+              "What are the main themes in this channel?",
+              "Summarize the key insights",
+              "What tools or resources are mentioned?",
+              "What are the practical takeaways?",
+              "How do these ideas connect together?",
+              "What trends are emerging?"
+            ].map((question, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={() => setInput(question)}
+                className="rounded-full bg-muted px-4 py-2 text-sm text-foreground hover:bg-primary/10 transition cursor-pointer border border-border"
+              >
+                {question}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </Layout>

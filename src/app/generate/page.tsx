@@ -186,15 +186,6 @@ function GenerateContent() {
               </Card>
             ))}
           </div>
-
-          <div className="text-center mt-12">
-            <Button 
-              variant="ghost" 
-              onClick={() => router.push(`/options?channel=${channelSlug}`)}
-            >
-              ← Back to Options
-            </Button>
-          </div>
         </div>
       </Layout>
     );
@@ -284,15 +275,6 @@ function GenerateContent() {
               </div>
             </CardContent>
           </Card>
-
-          <div className="text-center">
-            <Button 
-              variant="ghost" 
-              onClick={() => router.push(`/chat?channel=${channelSlug}`)}
-            >
-              Switch to Chat Instead
-            </Button>
-          </div>
         </div>
       </Layout>
     );
@@ -365,9 +347,6 @@ function GenerateContent() {
         <div className="flex justify-center gap-4">
           <Button onClick={handleStartOver}>
             Generate New Digest
-          </Button>
-          <Button variant="outline" onClick={() => router.push(`/chat?channel=${channelSlug}`)}>
-            Switch to Chat
           </Button>
           <Button variant="ghost" onClick={() => router.push('/setup')}>
             Sync Different Channel

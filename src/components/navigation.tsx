@@ -73,8 +73,8 @@ export function Navigation({ homeNav = false }: NavigationProps) {
               <Tabs value={getActiveTab()} onValueChange={handleTabClick}>
                 <TabsList className="grid w-full grid-cols-3 max-w-xs sm:max-w-md overflow-x-auto min-w-0">
                   <TabsTrigger value="sync" className="cursor-pointer hover:bg-muted transition">Sync</TabsTrigger>
-                  <TabsTrigger value="generate" className="cursor-pointer hover:bg-muted transition">Generate</TabsTrigger>
                   <TabsTrigger value="chat" className="cursor-pointer hover:bg-muted transition">Chat</TabsTrigger>
+                  <TabsTrigger value="generate" className="cursor-pointer hover:bg-muted transition">Generate</TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>

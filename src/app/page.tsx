@@ -13,7 +13,7 @@ export default function HomePage() {
             Turn your are.na channels into a personal intelligence agent
           </h1>
           <p className="text-xl mb-12 text-foreground">
-            Generate newsletters, reports, and insights using AI powered by your own curation
+            Generate newsletters, reports, and insights using AI
           </p>
 
           <div className="flex gap-4 mb-16">
@@ -33,8 +33,8 @@ export default function HomePage() {
           <div className="mb-16">
             <h2 className="text-2xl font-bold mb-4 text-foreground">Features</h2>
             <ul className="list-disc pl-6 space-y-2 text-foreground">
-              <li>Generate AI newsletters from your are.na channel</li>
               <li>Chat with your are.na channel</li>
+              <li>Auto-generate newsletters from your curated feed</li>
               <li>Real-time streaming responses</li>
             </ul>
           </div>
