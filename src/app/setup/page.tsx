@@ -2,12 +2,22 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Layout } from '@/components/layout';
 
 export default function SetupPage() {
   const [channelSlug, setChannelSlug] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [syncDetails, setSyncDetails] = useState<{
+    channelTitle?: string;
+    totalBlocks?: number;
+    processedBlocks?: number;
+  }>({});
   const router = useRouter();
 
   const handleSync = async (e: React.FormEvent) => {
@@ -17,6 +27,8 @@ export default function SetupPage() {
     setIsLoading(true);
     setError(null);
     setStatus('Starting sync...');
+    setProgress(0);
+    setSyncDetails({});
 
     try {
       // Call our sync API endpoint (we'll need to create this)
@@ -34,10 +46,16 @@ export default function SetupPage() {
       const result = await response.json();
       
       if (result.success) {
-        setStatus(`Success! Processed ${result.processedBlocks} blocks.`);
-        // Redirect to generate page after successful sync
+        setProgress(100);
+        setSyncDetails({
+          channelTitle: result.channelTitle,
+          totalBlocks: result.totalBlocks,
+          processedBlocks: result.processedBlocks
+        });
+        setStatus(`Success! Processed ${result.processedBlocks} blocks from "${result.channelTitle || channelSlug}".`);
+        // Redirect to options page after successful sync
         setTimeout(() => {
-          router.push(`/generate?channel=${channelSlug}`);
+          router.push(`/options?channel=${channelSlug}`);
         }, 2000);
       } else {
         setError(`Sync failed: ${result.errors?.join(', ') || 'Unknown error'}`);
@@ -66,70 +84,117 @@ export default function SetupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-md mx-auto bg-white rounded-lg shadow-sm p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Airena Setup
-          </h1>
-          <p className="text-gray-600">
-            Connect your Are.na channel to create an intelligent newsletter
-          </p>
-        </div>
+    <Layout>
+      <div className="py-12">
+        <div className="max-w-md mx-auto">
+        <Card className="p-8">
+          <CardHeader className="text-center pb-6">
+            <CardTitle className="text-3xl mb-2">
+              Airena Setup
+            </CardTitle>
+            <CardDescription className="text-base">
+              Connect your Are.na channel to create an intelligent agent
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
 
-        <form onSubmit={handleSync} className="space-y-6">
-          <div>
-            <label htmlFor="channel" className="block text-sm font-medium text-gray-700 mb-2">
-              Are.na Channel
-            </label>
-            <input
-              type="text"
-              id="channel"
-              value={channelSlug}
-              onChange={handleInputChange}
-              placeholder="channel-slug or https://are.na/user/channel-name"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
-              disabled={isLoading}
-              required
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Enter a channel slug (e.g., &quot;r-startups-founder-mode&quot;) or paste the full URL
-            </p>
-          </div>
+            <form onSubmit={handleSync} className="space-y-6">
+              <div>
+                <label htmlFor="channel" className="block text-sm font-medium text-foreground mb-2">
+                  Are.na Channel
+                </label>
+                <Input
+                  type="text"
+                  id="channel"
+                  value={channelSlug}
+                  onChange={handleInputChange}
+                  placeholder="channel-slug or https://are.na/user/channel-name"
+                  disabled={isLoading}
+                  required
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Enter a channel slug (e.g., &quot;r-startups-founder-mode&quot;) or paste the full URL
+                </p>
+              </div>
 
-          <button
-            type="submit"
-            disabled={isLoading || !channelSlug.trim()}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? 'Syncing...' : 'Sync Channel'}
-          </button>
-        </form>
+              <Button
+                type="submit"
+                disabled={isLoading || !channelSlug.trim()}
+                className="w-full"
+                size="lg"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground mr-2"></div>
+                    Syncing...
+                  </>
+                ) : (
+                  'Sync Channel'
+                )}
+              </Button>
+            </form>
 
-        {status && (
-          <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-md">
-            <p className="text-green-800 text-sm">{status}</p>
-          </div>
-        )}
+            {/* Progress Bar */}
+            {isLoading && (
+              <div className="space-y-2">
+                <div className="text-sm text-muted-foreground">Syncing progress...</div>
+                <div className="w-full bg-muted rounded-full h-2">
+                  <div 
+                    className="bg-primary h-2 rounded-full transition-all duration-300 ease-out"
+                    style={{ width: `${progress}%` }}
+                  ></div>
+                </div>
+              </div>
+            )}
 
-        {error && (
-          <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-red-800 text-sm">{error}</p>
-          </div>
-        )}
+            {/* Success Status */}
+            {status && !error && (
+              <div className="p-4 bg-green-50 border border-green-200 rounded-md">
+                <p className="text-green-800 text-sm">{status}</p>
+                {syncDetails.channelTitle && (
+                  <div className="mt-2 text-xs text-green-700">
+                    <p>Channel: {syncDetails.channelTitle}</p>
+                    <p>Processed: {syncDetails.processedBlocks} blocks</p>
+                  </div>
+                )}
+              </div>
+            )}
 
-        <div className="mt-8 text-center">
-          <p className="text-xs text-gray-500">
-            Already synced a channel?{' '}
-            <button
-              onClick={() => router.push('/generate')}
-              className="text-blue-600 hover:text-blue-700"
-            >
-              Go to Generate
-            </button>
-          </p>
+            {/* Error Display */}
+            {error && (
+              <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-md">
+                <p className="text-destructive text-sm">{error}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setError(null);
+                    setStatus(null);
+                    setProgress(0);
+                  }}
+                  className="mt-2"
+                >
+                  Try Again
+                </Button>
+              </div>
+            )}
+
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground">
+                Already synced a channel?{' '}
+                <Button
+                  variant="link"
+                  onClick={() => router.push('/generate')}
+                  className="p-0 h-auto text-xs"
+                >
+                  Go to Generate
+                </Button>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }

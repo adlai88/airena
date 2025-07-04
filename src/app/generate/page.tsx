@@ -2,11 +2,20 @@
 
 import { useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DIGEST_TEMPLATES, buildPrompt, type DigestTemplate } from '@/lib/digest-templates';
+import { Layout } from '@/components/layout';
+
+type GenerationStage = 'template-selection' | 'customization' | 'generation' | 'result';
 
 function GenerateContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [channelSlug, setChannelSlug] = useState(searchParams.get('channel') || '');
+  const [channelSlug] = useState(searchParams.get('channel') || 'r-startups-founder-mode');
+  const [stage, setStage] = useState<GenerationStage>('template-selection');
+  const [selectedTemplate, setSelectedTemplate] = useState<DigestTemplate | null>(null);
   const [options, setOptions] = useState<{
     tone: 'professional' | 'casual' | 'analytical' | 'personal';
     length: 'brief' | 'standard' | 'detailed';
@@ -18,22 +27,29 @@ function GenerateContent() {
   });
   
   const [completion, setCompletion] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const handleGenerate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!channelSlug.trim()) {
-      alert('Please enter a channel slug');
+  const handleTemplateSelect = (template: DigestTemplate) => {
+    setSelectedTemplate(template);
+    setOptions(template.defaultOptions);
+    setStage('customization');
+  };
+
+  const handleGenerate = async () => {
+    if (!selectedTemplate) {
+      alert('Please select a template first');
       return;
     }
 
-    setIsLoading(true);
     setError(null);
     setCompletion('');
+    setStage('generation');
 
     try {
+      // Build the prompt using the template
+      const prompt = buildPrompt(selectedTemplate, channelSlug, 0, options);
+      
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: {
@@ -41,6 +57,7 @@ function GenerateContent() {
         },
         body: JSON.stringify({
           channelSlug,
+          customPrompt: prompt,
           options,
         }),
       });
@@ -66,11 +83,21 @@ function GenerateContent() {
         result += chunk;
         setCompletion(result);
       }
+      
+      setStage('result');
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Generation failed'));
+      setStage('customization');
     } finally {
-      setIsLoading(false);
+      // Generation complete
     }
+  };
+
+  const handleStartOver = () => {
+    setStage('template-selection');
+    setSelectedTemplate(null);
+    setCompletion('');
+    setError(null);
   };
 
   const handleCopyToClipboard = async () => {
@@ -95,171 +122,234 @@ function GenerateContent() {
       }
       document.body.removeChild(textArea);
     }
-  };;
+  };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto py-8 px-4">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Generate Newsletter
-          </h1>
-          <p className="text-gray-600">
-            Create AI-powered insights from your curated Are.na content
-          </p>
-        </div>
-
-        {/* Controls */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <form onSubmit={handleGenerate} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Channel Slug
-                </label>
-                <input
-                  type="text"
-                  value={channelSlug}
-                  onChange={(e) => setChannelSlug(e.target.value)}
-                  placeholder="r-startups-founder-mode"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tone
-                </label>
-                <select
-                  value={options.tone}
-                  onChange={(e) => setOptions({...options, tone: e.target.value as 'professional' | 'casual' | 'analytical' | 'personal'})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-                >
-                  <option value="professional">Professional</option>
-                  <option value="casual">Casual</option>
-                  <option value="analytical">Analytical</option>
-                  <option value="personal">Personal</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Length
-                </label>
-                <select
-                  value={options.length}
-                  onChange={(e) => setOptions({...options, length: e.target.value as 'brief' | 'standard' | 'detailed'})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-                >
-                  <option value="brief">Brief</option>
-                  <option value="standard">Standard</option>
-                  <option value="detailed">Detailed</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Focus
-                </label>
-                <select
-                  value={options.focus}
-                  onChange={(e) => setOptions({...options, focus: e.target.value as 'insights' | 'resources' | 'trends' | 'actionable'})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-                >
-                  <option value="insights">Key Insights</option>
-                  <option value="resources">Resources</option>
-                  <option value="trends">Trends</option>
-                  <option value="actionable">Actionable</option>
-                </select>
-              </div>
-            </div>
-            
-            <div className="flex gap-4">
-              <button
-                type="submit"
-                disabled={isLoading || !channelSlug.trim()}
-                className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? 'Generating...' : 'Generate Newsletter'}
-              </button>
-              
-              <button
-                type="button"
-                onClick={() => router.push('/chat')}
-                className="bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
-              >
-                Switch to Chat
-              </button>
-            </div>
-          </form>
-        </div>
-
-        {/* Output */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Newsletter</h2>
-            {completion && (
-              <button
-                onClick={handleCopyToClipboard}
-                className="text-sm text-blue-600 hover:text-blue-700"
-              >
-                {copied ? 'Copied!' : 'Copy to Clipboard'}
-              </button>
-            )}
+  // Template Selection Stage
+  if (stage === 'template-selection') {
+    return (
+      <Layout>
+        <div className="max-w-4xl mx-auto py-16 px-4">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-foreground mb-4">
+              Choose Your Digest Template
+            </h1>
+            <p className="text-xl text-muted-foreground mb-2">
+              Channel: <span className="font-medium text-foreground">{channelSlug}</span>
+            </p>
+            <p className="text-lg text-muted-foreground">
+              Select a template to structure your AI-generated content
+            </p>
           </div>
-          
-          {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-red-800 text-sm">{error.message}</p>
-            </div>
-          )}
-          
-          <div className="prose max-w-none">
-            {isLoading && !completion && (
-              <div className="flex items-center text-gray-500">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-500 mr-2"></div>
-                Generating newsletter...
-              </div>
-            )}
-            
-            {completion ? (
-              <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
-                {completion}
-              </div>
-            ) : !isLoading && (
-              <p className="text-gray-500 italic">
-                Configure your settings above and click &quot;Generate Newsletter&quot; to create your AI-powered content digest.
-              </p>
-            )}
-          </div>
-        </div>
 
-        {/* Navigation */}
-        <div className="mt-8 text-center">
-          <p className="text-sm text-gray-500">
-            Need to sync a different channel?{' '}
-            <button
-              onClick={() => router.push('/setup')}
-              className="text-blue-600 hover:text-blue-700"
+          <div className="space-y-6">
+            {DIGEST_TEMPLATES.map((template) => (
+              <Card key={template.id} className="cursor-pointer hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="text-2xl">{template.name}</CardTitle>
+                  <CardDescription className="text-base">{template.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    onClick={() => handleTemplateSelect(template)}
+                    className="w-full"
+                    size="lg"
+                  >
+                    Use This Template
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="text-center mt-12">
+            <Button 
+              variant="ghost" 
+              onClick={() => router.push(`/options?channel=${channelSlug}`)}
             >
-              Back to Setup
-            </button>
+              ← Back to Options
+            </Button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Customization Stage
+  if (stage === 'customization') {
+    return (
+      <Layout>
+        <div className="max-w-4xl mx-auto py-16 px-4">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-foreground mb-4">
+              Customize Your {selectedTemplate?.name}
+            </h1>
+            <p className="text-xl text-muted-foreground mb-2">
+              Channel: <span className="font-medium text-foreground">{channelSlug}</span>
+            </p>
+            <p className="text-lg text-muted-foreground">
+              Fine-tune the generation options
+            </p>
+          </div>
+
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Generation Options</CardTitle>
+              <CardDescription>Customize how your digest will be generated</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Tone
+                  </label>
+                  <Select value={options.tone} onValueChange={(value) => setOptions({...options, tone: value as typeof options.tone})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="professional">Professional</SelectItem>
+                      <SelectItem value="casual">Casual</SelectItem>
+                      <SelectItem value="analytical">Analytical</SelectItem>
+                      <SelectItem value="personal">Personal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Length
+                  </label>
+                  <Select value={options.length} onValueChange={(value) => setOptions({...options, length: value as typeof options.length})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="brief">Brief</SelectItem>
+                      <SelectItem value="standard">Standard</SelectItem>
+                      <SelectItem value="detailed">Detailed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Focus
+                  </label>
+                  <Select value={options.focus} onValueChange={(value) => setOptions({...options, focus: value as typeof options.focus})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="insights">Key Insights</SelectItem>
+                      <SelectItem value="resources">Resources</SelectItem>
+                      <SelectItem value="trends">Trends</SelectItem>
+                      <SelectItem value="actionable">Actionable</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <Button onClick={handleGenerate} className="flex-1" size="lg">
+                  Generate Digest
+                </Button>
+                <Button variant="outline" onClick={() => setStage('template-selection')}>
+                  Change Template
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="text-center">
+            <Button 
+              variant="ghost" 
+              onClick={() => router.push(`/chat?channel=${channelSlug}`)}
+            >
+              Switch to Chat Instead
+            </Button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Generation Stage
+  if (stage === 'generation') {
+    return (
+      <Layout>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-6"></div>
+            <h2 className="text-2xl font-bold text-foreground mb-2">Generating Your Digest</h2>
+            <p className="text-lg text-muted-foreground">
+              Processing your curated research from {channelSlug}...
+            </p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Result Stage
+  return (
+    <Layout>
+      <div className="max-w-4xl mx-auto py-16 px-4">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-foreground mb-4">
+            Your {selectedTemplate?.name} ✨
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            Generated from {channelSlug}
           </p>
+        </div>
+
+        <Card className="mb-8">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle>Generated Content</CardTitle>
+              {completion && (
+                <Button variant="outline" onClick={handleCopyToClipboard}>
+                  {copied ? 'Copied!' : 'Copy to Clipboard'}
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {error && (
+              <div className="mb-4 p-4 bg-destructive/10 border border-destructive/20 rounded-md">
+                <p className="text-destructive text-sm">{error.message}</p>
+              </div>
+            )}
+            
+            <div className="min-h-[400px] whitespace-pre-wrap text-foreground leading-relaxed">
+              {completion || 'No content generated'}
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-center gap-4">
+          <Button onClick={handleStartOver}>
+            Generate New Digest
+          </Button>
+          <Button variant="outline" onClick={() => router.push(`/chat?channel=${channelSlug}`)}>
+            Switch to Chat
+          </Button>
+          <Button variant="ghost" onClick={() => router.push('/setup')}>
+            Sync Different Channel
+          </Button>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }
 
 export default function GeneratePage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading generate page...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading generate page...</p>
         </div>
       </div>
     }>

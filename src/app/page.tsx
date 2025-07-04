@@ -3,12 +3,13 @@
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Layout } from '@/components/layout';
 
 export default function HomePage() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-background">
+    <Layout>
       <div className="max-w-6xl mx-auto py-16 px-4">
         {/* Hero Section */}
         <div className="text-center mb-16">
@@ -127,6 +128,6 @@ export default function HomePage() {
           </div>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }

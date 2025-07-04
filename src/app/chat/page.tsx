@@ -2,6 +2,10 @@
 
 import { useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Layout } from '@/components/layout';
 
 function ChatContent() {
   const searchParams = useSearchParams();
@@ -105,44 +109,45 @@ function ChatContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <Layout>
       <div className="max-w-4xl mx-auto py-8 px-4">
         {/* Header */}
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
             Chat with Your Research
           </h1>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Ask questions about your curated Are.na content
           </p>
         </div>
 
         {/* Channel Selector */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-          <div className="flex gap-4 items-end">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Channel Slug
-              </label>
-              <input
-                type="text"
-                value={channelSlug}
-                onChange={(e) => setChannelSlug(e.target.value)}
-                placeholder="r-startups-founder-mode"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-              />
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <div className="flex gap-4 items-end">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Channel Slug
+                </label>
+                <Input
+                  type="text"
+                  value={channelSlug}
+                  onChange={(e) => setChannelSlug(e.target.value)}
+                  placeholder="r-startups-founder-mode"
+                />
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => router.push(`/generate?channel=${channelSlug}`)}
+              >
+                Switch to Generate
+              </Button>
             </div>
-            <button
-              onClick={() => router.push('/generate')}
-              className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
-            >
-              Switch to Generate
-            </button>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Chat Container */}
-        <div className="bg-white rounded-lg shadow-sm">
+        <Card>
           {/* Messages */}
           <div className="h-96 overflow-y-auto p-6 space-y-4">
             {messages.map((message) => (
@@ -151,23 +156,23 @@ function ChatContent() {
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-3xl px-4 py-2 rounded-lg ${
+                  className={`max-w-3xl px-4 py-3 rounded-lg ${
                     message.role === 'user'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-800'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-muted-foreground'
                   }`}
                 >
-                  <div className="whitespace-pre-wrap">{message.content}</div>
+                  <div className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</div>
                 </div>
               </div>
             ))}
             
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg">
+                <div className="bg-muted text-muted-foreground px-4 py-3 rounded-lg">
                   <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-500 mr-2"></div>
-                    Thinking...
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                    <span className="text-sm">Thinking...</span>
                   </div>
                 </div>
               </div>
@@ -177,81 +182,87 @@ function ChatContent() {
           {/* Error Display */}
           {error && (
             <div className="px-6 pb-2">
-              <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                <p className="text-red-800 text-sm">{error.message}</p>
+              <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                <p className="text-destructive text-sm">{error.message}</p>
               </div>
             </div>
           )}
 
           {/* Input Form */}
-          <div className="border-t border-gray-200 p-6">
+          <div className="border-t border-border p-6">
             <form onSubmit={handleChatSubmit} className="flex gap-4">
-              <input
+              <Input
                 type="text"
                 value={input}
                 onChange={handleInputChange}
                 placeholder="Ask about your research... (e.g., 'What are the key insights about founder mode?')"
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                 disabled={isLoading}
+                className="flex-1"
               />
-              <button
+              <Button
                 type="submit"
                 disabled={isLoading || !input.trim() || !channelSlug.trim()}
-                className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Send
-              </button>
+              </Button>
             </form>
           </div>
-        </div>
+        </Card>
 
         {/* Suggested Questions */}
-        <div className="mt-6 bg-white rounded-lg shadow-sm p-6">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">Suggested Questions:</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {[
-              "What are the main themes in this research?",
-              "Summarize the key insights",
-              "What tools or resources are mentioned?",
-              "What are the practical takeaways?",
-              "How do these ideas connect together?",
-              "What trends are emerging?"
-            ].map((question, index) => (
-              <button
-                key={index}
-                onClick={() => setInput(question)}
-                className="text-left text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 p-2 rounded"
-              >
-                {question}
-              </button>
-            ))}
-          </div>
-        </div>
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="text-lg">Suggested Questions</CardTitle>
+            <CardDescription>Click any question to get started</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {[
+                "What are the main themes in this research?",
+                "Summarize the key insights",
+                "What tools or resources are mentioned?",
+                "What are the practical takeaways?",
+                "How do these ideas connect together?",
+                "What trends are emerging?"
+              ].map((question, index) => (
+                <Button
+                  key={index}
+                  variant="ghost"
+                  onClick={() => setInput(question)}
+                  className="text-left justify-start h-auto p-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted"
+                >
+                  {question}
+                </Button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Navigation */}
         <div className="mt-8 text-center">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             Need to sync a different channel?{' '}
-            <button
+            <Button
+              variant="link"
               onClick={() => router.push('/setup')}
-              className="text-blue-600 hover:text-blue-700"
+              className="p-0 h-auto text-sm"
             >
               Back to Setup
-            </button>
+            </Button>
           </p>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }
 
 export default function ChatPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading chat interface...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading chat interface...</p>
         </div>
       </div>
     }>

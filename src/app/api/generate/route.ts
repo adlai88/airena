@@ -2,11 +2,10 @@
 import { streamText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { supabase } from '@/lib/supabase';
-import { PromptTemplates, NewsletterOptions, ContextBlock } from '@/lib/templates';
 
 export async function POST(req: Request) {
   try {
-    const { channelSlug, options = {}, customPrompt } = await req.json();
+    const { channelSlug, customPrompt } = await req.json();
 
     if (!channelSlug) {
       return new Response('Channel slug is required', { status: 400 });
@@ -40,19 +39,29 @@ export async function POST(req: Request) {
       return new Response('No content found for this channel', { status: 404 });
     }
 
-    // Prepare context blocks
-    const contextBlocks: ContextBlock[] = blocks.map(block => ({
-      title: block.title || 'Untitled',
-      url: block.url || '',
-      content: block.content || block.description || '',
-    }));
+    // Prepare context from blocks for the template
+    const contextText = blocks.map(block => {
+      const title = block.title || 'Untitled';
+      const content = block.content || block.description || '';
+      const url = block.url || '';
+      
+      return `**${title}**${url ? ` (${url})` : ''}\n${content}`;
+    }).join('\n\n---\n\n');
 
-    // Generate prompt
-    const prompt = customPrompt || PromptTemplates.newsletter(
-      contextBlocks,
-      channel.title,
-      options as NewsletterOptions
-    );
+    // If we have a custom prompt (from new digest templates), use it with proper context
+    let prompt: string;
+    if (customPrompt) {
+      // Replace template variables with actual data
+      prompt = customPrompt
+        .replace('{channel_title}', channel.title)
+        .replace('{block_count}', blocks.length.toString());
+      
+      // Add the actual content context
+      prompt += `\n\nContext from ${channel.title} channel (${blocks.length} sources):\n\n${contextText}`;
+    } else {
+      // Fallback to a simple prompt if no custom template
+      prompt = `Create a research digest from the following curated content from the "${channel.title}" channel:\n\n${contextText}`;
+    }
 
     // Stream the response
     const result = await streamText({
