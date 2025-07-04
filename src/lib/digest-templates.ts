@@ -15,8 +15,8 @@ export interface DigestTemplate {
 export const DIGEST_TEMPLATES: DigestTemplate[] = [
   {
     id: 'newsletter',
-    name: 'Newsletter Digest',
-    description: 'Professional newsletter format with executive summary, key insights, and actionable takeaways',
+    name: 'Digest',
+    description: 'A roundup of key insights and actionable takeaways from your are.na content',
     prompt: `You are creating a professional newsletter digest from curated research blocks.
 
 Create a newsletter with the following structure:
