@@ -1,45 +1,16 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Layout } from '@/components/layout';
 import { PromptTemplates } from '@/lib/templates';
+import { useChannel } from '@/hooks/useChannel';
 
 function ChatContent() {
-  const searchParams = useSearchParams();
-  const [channelSlug, setChannelSlug] = useState('r-startups-founder-mode'); // fallback
+  const { channelSlug } = useChannel();
   const [previousChannelSlug, setPreviousChannelSlug] = useState<string | null>(null);
-
-  // Get actual connected channel on mount
-  useEffect(() => {
-    const getConnectedChannel = async () => {
-      try {
-        const response = await fetch('/api/channel-info');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.channelSlug) {
-            console.log('Chat: Got channel from API:', data.channelSlug);
-            setChannelSlug(data.channelSlug);
-          }
-        }
-      } catch {
-        console.log('Chat: Using fallback channel');
-      }
-    };
-
-    // Check URL params first, then database
-    const urlChannel = searchParams.get('channel');
-    if (urlChannel) {
-      console.log('Chat: Got channel from URL:', urlChannel);
-      setChannelSlug(urlChannel);
-    } else {
-      console.log('Chat: No URL channel, fetching from API');
-      getConnectedChannel();
-    }
-  }, [searchParams]);
 
   const [messages, setMessages] = useState<Array<{
     id: string;
@@ -49,6 +20,7 @@ function ChatContent() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [isRestoringMessages, setIsRestoringMessages] = useState(true);
 
   // Restore chat messages from session storage on load
   useEffect(() => {
@@ -65,6 +37,7 @@ function ChatContent() {
         sessionStorage.removeItem('airena-chat-messages');
       }
     }
+    setIsRestoringMessages(false);
   }, []);
 
   // Save messages to session storage whenever messages change
@@ -85,8 +58,11 @@ function ChatContent() {
       sessionStorage.removeItem('airena-chat-messages');
       setError(null);
     }
-    setPreviousChannelSlug(channelSlug);
-  }, [channelSlug, previousChannelSlug]);
+    // Only set previousChannelSlug after restoration is complete to avoid false channel changes
+    if (!isRestoringMessages) {
+      setPreviousChannelSlug(channelSlug);
+    }
+  }, [channelSlug, previousChannelSlug, isRestoringMessages]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
@@ -175,8 +151,8 @@ function ChatContent() {
     }
   };
 
-  // Determine if the user has sent a message
-  const hasUserMessage = messages.some(m => m.role === 'user');
+  // Determine if the user has sent a message (wait for restoration to complete)
+  const hasUserMessage = !isRestoringMessages && messages.some(m => m.role === 'user');
 
   // Get channel title for better question suggestions
   const [channelTitle, setChannelTitle] = useState('');
@@ -201,6 +177,20 @@ function ChatContent() {
   // Dynamic suggested questions based on channel content
   const suggestedQuestions = PromptTemplates.getSuggestedQuestions(channelTitle || channelSlug);
 
+  // Show loading state while restoring messages
+  if (isRestoringMessages) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading chat...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   if (!hasUserMessage) {
     // First view: Centered input and suggestions
     return (
@@ -216,7 +206,14 @@ function ChatContent() {
               </p>
               <div className="flex justify-center mb-4">
                 <Badge variant="secondary" className="px-3 py-1">
-                  🔗 Connected to: {channelSlug}
+                  🔗 Connected to: <a 
+                    href={`https://are.na/${channelSlug}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="underline hover:no-underline transition-all"
+                  >
+                    {channelSlug}
+                  </a>
                 </Badge>
               </div>
             </div>

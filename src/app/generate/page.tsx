@@ -1,46 +1,21 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { NEWSLETTER_TEMPLATES, buildPrompt, type NewsletterTemplate } from '@/lib/newsletter-templates';
 import { Layout } from '@/components/layout';
 import { PageHeader } from '@/components/page-header';
+import { useChannel } from '@/hooks/useChannel';
 import { Badge } from '@/components/ui/badge';
 
 type GenerationStage = 'template-selection' | 'customization' | 'generation' | 'result';
 
 function GenerateContent() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const [channelSlug, setChannelSlug] = useState('r-startups-founder-mode'); // fallback
-
-  // Get actual connected channel on mount
-  useEffect(() => {
-    const getConnectedChannel = async () => {
-      try {
-        const response = await fetch('/api/channel-info');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.channelSlug) {
-            setChannelSlug(data.channelSlug);
-          }
-        }
-      } catch {
-        console.log('Using fallback channel');
-      }
-    };
-
-    // Check URL params first, then database
-    const urlChannel = searchParams.get('channel');
-    if (urlChannel) {
-      setChannelSlug(urlChannel);
-    } else {
-      getConnectedChannel();
-    }
-  }, [searchParams]);
+  const { channelSlug } = useChannel();
   const [stage, setStage] = useState<GenerationStage>('template-selection');
   const [selectedTemplate, setSelectedTemplate] = useState<NewsletterTemplate | null>(null);
   const [options, setOptions] = useState<{
@@ -163,7 +138,14 @@ function GenerateContent() {
           {/* Connected Channel Badge */}
           <div className="flex justify-center mb-8">
             <Badge variant="secondary" className="px-3 py-1">
-              🔗 Connected to: {channelSlug}
+              🔗 Connected to: <a 
+                href={`https://are.na/${channelSlug}`} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="underline hover:no-underline transition-all"
+              >
+                {channelSlug}
+              </a>
             </Badge>
           </div>
 
@@ -203,7 +185,14 @@ function GenerateContent() {
           {/* Connected Channel Badge */}
           <div className="flex justify-center mb-8">
             <Badge variant="secondary" className="px-3 py-1">
-              🔗 Connected to: {channelSlug}
+              🔗 Connected to: <a 
+                href={`https://are.na/${channelSlug}`} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="underline hover:no-underline transition-all"
+              >
+                {channelSlug}
+              </a>
             </Badge>
           </div>
 

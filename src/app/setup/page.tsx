@@ -9,11 +9,11 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Layout } from '@/components/layout';
 import { PageHeader } from '@/components/page-header';
+import { useChannel } from '@/hooks/useChannel';
 
 export default function SetupPage() {
+  const { channelSlug: connectedChannel, isDefault: isDefaultChannel } = useChannel();
   const [channelSlug, setChannelSlug] = useState('');
-  const [connectedChannel, setConnectedChannel] = useState<string | null>(null);
-  const [isDefaultChannel, setIsDefaultChannel] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -32,28 +32,8 @@ export default function SetupPage() {
   }[]>([]);
   const router = useRouter();
 
-  // Check for existing connected channel and load recent channels on mount
+  // Load recent channels on mount
   useEffect(() => {
-    const checkConnectedChannel = async () => {
-      try {
-        // Simple check - try to get channel info from our API
-        const response = await fetch('/api/channel-info', {
-          method: 'GET',
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          if (data.channelSlug) {
-            setConnectedChannel(data.channelSlug);
-            setIsDefaultChannel(data.isDefault || false);
-          }
-        }
-      } catch {
-        // If no channel info available, that's fine - user hasn't synced yet
-        console.log('No existing channel found');
-      }
-    };
-
     const loadRecentChannels = async () => {
       try {
         const response = await fetch('/api/recent-channels');
@@ -66,7 +46,6 @@ export default function SetupPage() {
       }
     };
 
-    checkConnectedChannel();
     loadRecentChannels();
   }, []);
 
@@ -103,9 +82,6 @@ export default function SetupPage() {
           processedBlocks: result.processedBlocks
         });
         setStatus(`Success! Processed ${result.processedBlocks} blocks from "${result.channelTitle || channelSlug}".`);
-        // Update connected channel state
-        setConnectedChannel(channelSlug);
-        setIsDefaultChannel(false); // User-synced channel is not default
         
         // Reload recent channels to include the newly synced channel
         const loadRecentChannels = async () => {
@@ -194,8 +170,6 @@ export default function SetupPage() {
       
       // Update local state IMMEDIATELY
       setChannelSlug(slug);
-      setConnectedChannel(slug);
-      setIsDefaultChannel(false);
       setStatus(null);
       setSyncDetails({
         channelTitle: result.channelTitle,
@@ -226,7 +200,14 @@ export default function SetupPage() {
         {connectedChannel && (
           <div className="flex justify-center mb-6">
             <Badge variant="secondary" className="px-3 py-1">
-              🔗 {isDefaultChannel ? 'Default channel' : 'Connected to'}: {connectedChannel}
+              🔗 {isDefaultChannel ? 'Default channel' : 'Connected to'}: <a 
+                href={`https://are.na/${connectedChannel}`} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="underline hover:no-underline transition-all"
+              >
+                {connectedChannel}
+              </a>
               {isDefaultChannel && <span className="ml-1 text-xs">(curated)</span>}
             </Badge>
           </div>
