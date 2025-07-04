@@ -13,6 +13,7 @@ import { PageHeader } from '@/components/page-header';
 export default function SetupPage() {
   const [channelSlug, setChannelSlug] = useState('');
   const [connectedChannel, setConnectedChannel] = useState<string | null>(null);
+  const [isDefaultChannel, setIsDefaultChannel] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +39,7 @@ export default function SetupPage() {
           const data = await response.json();
           if (data.channelSlug) {
             setConnectedChannel(data.channelSlug);
+            setIsDefaultChannel(data.isDefault || false);
           }
         }
       } catch {
@@ -84,6 +86,7 @@ export default function SetupPage() {
         setStatus(`Success! Processed ${result.processedBlocks} blocks from "${result.channelTitle || channelSlug}".`);
         // Update connected channel state
         setConnectedChannel(channelSlug);
+        setIsDefaultChannel(false); // User-synced channel is not default
         // Show success modal instead of redirecting
         setTimeout(() => {
           setShowSuccessModal(true);
@@ -146,7 +149,8 @@ export default function SetupPage() {
         {connectedChannel && (
           <div className="flex justify-center mb-6">
             <Badge variant="secondary" className="px-3 py-1">
-              🔗 Currently connected to: {connectedChannel}
+              🔗 {isDefaultChannel ? 'Default channel' : 'Connected to'}: {connectedChannel}
+              {isDefaultChannel && <span className="ml-1 text-xs">(curated)</span>}
             </Badge>
           </div>
         )}
@@ -170,7 +174,10 @@ export default function SetupPage() {
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   {connectedChannel ? 
-                    'Enter a different channel slug to switch, or re-sync the current channel' :
+                    (isDefaultChannel ? 
+                      'Switch to your own Are.na channel or re-sync the current channel' :
+                      'Enter a different channel slug to switch, or re-sync the current channel'
+                    ) :
                     'Enter a channel slug (e.g., "r-startups-founder-mode") or paste the full URL'
                   }
                 </p>
@@ -188,7 +195,7 @@ export default function SetupPage() {
                     Syncing...
                   </>
                 ) : (
-                  'Sync Channel'
+                  connectedChannel ? 'Switch Channel' : 'Sync Channel'
                 )}
               </Button>
             </form>

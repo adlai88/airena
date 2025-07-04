@@ -6,6 +6,8 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY!
 );
 
+const DEFAULT_CHANNEL = 'r-startups-founder-mode';
+
 export async function GET() {
   try {
     // Get the most recent channel from the database
@@ -17,16 +19,19 @@ export async function GET() {
 
     if (error) {
       console.error('Error fetching channel info:', error);
-      return NextResponse.json({ channelSlug: null });
+      // Return default channel if database error
+      return NextResponse.json({ channelSlug: DEFAULT_CHANNEL, isDefault: true });
     }
 
     if (channels && channels.length > 0) {
-      return NextResponse.json({ channelSlug: channels[0].slug });
+      return NextResponse.json({ channelSlug: channels[0].slug, isDefault: false });
     }
 
-    return NextResponse.json({ channelSlug: null });
+    // Return default channel if no channels found
+    return NextResponse.json({ channelSlug: DEFAULT_CHANNEL, isDefault: true });
   } catch (error) {
     console.error('Error in channel-info API:', error);
-    return NextResponse.json({ channelSlug: null });
+    // Return default channel if any error occurs
+    return NextResponse.json({ channelSlug: DEFAULT_CHANNEL, isDefault: true });
   }
 }
