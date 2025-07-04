@@ -261,21 +261,6 @@ export default function SetupPage() {
             
             <div className="space-y-3">
               <Button 
-                onClick={() => handleModalAction('generate')}
-                className="w-full h-auto p-4 text-left min-h-[56px] sm:min-h-auto"
-                variant="outline"
-              >
-                <div className="space-y-1">
-                  <div className="font-medium flex items-center gap-2">
-                    📝 Generate Content
-                  </div>
-                  <div className="text-sm text-muted-foreground font-normal">
-                    Create newsletters, summaries, and insights from your research
-                  </div>
-                </div>
-              </Button>
-              
-              <Button 
                 onClick={() => handleModalAction('chat')}
                 className="w-full h-auto p-4 text-left min-h-[56px] sm:min-h-auto"
                 variant="outline"
@@ -286,6 +271,21 @@ export default function SetupPage() {
                   </div>
                   <div className="text-sm text-muted-foreground font-normal">
                     Ask questions and explore your content conversationally
+                  </div>
+                </div>
+              </Button>
+              
+              <Button 
+                onClick={() => handleModalAction('generate')}
+                className="w-full h-auto p-4 text-left min-h-[56px] sm:min-h-auto"
+                variant="outline"
+              >
+                <div className="space-y-1">
+                  <div className="font-medium flex items-center gap-2">
+                    📝 Generate Content
+                  </div>
+                  <div className="text-sm text-muted-foreground font-normal">
+                    Create newsletters, summaries, and insights from your research
                   </div>
                 </div>
               </Button>
