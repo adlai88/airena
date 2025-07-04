@@ -1,91 +1,130 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function HomePage() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="max-w-4xl mx-auto py-16 px-4 text-center">
+    <div className="min-h-screen bg-background">
+      <div className="max-w-6xl mx-auto py-16 px-4">
         {/* Hero Section */}
-        <div className="mb-12">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
+        <div className="text-center mb-16">
+          <h1 className="text-6xl font-bold text-foreground mb-6">
             Airena
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Transform your curated Are.na channels into an intelligent agent. 
-            Generate newsletters, reports, and insights using AI powered by your own research.
+          <p className="text-2xl text-muted-foreground mb-4 max-w-3xl mx-auto">
+            Turn your are.na channels into a personal intelligence agent
           </p>
-          <p className="text-lg text-gray-700 font-medium mb-8">
-            Your curation advantage becomes your intelligence advantage.
+          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Generate newsletters and insights from your curated research. 
+            This is software 3.0 – generating knowledge from your curation.
           </p>
         </div>
 
         {/* CTA Buttons */}
-        <div className="space-y-4 mb-12">
-          <button
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+          <Button 
+            size="lg" 
+            onClick={() => router.push('/generate?channel=r-startups-founder-mode')}
+            className="text-lg px-8 py-4 h-12"
+          >
+            Try Demo
+          </Button>
+          <Button 
+            variant="outline" 
+            size="lg"
             onClick={() => router.push('/setup')}
-            className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="text-lg px-8 py-4 h-12"
           >
             Get Started
-          </button>
-          
-          <div className="text-sm text-gray-500">
-            or try with our demo channel:{' '}
+          </Button>
+        </div>
+        
+        <div className="text-center mb-16">
+          <p className="text-sm text-muted-foreground">
+            Try with our demo channel:{' '}
             <button
               onClick={() => router.push('/generate?channel=r-startups-founder-mode')}
-              className="text-blue-600 hover:text-blue-700 underline"
+              className="text-primary hover:underline font-medium"
             >
               r-startups-founder-mode
             </button>
-          </div>
+          </p>
         </div>
 
         {/* Features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Smart Sync</h3>
-            <p className="text-gray-600">
-              Connect your Are.na channel and we&apos;ll extract content from all your curated links using AI.
-            </p>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Extract Content</CardTitle>
+              <CardDescription>
+                From websites, PDFs, videos, and more
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Connect your Are.na channel and we&apos;ll automatically extract and process content from all your curated links.
+              </p>
+            </CardContent>
+          </Card>
           
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">AI Generation</h3>
-            <p className="text-gray-600">
-              Generate newsletters, reports, and insights with streaming AI responses powered by your research.
-            </p>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Generate AI Newsletters</CardTitle>
+              <CardDescription>
+                From your are.na channels
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Transform your research into professional newsletters, summaries, and insights with AI-powered generation.
+              </p>
+            </CardContent>
+          </Card>
           
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Chat Interface</h3>
-            <p className="text-gray-600">
-              Ask questions about your curated content and get contextual answers with source attribution.
-            </p>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Chat with Your Research</CardTitle>
+              <CardDescription>
+                Real-time streaming responses
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Ask questions about your curated content and get contextual answers with source attribution.
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Navigation */}
-        <div className="flex justify-center space-x-6 text-sm">
-          <button
-            onClick={() => router.push('/setup')}
-            className="text-blue-600 hover:text-blue-700"
-          >
-            Setup Channel
-          </button>
-          <button
-            onClick={() => router.push('/generate')}
-            className="text-blue-600 hover:text-blue-700"
-          >
-            Generate Newsletter
-          </button>
-          <button
-            onClick={() => router.push('/chat')}
-            className="text-blue-600 hover:text-blue-700"
-          >
-            Chat Interface
-          </button>
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground mb-6">
+            Ready to transform your curation into intelligence?
+          </p>
+          <div className="flex justify-center space-x-6 text-sm">
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/setup')}
+            >
+              Setup Channel
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/generate')}
+            >
+              Generate Digest
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/chat')}
+            >
+              Chat Interface
+            </Button>
+          </div>
         </div>
       </div>
     </div>

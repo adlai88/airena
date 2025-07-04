@@ -538,14 +538,110 @@ npx vercel --prod
 - **Status**: Ready to discuss UI improvements before implementation
 - **Approach**: Evaluate v0-generated designs for integration into main app
 
-## Next Steps After MVP
+## 📋 Phase 6: UI Enhancement Implementation Plan
 
-1. **UI/UX Enhancement**: Integrate designs from v0-airena-ui-design repository
-2. **Multi-content support**: Add PDF, YouTube, image processing
-3. **Multiple channels**: Support for channel combinations
-4. **Advanced templates**: Research reports, brainstorming
-5. **Payment integration**: Polar.sh subscription management
-6. **Auto-sync**: Webhook integration for real-time updates
+### **🎯 Goals & Scope**
+- Gradually migrate from basic Tailwind to professional shadcn/ui component system
+- Improve homepage messaging and overall app styling
+- Add post-sync options page for Generate/Chat mode selection
+- Implement template-based generation starting with "Digest" template
+- Maintain production stability throughout migration
+
+### **🏗️ Component Migration Strategy**
+- **Incremental Approach**: Replace components page-by-page, feature-by-feature
+- **Foundation First**: Install shadcn/ui and core components before page updates
+- **High-Impact Priority**: Focus on user-facing pages (home, generate, chat)
+- **Testing**: Verify each migration works before moving to next component
+
+### **📈 Implementation Phases**
+
+#### **Phase 6.1: Foundation Setup** ✅ **COMPLETED**
+**Goal**: Install component library and update homepage
+- [x] Install and configure shadcn/ui component library
+- [x] Set up base components: Button, Card, Input, Select
+- [x] Update homepage with v0 messaging and styling
+- [x] Test build and deployment
+- **Success Criteria**: ✅ Homepage shows new messaging, build passes, components work
+
+#### **Phase 6.2: Core User Flow**
+**Goal**: Implement post-sync options and Digest template
+- [ ] Create post-sync options page (Generate vs Chat mode selection)
+- [ ] Update setup page to redirect to options after sync
+- [ ] Design Digest template system for generate page
+- [ ] Implement template selection UI with Digest as first option
+- **Success Criteria**: Users can choose Generate/Chat, Digest template works
+
+#### **Phase 6.3: Generate Page Enhancement**
+**Goal**: Complete template-based generation experience
+- [ ] Replace generate page with template-driven interface
+- [ ] Implement Digest template with structured prompts
+- [ ] Add template customization options (tone, length, focus)
+- [ ] Improve streaming UI with better loading states
+- **Success Criteria**: Digest generates better output than current free-form
+
+#### **Phase 6.4: Chat Page Enhancement**
+**Goal**: Apply new styling to chat interface
+- [ ] Update chat page with shadcn/ui components
+- [ ] Improve message display and input styling
+- [ ] Add better loading states and error handling
+- [ ] Enhance suggested questions UI
+- **Success Criteria**: Chat interface matches new design system
+
+#### **Phase 6.5: Setup Page Enhancement**
+**Goal**: Improve onboarding experience
+- [ ] Add progress tracking during sync process
+- [ ] Better error handling and user feedback
+- [ ] Improve form styling and validation
+- [ ] Add channel preview/stats after sync
+- **Success Criteria**: Sync process feels more guided and professional
+
+#### **Phase 6.6: Navigation & Layout**
+**Goal**: Complete design system implementation
+- [ ] Add proper header navigation (without auth for now)
+- [ ] Implement footer with standard links
+- [ ] Ensure consistent styling across all pages
+- [ ] Mobile responsiveness testing
+- **Success Criteria**: Cohesive design throughout app
+
+### **🎨 Design System Components Priority**
+1. **Core**: Button, Card, Input, Select, Textarea
+2. **Layout**: Navigation, Footer, Container, Grid
+3. **Feedback**: Loading, Toast, Alert, Progress
+4. **Advanced**: Dialog, Dropdown, Tabs, Accordion
+
+### **📝 Template Roadmap**
+- **Phase 6.2-6.3**: Digest Template (synthesize curated content)
+- **Future Phase 7**: Report Template (digest + additional web research)
+- **Future Phase 8**: Brief Template (ultra-short summary)
+- **Future Phase 9**: Analysis Template (deep analytical insights)
+
+### **🧪 Testing Strategy**
+- [ ] Verify build passes after each phase
+- [ ] Test core user flows (sync → options → generate/chat)
+- [ ] Mobile responsiveness check
+- [ ] Performance impact assessment
+- [ ] User feedback on improved flows
+
+### **🚫 Out of Scope (Future Phases)**
+- Authentication and user accounts
+- Pricing page implementation
+- Multi-channel support
+- Advanced templates beyond Digest
+- Payment integration
+
+### **📊 Success Metrics**
+- **Technical**: Build time ≤ 15s, no TypeScript errors, no runtime errors
+- **User Experience**: Improved flow completion rates, better visual hierarchy
+- **Performance**: Page load times ≤ 2s, smooth animations
+- **Quality**: Consistent design language, professional appearance
+
+## Next Steps After UI Enhancement
+
+1. **Multi-content support**: Add PDF, YouTube, image processing
+2. **Multiple channels**: Support for channel combinations
+3. **Advanced templates**: Research reports, brainstorming
+4. **Payment integration**: Polar.sh subscription management
+5. **Auto-sync**: Webhook integration for real-time updates
 
 ## Common Issues & Solutions
 
