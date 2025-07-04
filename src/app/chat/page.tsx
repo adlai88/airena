@@ -151,7 +151,7 @@ function ChatContent() {
         {/* Chat Container */}
         <Card>
           {/* Messages */}
-          <div className="h-64 sm:h-96 overflow-y-auto p-4 sm:p-6 space-y-3 sm:space-y-4">
+          <div className="h-64 sm:h-96 overflow-y-scroll p-4 sm:p-6 space-y-3 sm:space-y-4">
             {messages.map((message) => (
               <div
                 key={message.id}

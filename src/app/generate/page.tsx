@@ -196,7 +196,7 @@ function GenerateContent() {
     return (
       <Layout>
         <PageHeader 
-          title={`Customize Your Digest`}
+          title={`Customize Your ${selectedTemplate?.name}`}
           subtitle="Fine-tune the generation options"
         />
         <div className="max-w-4xl mx-auto pb-8 sm:pb-16 px-4 sm:px-6">
