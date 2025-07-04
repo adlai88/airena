@@ -1,6 +1,6 @@
 # Airena v2
 
-Transform your curated Are.na channels into an intelligent AI agent that generates content from your own research.
+Transform your curated Are.na channels into an intelligence AI agent that generates content from your own research.
 
 ## Overview
 
