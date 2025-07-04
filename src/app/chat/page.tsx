@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Layout } from '@/components/layout';
+import { PromptTemplates } from '@/lib/templates';
 
 function ChatContent() {
   const searchParams = useSearchParams();
@@ -177,15 +178,28 @@ function ChatContent() {
   // Determine if the user has sent a message
   const hasUserMessage = messages.some(m => m.role === 'user');
 
-  // Suggested questions
-  const suggestedQuestions = [
-    "What are the main themes in this channel?",
-    "Summarize the key content",
-    "What are the common topics or patterns?",
-    "What can I learn from this collection?",
-    "How do these items connect together?",
-    "What stands out the most?"
-  ];
+  // Get channel title for better question suggestions
+  const [channelTitle, setChannelTitle] = useState('');
+  
+  // Fetch channel title when channelSlug changes
+  useEffect(() => {
+    const fetchChannelTitle = async () => {
+      try {
+        const response = await fetch('/api/channel-info');
+        if (response.ok) {
+          const data = await response.json();
+          setChannelTitle(data.channelTitle || channelSlug);
+        }
+      } catch {
+        setChannelTitle(channelSlug);
+      }
+    };
+    
+    fetchChannelTitle();
+  }, [channelSlug]);
+
+  // Dynamic suggested questions based on channel content
+  const suggestedQuestions = PromptTemplates.getSuggestedQuestions(channelTitle || channelSlug);
 
   if (!hasUserMessage) {
     // First view: Centered input and suggestions
