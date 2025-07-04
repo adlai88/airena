@@ -24,9 +24,15 @@ export default function SetupPage() {
     processedBlocks?: number;
   }>({});
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [recentChannels, setRecentChannels] = useState<{
+    slug: string;
+    title: string;
+    lastSync: string;
+    blockCount: number;
+  }[]>([]);
   const router = useRouter();
 
-  // Check for existing connected channel on mount
+  // Check for existing connected channel and load recent channels on mount
   useEffect(() => {
     const checkConnectedChannel = async () => {
       try {
@@ -48,7 +54,20 @@ export default function SetupPage() {
       }
     };
 
+    const loadRecentChannels = async () => {
+      try {
+        const response = await fetch('/api/recent-channels');
+        if (response.ok) {
+          const data = await response.json();
+          setRecentChannels(data.channels || []);
+        }
+      } catch {
+        console.log('Failed to load recent channels');
+      }
+    };
+
     checkConnectedChannel();
+    loadRecentChannels();
   }, []);
 
   const handleSync = async (e: React.FormEvent) => {
@@ -87,6 +106,21 @@ export default function SetupPage() {
         // Update connected channel state
         setConnectedChannel(channelSlug);
         setIsDefaultChannel(false); // User-synced channel is not default
+        
+        // Reload recent channels to include the newly synced channel
+        const loadRecentChannels = async () => {
+          try {
+            const response = await fetch('/api/recent-channels');
+            if (response.ok) {
+              const data = await response.json();
+              setRecentChannels(data.channels || []);
+            }
+          } catch {
+            console.log('Failed to load recent channels');
+          }
+        };
+        loadRecentChannels();
+        
         // Show success modal instead of redirecting
         setTimeout(() => {
           setShowSuccessModal(true);
@@ -134,6 +168,31 @@ export default function SetupPage() {
         setError(null);
         setSyncDetails({});
         break;
+    }
+  };
+
+  const handleQuickSwitch = (slug: string) => {
+    // Set the channel slug and mark as connected
+    setChannelSlug(slug);
+    setConnectedChannel(slug);
+    setIsDefaultChannel(false);
+    setStatus(null);
+    setError(null);
+    setSyncDetails({});
+    
+    // Find the channel info to show in success modal
+    const channel = recentChannels.find(ch => ch.slug === slug);
+    if (channel) {
+      setSyncDetails({
+        channelTitle: channel.title,
+        processedBlocks: channel.blockCount,
+      });
+      // Don't set status - the modal is sufficient feedback
+      
+      // Show success modal for quick switching
+      setTimeout(() => {
+        setShowSuccessModal(true);
+      }, 500);
     }
   };
 
@@ -199,6 +258,41 @@ export default function SetupPage() {
                 )}
               </Button>
             </form>
+
+            {/* Available Channels Section */}
+            {recentChannels.length > 0 && (
+              <div className="pt-4 border-t">
+                <h3 className="text-sm font-medium text-foreground mb-2">Available Channels</h3>
+                <p className="text-xs text-muted-foreground mb-3">Channels ready to use (synced by community) - click any to switch instantly</p>
+                <div className="grid gap-2">
+                  {recentChannels.slice(0, 5).map((channel) => (
+                    <div
+                      key={channel.slug}
+                      className={`p-3 rounded-lg border cursor-pointer transition-all hover:border-primary/50 hover:bg-muted/50 ${
+                        connectedChannel === channel.slug ? 'border-primary bg-primary/5' : 'border-border'
+                      }`}
+                      onClick={() => handleQuickSwitch(channel.slug)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm truncate">
+                            {channel.title || channel.slug}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {channel.blockCount} blocks • Last synced {new Date(channel.lastSync).toLocaleDateString()}
+                          </div>
+                        </div>
+                        {connectedChannel === channel.slug && (
+                          <Badge variant="secondary" className="ml-2 text-xs">
+                            Active
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Progress Bar */}
             {isLoading && (
