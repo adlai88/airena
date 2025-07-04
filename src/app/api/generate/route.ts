@@ -17,7 +17,7 @@ export async function POST(req: Request) {
       .from('channels')
       .select('*')
       .eq('slug', channelSlug)
-      .single() as { data: { arena_id: number; title: string } | null; error: any };
+      .single() as { data: { arena_id: number; title: string } | null; error: unknown };
 
     if (channelError || !channel) {
       return new Response('Channel not found', { status: 404 });
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
       .eq('channel_id', channel.arena_id)
       .not('embedding', 'is', null)
       .order('created_at', { ascending: false })
-      .limit(10) as { data: { title: string; url: string; content: string; description: string }[] | null; error: any }; // Use most recent blocks for newsletter
+      .limit(10) as { data: { title: string; url: string; content: string; description: string }[] | null; error: unknown }; // Use most recent blocks for newsletter
 
     if (blocksError) {
       return new Response('Failed to fetch blocks', { status: 500 });

@@ -1,16 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 export default function GeneratePage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [channelSlug, setChannelSlug] = useState(searchParams.get('channel') || '');
-  const [options, setOptions] = useState({
-    tone: 'professional' as const,
-    length: 'standard' as const,
-    focus: 'insights' as const,
+  const [options, setOptions] = useState<{
+    tone: 'professional' | 'casual' | 'analytical' | 'personal';
+    length: 'brief' | 'standard' | 'detailed';
+    focus: 'insights' | 'resources' | 'trends' | 'actionable';
+  }>({
+    tone: 'professional',
+    length: 'standard',
+    focus: 'insights',
   });
   
   const [completion, setCompletion] = useState('');
@@ -130,7 +134,7 @@ export default function GeneratePage() {
                 </label>
                 <select
                   value={options.tone}
-                  onChange={(e) => setOptions({...options, tone: e.target.value as any})}
+                  onChange={(e) => setOptions({...options, tone: e.target.value as 'professional' | 'casual' | 'analytical' | 'personal'})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                 >
                   <option value="professional">Professional</option>
@@ -146,7 +150,7 @@ export default function GeneratePage() {
                 </label>
                 <select
                   value={options.length}
-                  onChange={(e) => setOptions({...options, length: e.target.value as any})}
+                  onChange={(e) => setOptions({...options, length: e.target.value as 'brief' | 'standard' | 'detailed'})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                 >
                   <option value="brief">Brief</option>
@@ -161,7 +165,7 @@ export default function GeneratePage() {
                 </label>
                 <select
                   value={options.focus}
-                  onChange={(e) => setOptions({...options, focus: e.target.value as any})}
+                  onChange={(e) => setOptions({...options, focus: e.target.value as 'insights' | 'resources' | 'trends' | 'actionable'})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                 >
                   <option value="insights">Key Insights</option>
@@ -226,7 +230,7 @@ export default function GeneratePage() {
               </div>
             ) : !isLoading && (
               <p className="text-gray-500 italic">
-                Configure your settings above and click "Generate Newsletter" to create your AI-powered content digest.
+                Configure your settings above and click &quot;Generate Newsletter&quot; to create your AI-powered content digest.
               </p>
             )}
           </div>

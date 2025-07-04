@@ -29,7 +29,7 @@ async function testFullPipeline() {
         testChannel = channel;
         break;
       }
-    } catch (error) {
+    } catch {
       console.log(`⚠️  Channel "${channel}" not found`);
     }
   }
@@ -43,11 +43,12 @@ async function testFullPipeline() {
   console.log(`\n2. Testing full sync pipeline with "${testChannel}"...`);
   
   // Set up progress tracking
-  const progressCallback = (progress: any) => {
+  const progressCallback = (progress: { stage: string; message: string; progress: number }) => {
     console.log(`📊 [${progress.stage.toUpperCase()}] ${progress.message} (${progress.progress}%)`);
   };
 
-  const syncServiceWithProgress = new SyncService(progressCallback);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const syncServiceWithProgress = new SyncService(progressCallback as any);
 
   try {
     const result = await syncServiceWithProgress.syncChannel(testChannel);
@@ -89,8 +90,10 @@ async function testFullPipeline() {
     
     if (searchResults.length > 0) {
       console.log('   📝 Sample results:');
-      searchResults.forEach((result: any, i) => {
-        console.log(`      ${i + 1}. ${result.title} (similarity: ${result.similarity?.toFixed(3)})`);
+      searchResults.forEach((result, i) => {
+        const title = result.title || 'Untitled';
+        const similarity = (result as { similarity?: number }).similarity?.toFixed(3) || 'N/A';
+        console.log(`      ${i + 1}. ${title} (similarity: ${similarity})`);
       });
     } else {
       console.log('   ℹ️  No results found - try different search terms or lower threshold');
@@ -129,11 +132,12 @@ async function testFullPipeline() {
 export async function testSpecificChannel(channelSlug: string) {
   console.log(`🧪 Testing pipeline with channel: ${channelSlug}\n`);
   
-  const progressCallback = (progress: any) => {
+  const progressCallback = (progress: { stage: string; message: string; progress: number }) => {
     console.log(`📊 [${progress.stage.toUpperCase()}] ${progress.message} (${progress.progress}%)`);
   };
 
-  const syncServiceWithProgress = new SyncService(progressCallback);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const syncServiceWithProgress = new SyncService(progressCallback as any);
 
   const result = await syncServiceWithProgress.syncChannel(channelSlug);
   

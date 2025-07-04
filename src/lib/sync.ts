@@ -66,10 +66,10 @@ export class SyncService {
     const { data, error } = await supabase
       .from('blocks')
       .select('arena_id')
-      .eq('channel_id', channelId) as { data: { arena_id: number }[] | null; error: any };
+      .eq('channel_id', channelId) as { data: { arena_id: number }[] | null; error: unknown };
 
     if (error) {
-      throw new Error(`Failed to get existing blocks: ${error.message}`);
+      throw new Error(`Failed to get existing blocks: ${String(error)}`);
     }
 
     return new Set(data?.map(block => block.arena_id) || []);
@@ -296,7 +296,7 @@ export class SyncService {
         .from('channels')
         .select('last_sync')
         .eq('arena_id', channel.id)
-        .single() as { data: { last_sync: string } | null; error: any };
+        .single() as { data: { last_sync: string } | null; error: unknown };
 
       // Get embedding stats
       const stats = await embeddingService.getChannelStats(channel.id);

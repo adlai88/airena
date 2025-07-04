@@ -18,7 +18,7 @@ async function testSpecificChannel(channelSlug: string) {
   };
 
   // Create sync service with progress tracking
-  const { SyncService } = require('./sync');
+  const { SyncService } = await import('./sync');
   const syncServiceWithProgress = new SyncService(progressCallback);
 
   try {
@@ -42,7 +42,7 @@ async function testSpecificChannel(channelSlug: string) {
     
     if (result.errors.length > 0) {
       console.log(`   ⚠️  Errors (${result.errors.length}):`);
-      result.errors.slice(0, 3).forEach((error: any) => console.log(`      - ${error}`));
+      result.errors.slice(0, 3).forEach((error: string) => console.log(`      - ${error}`));
       if (result.errors.length > 3) {
         console.log(`      ... and ${result.errors.length - 3} more`);
       }
@@ -63,9 +63,12 @@ async function testSpecificChannel(channelSlug: string) {
           console.log(`\n🔍 Search: "${query}"`);
           console.log(`   Found ${searchResults.length} results`);
           
-          searchResults.forEach((result: any, i) => {
-            console.log(`   ${i + 1}. ${result.title} (${(result.similarity * 100).toFixed(1)}% match)`);
-            console.log(`      URL: ${result.url}`);
+          searchResults.forEach((result, i) => {
+            const title = result.title || 'Untitled';
+            const similarity = (result as { similarity?: number }).similarity || 0;
+            const url = result.url || 'No URL';
+            console.log(`   ${i + 1}. ${title} (${(similarity * 100).toFixed(1)}% match)`);
+            console.log(`      URL: ${url}`);
           });
         } catch (searchError) {
           console.log(`❌ Search for "${query}" failed: ${searchError}`);

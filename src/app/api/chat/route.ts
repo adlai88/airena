@@ -28,7 +28,7 @@ export async function POST(req: Request) {
       .from('channels')
       .select('*')
       .eq('slug', channelSlug)
-      .single() as { data: { arena_id: number; title: string } | null; error: any };
+      .single() as { data: { arena_id: number; title: string } | null; error: unknown };
 
     if (channelError || !channel) {
       console.error('Channel not found:', channelError);
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     if (blocksError) console.error('Error fetching blocks:', blocksError);
 
     // Perform vector search for relevant content
-    let relevantBlocks: any[] = [];
+    let relevantBlocks: ContextBlock[] = [];
     try {
       // Create embedding for user query
       const embeddingService = new EmbeddingService();
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
         query_embedding: queryEmbedding,
         similarity_threshold: 0.3, // Lower threshold to get more results
         match_count: 5
-      }) as { data: any[] | null; error: any };
+      }) as { data: ContextBlock[] | null; error: unknown };
 
       console.log('Query embedding length:', queryEmbedding.length);
 
@@ -75,7 +75,12 @@ export async function POST(req: Request) {
           .limit(3);
         
         console.log('Fallback blocks:', fallbackBlocks, 'Error:', fallbackError);
-        relevantBlocks = fallbackBlocks || [];
+        relevantBlocks = (fallbackBlocks || []).map(block => ({
+          title: String(block.title || 'Untitled'),
+          url: String(block.url || ''),
+          content: String(block.content || block.description || ''),
+          similarity: 0
+        }));
       } else {
         console.log('Vector search results:', searchResults);
         relevantBlocks = searchResults || [];
@@ -91,22 +96,22 @@ export async function POST(req: Request) {
         .order('created_at', { ascending: false })
         .limit(3);
       
-      relevantBlocks = fallbackBlocks || [];
+      relevantBlocks = (fallbackBlocks || []).map(block => ({
+        title: String(block.title || 'Untitled'),
+        url: String(block.url || ''),
+        content: String(block.content || block.description || ''),
+        similarity: 0
+      }));
     }
 
-    // Prepare context blocks
-    const contextBlocks: ContextBlock[] = relevantBlocks.map(block => ({
-      title: block.title || 'Untitled',
-      url: block.url || '',
-      content: block.content || block.description || '',
-      similarity: block.similarity
-    }));
+    // Prepare context blocks - relevantBlocks are already ContextBlock[]
+    const contextBlocks: ContextBlock[] = relevantBlocks;
 
     console.log('Context blocks prepared:', contextBlocks.length, 'blocks');
     console.log('Context sample:', contextBlocks.slice(0, 2));
 
     // Prepare conversation history (limit to last 6 messages for context)
-    const conversationHistory = messages.slice(-6).map((msg: any) => ({
+    const conversationHistory = messages.slice(-6).map((msg: { role: string; content: string }) => ({
       role: msg.role,
       content: msg.content
     }));

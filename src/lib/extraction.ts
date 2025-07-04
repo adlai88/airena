@@ -146,7 +146,7 @@ export class ContentExtractor {
       }
       
       return domain;
-    } catch (error) {
+    } catch {
       return 'Untitled';
     }
   }

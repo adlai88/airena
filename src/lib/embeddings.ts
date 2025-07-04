@@ -183,10 +183,10 @@ export class EmbeddingService {
         query_embedding: queryEmbedding,
         similarity_threshold: similarityThreshold,
         match_count: limit
-      }) as { data: Block[] | null; error: any };
+      }) as { data: Block[] | null; error: unknown };
 
       if (error) {
-        throw new Error(`Search error: ${error.message}`);
+        throw new Error(`Search error: ${String(error)}`);
       }
 
       return data || [];
@@ -208,10 +208,10 @@ export class EmbeddingService {
       const { data, error } = await supabase
         .from('blocks')
         .select('id, embedding, updated_at')
-        .eq('channel_id', channelId) as { data: { id: number; embedding: any; updated_at: string }[] | null; error: any };
+        .eq('channel_id', channelId) as { data: { id: number; embedding: number[] | null; updated_at: string }[] | null; error: unknown };
 
       if (error) {
-        throw new Error(`Stats query error: ${error.message}`);
+        throw new Error(`Stats query error: ${String(error)}`);
       }
 
       const totalBlocks = data?.length || 0;

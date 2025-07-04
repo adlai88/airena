@@ -29,7 +29,7 @@ export async function testSetup() {
   console.log('2. Testing Supabase connection...');
   try {
     const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!);
-    const { data, error } = await supabase.from('channels').select('count').limit(1);
+    const { error } = await supabase.from('channels').select('count').limit(1);
     if (error) {
       console.log('❌ Supabase connection failed:', error.message);
       return false;

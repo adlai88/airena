@@ -16,7 +16,7 @@ export const supabase = new Proxy({} as ReturnType<typeof createClient>, {
       _supabase = createClient(supabaseUrl, supabaseAnonKey);
     }
     
-    return (_supabase as any)[prop];
+    return (_supabase as unknown as Record<string, unknown>)[prop as string];
   }
 });
 

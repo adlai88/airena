@@ -93,7 +93,7 @@ export default function SetupPage() {
               required
             />
             <p className="text-xs text-gray-500 mt-1">
-              Enter a channel slug (e.g., "r-startups-founder-mode") or paste the full URL
+              Enter a channel slug (e.g., &quot;r-startups-founder-mode&quot;) or paste the full URL
             </p>
           </div>
 
