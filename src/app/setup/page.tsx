@@ -156,9 +156,11 @@ export default function SetupPage() {
     
     switch (action) {
       case 'generate':
+        console.log('Setup: Navigating to generate with channel:', connectedChannel);
         router.push(`/generate?channel=${connectedChannel}`);
         break;
       case 'chat':
+        console.log('Setup: Navigating to chat with channel:', connectedChannel);
         router.push(`/chat?channel=${connectedChannel}`);
         break;
       case 'sync-another':
@@ -171,28 +173,44 @@ export default function SetupPage() {
     }
   };
 
-  const handleQuickSwitch = (slug: string) => {
-    // Set the channel slug and mark as connected
-    setChannelSlug(slug);
-    setConnectedChannel(slug);
-    setIsDefaultChannel(false);
-    setStatus(null);
+  const handleQuickSwitch = async (slug: string) => {
+    setIsLoading(true);
     setError(null);
-    setSyncDetails({});
     
-    // Find the channel info to show in success modal
-    const channel = recentChannels.find(ch => ch.slug === slug);
-    if (channel) {
-      setSyncDetails({
-        channelTitle: channel.title,
-        processedBlocks: channel.blockCount,
+    try {
+      // Call the switch-channel API to persist the change
+      const response = await fetch('/api/switch-channel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channelSlug: slug })
       });
-      // Don't set status - the modal is sufficient feedback
+
+      if (!response.ok) {
+        throw new Error('Failed to switch channel');
+      }
+
+      const result = await response.json();
+      console.log('Setup: Channel switch successful:', result);
       
-      // Show success modal for quick switching
-      setTimeout(() => {
-        setShowSuccessModal(true);
-      }, 500);
+      // Update local state IMMEDIATELY
+      setChannelSlug(slug);
+      setConnectedChannel(slug);
+      setIsDefaultChannel(false);
+      setStatus(null);
+      setSyncDetails({
+        channelTitle: result.channelTitle,
+        processedBlocks: result.blockCount,
+      });
+      
+      console.log('Setup: Updated connectedChannel state to:', slug);
+      
+      // Show success modal for quick switching (no delay needed)
+      setShowSuccessModal(true);
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to switch channel');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -268,10 +286,12 @@ export default function SetupPage() {
                   {recentChannels.slice(0, 5).map((channel) => (
                     <div
                       key={channel.slug}
-                      className={`p-3 rounded-lg border cursor-pointer transition-all hover:border-primary/50 hover:bg-muted/50 ${
+                      className={`p-3 rounded-lg border transition-all ${
+                        isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-primary/50 hover:bg-muted/50'
+                      } ${
                         connectedChannel === channel.slug ? 'border-primary bg-primary/5' : 'border-border'
                       }`}
-                      onClick={() => handleQuickSwitch(channel.slug)}
+                      onClick={() => !isLoading && handleQuickSwitch(channel.slug)}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">

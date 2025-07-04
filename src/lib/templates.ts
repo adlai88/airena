@@ -99,23 +99,24 @@ Newsletter:`;
       ? conversationHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n')
       : '';
 
-    return `You are an intelligent assistant with access to curated research from the "${channelTitle}" collection.
+    return `You are an intelligent assistant with access to curated content from the "${channelTitle}" collection.
 
 CONVERSATION HISTORY:
 ${historyText}
 
-RELEVANT RESEARCH CONTEXT:
+RELEVANT CONTENT:
 ${contextText}
 
 USER QUESTION: ${userMessage}
 
 INSTRUCTIONS:
-- Answer the user's question using the provided research context
+- Answer the user's question using the provided content
 - Reference specific sources with URLs when relevant
-- If the context doesn't contain relevant information, say so honestly
+- If the content doesn't contain relevant information, say so honestly
 - Be conversational but informative
 - Synthesize information across sources when possible
-- Include source attribution for claims or insights
+- Include source attribution for specific details or quotes
+- Adapt your response style to match the type of content (recipes, articles, resources, etc.)
 
 Response:`;
   }

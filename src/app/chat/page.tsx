@@ -20,19 +20,22 @@ function ChatContent() {
         if (response.ok) {
           const data = await response.json();
           if (data.channelSlug) {
+            console.log('Chat: Got channel from API:', data.channelSlug);
             setChannelSlug(data.channelSlug);
           }
         }
       } catch {
-        console.log('Using fallback channel');
+        console.log('Chat: Using fallback channel');
       }
     };
 
     // Check URL params first, then database
     const urlChannel = searchParams.get('channel');
     if (urlChannel) {
+      console.log('Chat: Got channel from URL:', urlChannel);
       setChannelSlug(urlChannel);
     } else {
+      console.log('Chat: No URL channel, fetching from API');
       getConnectedChannel();
     }
   }, [searchParams]);
@@ -177,11 +180,11 @@ function ChatContent() {
   // Suggested questions
   const suggestedQuestions = [
     "What are the main themes in this channel?",
-    "Summarize the key insights",
-    "What tools or resources are mentioned?",
-    "What are the practical takeaways?",
-    "How do these ideas connect together?",
-    "What trends are emerging?"
+    "Summarize the key content",
+    "What are the common topics or patterns?",
+    "What can I learn from this collection?",
+    "How do these items connect together?",
+    "What stands out the most?"
   ];
 
   if (!hasUserMessage) {

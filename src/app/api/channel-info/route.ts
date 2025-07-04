@@ -10,11 +10,11 @@ const DEFAULT_CHANNEL = 'r-startups-founder-mode';
 
 export async function GET() {
   try {
-    // Get the most recent channel from the database
+    // Get the most recently used channel from the database
     const { data: channels, error } = await supabase
       .from('channels')
       .select('slug')
-      .order('created_at', { ascending: false })
+      .order('last_sync', { ascending: false })
       .limit(1);
 
     if (error) {
@@ -24,6 +24,7 @@ export async function GET() {
     }
 
     if (channels && channels.length > 0) {
+      console.log('Channel-info API: Returning channel:', channels[0].slug);
       return NextResponse.json({ channelSlug: channels[0].slug, isDefault: false });
     }
 
