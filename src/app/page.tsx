@@ -7,7 +7,7 @@ export default function HomePage() {
   return (
     <Layout homeNav>
       {/* Main content */}
-      <div className="py-12">
+      <div className="py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-4xl font-bold mb-6 text-foreground">
             Turn your are.na channels into a personal intelligence agent
