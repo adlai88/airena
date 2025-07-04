@@ -48,7 +48,7 @@ export async function POST(req: Request) {
       return `**${title}**${url ? ` (${url})` : ''}\n${content}`;
     }).join('\n\n---\n\n');
 
-    // If we have a custom prompt (from new digest templates), use it with proper context
+    // If we have a custom prompt (from newsletter templates), use it with proper context
     let prompt: string;
     if (customPrompt) {
       // Replace template variables with actual data
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
       prompt += `\n\nContext from ${channel.title} channel (${blocks.length} sources):\n\n${contextText}`;
     } else {
       // Fallback to a simple prompt if no custom template
-      prompt = `Create a research digest from the following curated content from the "${channel.title}" channel:\n\n${contextText}`;
+      prompt = `Create a research newsletter from the following curated content from the "${channel.title}" channel:\n\n${contextText}`;
     }
 
     // Stream the response

@@ -1,6 +1,6 @@
 // Template definitions for content generation
 
-export interface DigestTemplate {
+export interface NewsletterTemplate {
   id: string;
   name: string;
   description: string;
@@ -12,16 +12,16 @@ export interface DigestTemplate {
   };
 }
 
-export const DIGEST_TEMPLATES: DigestTemplate[] = [
+export const NEWSLETTER_TEMPLATES: NewsletterTemplate[] = [
   {
     id: 'newsletter',
-    name: 'Digest',
+    name: 'Newsletter',
     description: 'A roundup of key insights and actionable takeaways from your are.na content',
-    prompt: `You are creating a professional newsletter digest from curated research blocks.
+    prompt: `You are creating a professional newsletter from curated research blocks.
 
 Create a newsletter with the following structure:
 
-# {channel_title} - Research Digest
+# {channel_title} - Research Newsletter
 
 ## Executive Summary
 [2-3 sentences summarizing the main themes and key findings]
@@ -48,15 +48,15 @@ Make it engaging and professional, suitable for sharing with colleagues or stake
   }
 ];
 
-export function getTemplate(templateId: string): DigestTemplate | undefined {
-  return DIGEST_TEMPLATES.find(t => t.id === templateId);
+export function getTemplate(templateId: string): NewsletterTemplate | undefined {
+  return NEWSLETTER_TEMPLATES.find(t => t.id === templateId);
 }
 
 export function buildPrompt(
-  template: DigestTemplate, 
+  template: NewsletterTemplate, 
   channelTitle: string, 
   blockCount: number,
-  options: DigestTemplate['defaultOptions']
+  options: NewsletterTemplate['defaultOptions']
 ): string {
   return template.prompt
     .replace('{channel_title}', channelTitle)

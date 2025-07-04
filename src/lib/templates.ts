@@ -48,7 +48,7 @@ export class PromptTemplates {
       `[${i + 1}] ${block.title}\nURL: ${block.url}\nContent: ${block.content.substring(0, 1000)}...\n`
     ).join('\n');
 
-    return `You are creating a newsletter digest from curated research in the "${channelTitle}" collection.
+    return `You are creating a newsletter from curated content in the "${channelTitle}" collection.
 
 CONTEXT FROM RESEARCH:
 ${contextText}
@@ -77,7 +77,7 @@ GUIDELINES:
 - Find patterns and connections across the curated content  
 - Include source attribution with URLs
 - Make it valuable for someone who curated this collection
-- Avoid generic advice - focus on specific insights from this research
+- Avoid generic advice - focus on specific insights from curated content
 
 Newsletter:`;
   }

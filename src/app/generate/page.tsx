@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DIGEST_TEMPLATES, buildPrompt, type DigestTemplate } from '@/lib/digest-templates';
+import { NEWSLETTER_TEMPLATES, buildPrompt, type NewsletterTemplate } from '@/lib/newsletter-templates';
 import { Layout } from '@/components/layout';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
@@ -42,7 +42,7 @@ function GenerateContent() {
     }
   }, [searchParams]);
   const [stage, setStage] = useState<GenerationStage>('template-selection');
-  const [selectedTemplate, setSelectedTemplate] = useState<DigestTemplate | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<NewsletterTemplate | null>(null);
   const [options, setOptions] = useState<{
     tone: 'professional' | 'casual' | 'analytical' | 'personal';
     length: 'brief' | 'standard' | 'detailed';
@@ -57,7 +57,7 @@ function GenerateContent() {
   const [error, setError] = useState<Error | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const handleTemplateSelect = (template: DigestTemplate) => {
+  const handleTemplateSelect = (template: NewsletterTemplate) => {
     setSelectedTemplate(template);
     setOptions(template.defaultOptions);
     setStage('customization');
@@ -168,7 +168,7 @@ function GenerateContent() {
           </div>
 
           <div className="space-y-6">
-            {DIGEST_TEMPLATES.map((template) => (
+            {NEWSLETTER_TEMPLATES.map((template) => (
               <Card key={template.id} className="cursor-pointer hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <CardTitle className="text-2xl">{template.name}</CardTitle>
@@ -210,7 +210,7 @@ function GenerateContent() {
           <Card className="mb-8">
             <CardHeader>
               <CardTitle>Generation Options</CardTitle>
-              <CardDescription>Customize how your digest will be generated</CardDescription>
+              <CardDescription>Customize how your newsletter will be generated</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -267,7 +267,7 @@ function GenerateContent() {
 
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
                 <Button onClick={handleGenerate} className="flex-1 min-h-[48px] sm:min-h-auto" size="lg">
-                  Generate Digest
+                  Generate Newsletter
                 </Button>
                 <Button variant="outline" onClick={() => setStage('template-selection')} className="min-h-[48px] sm:min-h-auto">
                   Change Template
@@ -285,7 +285,7 @@ function GenerateContent() {
     return (
       <Layout>
         <PageHeader 
-          title="Generating Your Digest"
+          title="Generating Your Newsletter"
           subtitle="Processing your curated research..."
         />
         <div className="flex justify-center mb-8">
@@ -346,7 +346,7 @@ function GenerateContent() {
 
         <div className="flex justify-center gap-4">
           <Button onClick={handleStartOver}>
-            Generate New Digest
+            Generate New Newsletter
           </Button>
           <Button variant="ghost" onClick={() => router.push('/setup')}>
             Sync Different Channel
