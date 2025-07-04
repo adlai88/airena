@@ -3,11 +3,9 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Layout } from '@/components/layout';
-import { PageHeader } from '@/components/page-header';
 
 function ChatContent() {
   const searchParams = useSearchParams();
@@ -42,19 +40,46 @@ function ChatContent() {
     id: string;
     role: 'user' | 'assistant';
     content: string;
-  }>>([
-    {
-      id: 'welcome',
-      role: 'assistant' as const,
-      content: `Hi! I'm Airena. Ask me anything about your Are.na content.`,
-    },
-  ]);
+  }>>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
+  // Restore chat messages from session storage on load
+  useEffect(() => {
+    const savedMessages = sessionStorage.getItem('airena-chat-messages');
+    if (savedMessages) {
+      try {
+        const parsed = JSON.parse(savedMessages);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMessages(parsed);
+        }
+      } catch (error) {
+        console.log('Failed to restore chat messages:', error);
+        // Clear corrupted data
+        sessionStorage.removeItem('airena-chat-messages');
+      }
+    }
+  }, []);
+
+  // Save messages to session storage whenever messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      sessionStorage.setItem('airena-chat-messages', JSON.stringify(messages));
+    } else {
+      // Clear storage if no messages (user might have cleared chat)
+      sessionStorage.removeItem('airena-chat-messages');
+    }
+  }, [messages]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
+  };
+
+  const clearChat = () => {
+    setMessages([]);
+    setError(null);
+    sessionStorage.removeItem('airena-chat-messages');
   };
 
   const handleChatSubmit = async (e: React.FormEvent) => {
@@ -134,106 +159,179 @@ function ChatContent() {
     }
   };
 
-  return (
-    <Layout>
-      <PageHeader 
-        title="Chat with Your Channel"
-        subtitle="Jam with your Are.na content"
-      />
-      <div className="max-w-4xl mx-auto pb-8 sm:pb-12 px-4 sm:px-6">
-        {/* Connected Channel Badge */}
-        <div className="flex justify-center mb-6">
-          <Badge variant="secondary" className="px-3 py-1">
-            🔗 Connected to: {channelSlug}
-          </Badge>
-        </div>
+  // Determine if the user has sent a message
+  const hasUserMessage = messages.some(m => m.role === 'user');
 
-        {/* Chat Container */}
-        <Card>
-          {/* Messages */}
-          <div className="h-64 sm:h-96 overflow-y-scroll p-4 sm:p-6 space-y-3 sm:space-y-4">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-[85%] sm:max-w-3xl px-3 sm:px-4 py-2 sm:py-3 rounded-lg ${
-                    message.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground'
-                  }`}
-                >
-                  <div className="whitespace-pre-wrap text-sm sm:text-base leading-relaxed">{message.content}</div>
-                </div>
+  // Suggested questions
+  const suggestedQuestions = [
+    "What are the main themes in this channel?",
+    "Summarize the key insights",
+    "What tools or resources are mentioned?",
+    "What are the practical takeaways?",
+    "How do these ideas connect together?",
+    "What trends are emerging?"
+  ];
+
+  if (!hasUserMessage) {
+    // First view: Centered input and suggestions
+    return (
+      <Layout>
+        <div className="min-h-screen flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 -mt-16">
+          <div className="w-full max-w-2xl">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl sm:text-4xl font-bold mb-4">
+                Chat with Your Channel
+              </h1>
+              <p className="text-lg text-muted-foreground mb-4">
+                Ask me anything about your Are.na content
+              </p>
+              <div className="flex justify-center mb-4">
+                <Badge variant="secondary" className="px-3 py-1">
+                  🔗 Connected to: {channelSlug}
+                </Badge>
               </div>
-            ))}
-            
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-muted text-muted-foreground px-3 sm:px-4 py-2 sm:py-3 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
-                    <span className="text-sm">Thinking...</span>
-                  </div>
+            </div>
+
+            {/* Chat Input Form */}
+            <form onSubmit={handleChatSubmit} className="mb-8">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                <Input
+                  type="text"
+                  value={input}
+                  onChange={handleInputChange}
+                  placeholder="Ask about your channel... (e.g., 'What are the key insights?')"
+                  disabled={isLoading}
+                  className="flex-1 min-h-[44px] text-base"
+                />
+                <Button
+                  type="submit"
+                  disabled={isLoading || !input.trim() || !channelSlug.trim()}
+                  className="min-h-[44px] sm:min-h-auto px-6 sm:px-4"
+                >
+                  {isLoading ? 'Sending...' : 'Send'}
+                </Button>
+              </div>
+            </form>
+
+            {/* Error Display */}
+            {error && (
+              <div className="mb-6">
+                <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                  <p className="text-destructive text-sm text-center">{error.message}</p>
                 </div>
               </div>
             )}
-          </div>
 
+            {/* Suggested Questions */}
+            <div className="text-center">
+              <div className="mb-4 text-sm text-muted-foreground font-medium">
+                Try asking about:
+              </div>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {suggestedQuestions.map((question, index) => (
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className="cursor-pointer hover:bg-primary/10 transition px-3 py-1"
+                    onClick={() => {
+                      setInput(question);
+                      // Auto-submit the question
+                      const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+                      handleChatSubmit(fakeEvent);
+                    }}
+                  >
+                    {question}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // After first user message: Full chat view
+  return (
+    <Layout>
+      {/* Messages Area - with bottom padding for fixed input */}
+      <div className="px-4 sm:px-6 lg:px-8 py-6 pb-32">
+        <div className="max-w-4xl mx-auto space-y-4">
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div
+                className={`max-w-[85%] sm:max-w-3xl px-4 py-3 rounded-lg ${
+                  message.role === 'user'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground'
+                }`}
+              >
+                <div className="whitespace-pre-wrap text-sm sm:text-base leading-relaxed">
+                  {message.content}
+                </div>
+              </div>
+            </div>
+          ))}
+          
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="bg-muted text-muted-foreground px-4 py-3 rounded-lg">
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                  <span className="text-sm">Thinking...</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Fixed Input Area - always visible above footer */}
+      <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           {/* Error Display */}
           {error && (
-            <div className="px-6 pb-2">
+            <div className="mb-4">
               <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
                 <p className="text-destructive text-sm">{error.message}</p>
               </div>
             </div>
           )}
 
-          {/* Input Form */}
-          <div className="border-t border-border p-4 sm:p-6">
-            <form onSubmit={handleChatSubmit} className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <Input
-                type="text"
-                value={input}
-                onChange={handleInputChange}
-                placeholder="Ask about your channel... (e.g., 'What are the key insights?')"
-                disabled={isLoading}
-                className="flex-1 min-h-[44px]"
-              />
-              <Button
-                type="submit"
-                disabled={isLoading || !input.trim() || !channelSlug.trim()}
-                className="min-h-[44px] sm:min-h-auto px-6 sm:px-4"
-              >
-                Send
-              </Button>
-            </form>
+          {/* Clear Chat Button */}
+          <div className="flex justify-end mb-3">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={clearChat}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Clear Chat
+            </Button>
           </div>
-        </Card>
 
-        {/* Suggested Questions */}
-        <div className="mt-8">
-          <div className="mb-2 text-sm text-muted-foreground font-medium">Suggested Questions</div>
-          <div className="flex flex-wrap gap-2">
-            {[
-              "What are the main themes in this channel?",
-              "Summarize the key insights",
-              "What tools or resources are mentioned?",
-              "What are the practical takeaways?",
-              "How do these ideas connect together?",
-              "What trends are emerging?"
-            ].map((question, index) => (
-              <button
-                key={index}
-                type="button"
-                onClick={() => setInput(question)}
-                className="rounded-full bg-muted px-4 py-2 text-sm text-foreground hover:bg-primary/10 transition cursor-pointer border border-border"
-              >
-                {question}
-              </button>
-            ))}
-          </div>
+          {/* Input Form */}
+          <form onSubmit={handleChatSubmit} className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <Input
+              type="text"
+              value={input}
+              onChange={handleInputChange}
+              placeholder="Ask about your channel..."
+              disabled={isLoading}
+              className="flex-1 min-h-[44px]"
+            />
+            <Button
+              type="submit"
+              disabled={isLoading || !input.trim() || !channelSlug.trim()}
+              className="min-h-[44px] sm:min-h-auto px-6 sm:px-4"
+            >
+              {isLoading ? 'Sending...' : 'Send'}
+            </Button>
+          </form>
         </div>
       </div>
     </Layout>

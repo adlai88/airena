@@ -86,6 +86,11 @@ body {
   font-family: system-ui, sans-serif;
 }
 
+/* Force scrollbar to always be visible to prevent layout shift */
+html {
+  overflow-y: scroll;
+}
+
 @layer base {
   * {
     @apply border-border;
