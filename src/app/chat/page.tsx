@@ -105,15 +105,17 @@ function ChatContent() {
   useEffect(() => {
     const handleResize = () => {
       // On mobile, when keyboard appears, scroll input into view
-      if (inputRef.current && window.innerHeight < 500) {
+      if (typeof window !== 'undefined' && inputRef.current && window.innerHeight < 500) {
         setTimeout(() => {
           inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }, 100);
       }
     };
     
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
   }, []);
 
   // Restore chat messages from session storage on load
@@ -265,7 +267,7 @@ function ChatContent() {
 
   const handleShareMessage = async (messageId: string, content: string) => {
     // Check if Web Share API is supported (mainly mobile browsers)
-    if (navigator.share) {
+    if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({
           title: `Chat response from Airena`,
@@ -281,7 +283,9 @@ function ChatContent() {
     } else {
       // Fallback: copy to clipboard for desktop
       try {
-        await navigator.clipboard.writeText(content);
+        if (typeof navigator !== 'undefined' && navigator.clipboard) {
+          await navigator.clipboard.writeText(content);
+        }
         setSharedMessageId(messageId);
         setTimeout(() => setSharedMessageId(null), 2000);
       } catch (err) {

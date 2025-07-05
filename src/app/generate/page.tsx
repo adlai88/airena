@@ -129,7 +129,7 @@ function GenerateContent() {
 
   const handleShare = async () => {
     // Check if Web Share API is supported (mainly mobile browsers)
-    if (navigator.share) {
+    if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({
           title: `${selectedTemplate?.name} from Airena`,
