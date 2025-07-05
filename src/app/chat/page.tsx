@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -85,6 +85,36 @@ function ChatContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [isRestoringMessages, setIsRestoringMessages] = useState(true);
+  const [sharedMessageId, setSharedMessageId] = useState<string | null>(null);
+  
+  // Refs for mobile keyboard optimization
+  const inputRef = useRef<HTMLInputElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Auto-scroll to bottom when new messages arrive
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+  
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+  
+  // Handle mobile keyboard appearance
+  useEffect(() => {
+    const handleResize = () => {
+      // On mobile, when keyboard appears, scroll input into view
+      if (inputRef.current && window.innerHeight < 500) {
+        setTimeout(() => {
+          inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Restore chat messages from session storage on load
   useEffect(() => {
@@ -233,6 +263,33 @@ function ChatContent() {
     }
   };
 
+  const handleShareMessage = async (messageId: string, content: string) => {
+    // Check if Web Share API is supported (mainly mobile browsers)
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Chat response from Airena`,
+          text: content,
+          url: window.location.href
+        });
+        setSharedMessageId(messageId);
+        setTimeout(() => setSharedMessageId(null), 2000);
+      } catch (err) {
+        // User cancelled sharing or error occurred
+        console.log('Share cancelled or failed:', err);
+      }
+    } else {
+      // Fallback: copy to clipboard for desktop
+      try {
+        await navigator.clipboard.writeText(content);
+        setSharedMessageId(messageId);
+        setTimeout(() => setSharedMessageId(null), 2000);
+      } catch (err) {
+        console.error('Failed to copy text: ', err);
+      }
+    }
+  };
+
   // Determine if the user has sent a message (wait for restoration to complete)
   const hasUserMessage = !isRestoringMessages && messages.some(m => m.role === 'user');
 
@@ -304,12 +361,16 @@ function ChatContent() {
             <form onSubmit={handleChatSubmit} className="mb-8">
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <Input
+                  ref={inputRef}
                   type="text"
                   value={input}
                   onChange={handleInputChange}
                   placeholder="Ask about your channel... (e.g., 'What are the key insights?')"
                   disabled={isLoading}
                   className="flex-1 min-h-[44px] text-base"
+                  autoComplete="off"
+                  autoCapitalize="sentences"
+                  autoCorrect="on"
                 />
                 <Button
                   type="submit"
@@ -370,14 +431,30 @@ function ChatContent() {
               key={message.id}
               className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <div
-                className={`max-w-[85%] sm:max-w-3xl px-4 py-3 rounded-lg ${
-                  message.role === 'user'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground'
-                }`}
-              >
-                <MessageContent content={message.content} />
+              <div className={`max-w-[85%] sm:max-w-3xl ${message.role === 'user' ? '' : 'space-y-2'}`}>
+                <div
+                  className={`px-4 py-3 rounded-lg ${
+                    message.role === 'user'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-muted-foreground'
+                  }`}
+                >
+                  <MessageContent content={message.content} />
+                </div>
+                
+                {/* Share button for assistant messages */}
+                {message.role === 'assistant' && message.content && (
+                  <div className="flex justify-end">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleShareMessage(message.id, message.content)}
+                      className="text-xs text-muted-foreground hover:text-foreground h-8 px-3"
+                    >
+                      {sharedMessageId === message.id ? 'Shared!' : 'Share'}
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -392,6 +469,9 @@ function ChatContent() {
               </div>
             </div>
           )}
+          
+          {/* Scroll anchor */}
+          <div ref={messagesEndRef} />
         </div>
       </div>
 
@@ -451,12 +531,16 @@ function ChatContent() {
           {/* Input Form */}
           <form onSubmit={handleChatSubmit} className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <Input
+              ref={inputRef}
               type="text"
               value={input}
               onChange={handleInputChange}
               placeholder="Ask about your channel..."
               disabled={isLoading}
-              className="flex-1 min-h-[44px]"
+              className="flex-1 min-h-[44px] text-base"
+              autoComplete="off"
+              autoCapitalize="sentences"
+              autoCorrect="on"
             />
             <Button
               type="submit"

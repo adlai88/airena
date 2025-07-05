@@ -31,6 +31,7 @@ function GenerateContent() {
   const [completion, setCompletion] = useState('');
   const [error, setError] = useState<Error | null>(null);
   const [copied, setCopied] = useState(false);
+  const [shared, setShared] = useState(false);
 
   const handleTemplateSelect = (template: NewsletterTemplate) => {
     setSelectedTemplate(template);
@@ -123,6 +124,27 @@ function GenerateContent() {
         console.error('Fallback copy failed: ', fallbackErr);
       }
       document.body.removeChild(textArea);
+    }
+  };
+
+  const handleShare = async () => {
+    // Check if Web Share API is supported (mainly mobile browsers)
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${selectedTemplate?.name} from Airena`,
+          text: completion,
+          url: window.location.href
+        });
+        setShared(true);
+        setTimeout(() => setShared(false), 2000);
+      } catch (err) {
+        // User cancelled sharing or error occurred
+        console.log('Share cancelled or failed:', err);
+      }
+    } else {
+      // Fallback: copy to clipboard for desktop
+      await handleCopyToClipboard();
     }
   };
 
@@ -311,12 +333,17 @@ function GenerateContent() {
 
         <Card className="mb-8">
           <CardHeader>
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-start">
               <CardTitle>Generated Content</CardTitle>
               {completion && (
-                <Button variant="outline" onClick={handleCopyToClipboard}>
-                  {copied ? 'Copied!' : 'Copy to Clipboard'}
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button variant="outline" onClick={handleCopyToClipboard} className="min-h-[44px] sm:min-h-auto">
+                    {copied ? 'Copied!' : 'Copy'}
+                  </Button>
+                  <Button variant="outline" onClick={handleShare} className="min-h-[44px] sm:min-h-auto">
+                    {shared ? 'Shared!' : 'Share'}
+                  </Button>
+                </div>
               )}
             </div>
           </CardHeader>
