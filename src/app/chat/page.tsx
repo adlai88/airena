@@ -10,29 +10,64 @@ import { useChannel } from '@/hooks/useChannel';
 
 // Component to render text with clickable links
 function MessageContent({ content }: { content: string }) {
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  // Combined regex that handles both URLs and markdown links
+  // Improved URL regex that excludes trailing punctuation
+  const combinedRegex = /(\[([^\]]+)\]\(([^)]+)\))|(https?:\/\/[^\s).,;!?]+)/g;
   
-  // Split content by URLs and create clickable links
-  const parts = content.split(urlRegex);
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match;
+  
+  while ((match = combinedRegex.exec(content)) !== null) {
+    // Add text before the match
+    if (match.index > lastIndex) {
+      parts.push(content.slice(lastIndex, match.index));
+    }
+    
+    if (match[1]) {
+      // This is a markdown link [text](url)
+      const linkText = match[2];
+      const linkUrl = match[3];
+      parts.push(
+        <a
+          key={match.index}
+          href={linkUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline hover:no-underline transition-colors"
+        >
+          {linkText}
+        </a>
+      );
+    } else if (match[4]) {
+      // This is a plain URL
+      const url = match[4];
+      parts.push(
+        <a
+          key={match.index}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline hover:no-underline transition-colors"
+        >
+          {url}
+        </a>
+      );
+    }
+    
+    lastIndex = match.index + match[0].length;
+  }
+  
+  // Add remaining text after the last match
+  if (lastIndex < content.length) {
+    parts.push(content.slice(lastIndex));
+  }
   
   return (
     <div className="whitespace-pre-wrap break-all text-sm sm:text-base leading-relaxed">
-      {parts.map((part, index) => {
-        if (part.match(urlRegex)) {
-          return (
-            <a
-              key={index}
-              href={part}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline hover:no-underline transition-colors"
-            >
-              {part}
-            </a>
-          );
-        }
-        return part;
-      })}
+      {parts.map((part, index) => (
+        <span key={index}>{part}</span>
+      ))}
     </div>
   );
 }
