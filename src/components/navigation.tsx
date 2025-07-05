@@ -71,10 +71,25 @@ export function Navigation({ homeNav = false }: NavigationProps) {
           {isAppPage && (
             <div className="flex justify-center flex-1">
               <Tabs value={getActiveTab()} onValueChange={handleTabClick}>
-                <TabsList className="grid w-full grid-cols-3 max-w-xs sm:max-w-md overflow-x-auto min-w-0">
-                  <TabsTrigger value="setup" className="cursor-pointer hover:bg-muted transition">Setup</TabsTrigger>
-                  <TabsTrigger value="chat" className="cursor-pointer hover:bg-muted transition">Chat</TabsTrigger>
-                  <TabsTrigger value="generate" className="cursor-pointer hover:bg-muted transition">Generate</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-3 max-w-sm sm:max-w-md overflow-x-auto min-w-0 h-12">
+                  <TabsTrigger 
+                    value="setup" 
+                    className="cursor-pointer hover:bg-muted transition text-sm sm:text-base min-h-[44px] px-3 sm:px-4"
+                  >
+                    Setup
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="chat" 
+                    className="cursor-pointer hover:bg-muted transition text-sm sm:text-base min-h-[44px] px-3 sm:px-4"
+                  >
+                    Chat
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="generate" 
+                    className="cursor-pointer hover:bg-muted transition text-sm sm:text-base min-h-[44px] px-3 sm:px-4"
+                  >
+                    Generate
+                  </TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
