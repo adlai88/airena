@@ -265,9 +265,9 @@ export default function SetupPage() {
       <PageHeader 
         title="Channel Setup"
         subtitle="Manage your Are.na channel connection"
-        variant="narrow"
+        variant="standard"
       />
-      <div className="max-w-md sm:max-w-lg md:max-w-xl mx-auto pb-8 sm:pb-12 px-4 sm:px-0">
+      <div className="max-w-lg sm:max-w-xl md:max-w-2xl mx-auto pb-8 sm:pb-12 px-4 sm:px-6">
         {/* Show current channel if connected */}
         {connectedChannel && (
           <div className="flex justify-center mb-6">

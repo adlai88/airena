@@ -54,14 +54,14 @@ export function Navigation({ homeNav = false }: NavigationProps) {
 
   return (
     <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-3 sm:py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center">
             <Button 
               variant="ghost" 
               onClick={() => router.push('/')}
-              className="text-lg font-bold p-0 h-auto hover:bg-transparent cursor-pointer"
+              className="text-base sm:text-lg font-bold p-1 sm:p-0 h-auto hover:bg-transparent cursor-pointer"
             >
               Airena
             </Button>
@@ -69,24 +69,24 @@ export function Navigation({ homeNav = false }: NavigationProps) {
 
           {/* Center Tabs (only on app pages) */}
           {isAppPage && (
-            <div className="flex justify-center flex-1">
+            <div className="flex justify-center flex-1 mx-2 sm:mx-4">
               <Tabs value={getActiveTab()} onValueChange={handleTabClick}>
-                <TabsList className="grid w-full grid-cols-3 max-w-sm sm:max-w-md overflow-x-auto min-w-0 h-12">
+                <TabsList className="grid w-full grid-cols-3 max-w-xs sm:max-w-md overflow-x-auto min-w-0 h-10 sm:h-12">
                   <TabsTrigger 
                     value="setup" 
-                    className="cursor-pointer hover:bg-muted transition text-sm sm:text-base min-h-[44px] px-3 sm:px-4"
+                    className="cursor-pointer hover:bg-muted transition text-xs sm:text-base min-h-[40px] sm:min-h-[44px] px-2 sm:px-4"
                   >
                     Setup
                   </TabsTrigger>
                   <TabsTrigger 
                     value="chat" 
-                    className="cursor-pointer hover:bg-muted transition text-sm sm:text-base min-h-[44px] px-3 sm:px-4"
+                    className="cursor-pointer hover:bg-muted transition text-xs sm:text-base min-h-[40px] sm:min-h-[44px] px-2 sm:px-4"
                   >
                     Chat
                   </TabsTrigger>
                   <TabsTrigger 
                     value="generate" 
-                    className="cursor-pointer hover:bg-muted transition text-sm sm:text-base min-h-[44px] px-3 sm:px-4"
+                    className="cursor-pointer hover:bg-muted transition text-xs sm:text-base min-h-[40px] sm:min-h-[44px] px-2 sm:px-4"
                   >
                     Generate
                   </TabsTrigger>
@@ -98,20 +98,20 @@ export function Navigation({ homeNav = false }: NavigationProps) {
           {/* Right Side Navigation */}
           {homeNav ? (
             /* Home Navigation: Log in / Sign up */
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               <ThemeToggle />
-              <Button variant="ghost" size="sm" className="font-medium min-h-[44px] sm:min-h-auto" asChild>
+              <Button variant="ghost" size="sm" className="font-medium min-h-[44px] sm:min-h-auto text-sm" asChild>
                 <Link href="#">Log in</Link>
               </Button>
-              <Button variant="ghost" size="sm" className="font-medium min-h-[44px] sm:min-h-auto" asChild>
+              <Button variant="ghost" size="sm" className="font-medium min-h-[44px] sm:min-h-auto text-sm" asChild>
                 <Link href="#">Sign up</Link>
               </Button>
             </div>
           ) : (
             /* App Navigation: Theme toggle + Avatar */
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-1 sm:gap-3">
               <ThemeToggle />
-              <Avatar className="h-8 w-8">
+              <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                 <AvatarImage src="" alt="User" />
                 <AvatarFallback className="text-xs font-medium">
                   U
