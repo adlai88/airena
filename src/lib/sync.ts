@@ -152,7 +152,10 @@ export class SyncService {
 
       // Get existing blocks to avoid re-processing
       const existingBlocks = await this.getExistingBlocks(channel.id);
+      console.log(`Found ${existingBlocks.size} existing blocks in database:`, Array.from(existingBlocks));
+      console.log(`Arena channel has ${processableBlocks.length} processable blocks:`, processableBlocks.map(b => b.id));
       let newBlocks = processableBlocks.filter(block => !existingBlocks.has(block.id));
+      console.log(`Filtered to ${newBlocks.length} new blocks:`, newBlocks.map(b => b.id));
 
       // Enforce a 100-block processing limit for all users (feature gate for future premium users)
       const BLOCK_LIMIT = 100;
