@@ -16,6 +16,7 @@ export default function SetupPage() {
   const { channelSlug: connectedChannel, username: connectedUsername, isDefault: isDefaultChannel, refresh: refreshChannel } = useChannel();
   const [channelSlug, setChannelSlug] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSwitching, setIsSwitching] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
@@ -33,7 +34,6 @@ export default function SetupPage() {
     blockCount: number;
   }[]>([]);
   const [hoveredChannel, setHoveredChannel] = useState<string | null>(null);
-  const [refreshingChannel, setRefreshingChannel] = useState<string | null>(null);
   const [blockLimitWarning, setBlockLimitWarning] = useState<string | null>(null);
   const router = useRouter();
 
@@ -217,7 +217,7 @@ export default function SetupPage() {
   };
 
   const handleQuickSwitch = async (slug: string) => {
-    setIsLoading(true);
+    setIsSwitching(true);
     setError(null);
     
     try {
@@ -255,91 +255,10 @@ export default function SetupPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to switch channel');
     } finally {
-      setIsLoading(false);
+      setIsSwitching(false);
     }
   };
 
-  const handleRefreshChannel = async (slug: string) => {
-    setRefreshingChannel(slug);
-    setError(null);
-    
-    try {
-      // Use the full sync process to get new blocks
-      const response = await fetch('/api/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ channelSlug: slug })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || 'Refresh failed');
-      }
-
-      // Read the streaming response
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error('No response stream available');
-      }
-
-      const decoder = new TextDecoder();
-      
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n');
-        
-        for (const line of lines) {
-          if (line.startsWith('data: ') && line.length > 6) {
-            try {
-              const data = JSON.parse(line.slice(6));
-              
-              if (data.type === 'complete' && data.result) {
-                // Handle completion
-                const result = data.result;
-                setSyncDetails({
-                  channelTitle: result.channelTitle,
-                  processedBlocks: result.processedBlocks, // New blocks processed
-                  switchedToChannel: slug
-                });
-                
-                // Refresh the hook and recent channels
-                refreshChannel();
-                
-                const loadRecentChannels = async () => {
-                  try {
-                    const response = await fetch('/api/recent-channels');
-                    if (response.ok) {
-                      const data = await response.json();
-                      setRecentChannels(data.channels || []);
-                    }
-                  } catch {
-                    console.log('Failed to load recent channels');
-                  }
-                };
-                loadRecentChannels();
-                
-                // Show success modal
-                setShowSuccessModal(true);
-                
-              } else if (data.type === 'error') {
-                throw new Error(data.error || 'Refresh failed');
-              }
-            } catch (parseError) {
-              console.log('Failed to parse SSE data:', parseError);
-            }
-          }
-        }
-      }
-      
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Refresh failed');
-    } finally {
-      setRefreshingChannel(null);
-    }
-  };
 
   return (
     <Layout>
@@ -416,16 +335,17 @@ export default function SetupPage() {
             {recentChannels.length > 0 && (
               <div className="pt-4 border-t">
                 <h3 className="text-sm font-medium text-foreground mb-2">Available Channels</h3>
-                <p className="text-xs text-muted-foreground mb-3">Click channel name to switch instantly • Click sync button to refresh with new blocks</p>
+                <p className="text-xs text-muted-foreground mb-3">Click any channel to switch instantly</p>
                 <div className="grid gap-2">
                   {recentChannels.slice(0, 5).map((channel) => (
                     <div
                       key={channel.slug}
-                      className={`p-3 rounded-lg border transition-all ${
-                        isLoading || refreshingChannel ? 'opacity-50' : 'hover:border-primary/50 hover:bg-muted/50'
+                      className={`p-3 rounded-lg border transition-all cursor-pointer ${
+                        isSwitching ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary/50 hover:bg-muted/50'
                       } ${
                         connectedChannel === channel.slug ? 'border-primary bg-primary/5' : 'border-border'
                       }`}
+                      onClick={() => !isSwitching && handleQuickSwitch(channel.slug)}
                       onMouseEnter={() => setHoveredChannel(channel.slug)}
                       onMouseLeave={() => setHoveredChannel(null)}
                       onFocus={() => setHoveredChannel(channel.slug)}
@@ -433,10 +353,7 @@ export default function SetupPage() {
                       tabIndex={0}
                     >
                       <div className="flex items-center justify-between">
-                        <div 
-                          className="flex-1 min-w-0 cursor-pointer"
-                          onClick={() => !isLoading && !refreshingChannel && handleQuickSwitch(channel.slug)}
-                        >
+                        <div className="flex-1 min-w-0">
                           <div className="font-medium text-sm truncate">
                             {channel.title || channel.slug}
                           </div>
@@ -456,25 +373,6 @@ export default function SetupPage() {
                               </Badge>
                             )
                           )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRefreshChannel(channel.slug);
-                            }}
-                            disabled={isLoading || refreshingChannel === channel.slug}
-                            className="text-xs px-2 py-1 h-6"
-                          >
-                            {refreshingChannel === channel.slug ? (
-                              <>
-                                <div className="animate-spin rounded-full h-3 w-3 border-b border-current mr-1"></div>
-                                Syncing...
-                              </>
-                            ) : (
-                              <>🔄 Sync</>
-                            )}
-                          </Button>
                         </div>
                       </div>
                     </div>
