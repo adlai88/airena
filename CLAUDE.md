@@ -789,15 +789,84 @@ npx vercel --prod
 
 **Success Criteria**: ✅ Design channels fully processable, visual content searchable, production deployed
 
-### **🔮 Phase 8.2: Visual Intelligence** (Next)
-- Style trend analysis across multiple channels
-- Color palette evolution tracking over time
-- Enhanced cross-modal connections (visual ↔ textual)
-- Advanced design pattern recognition
+### **🔮 Phase 8.2: Intelligent Curation Companion** (Next - Higher Priority)
+**Strategic Shift**: From visual intelligence to prompt intelligence for better user experience
 
-## Next Steps After Image Processing
+- Adaptive response logic that never shuts down with "I don't see..."
+- Content-aware fallback strategies for exploratory queries
+- Channel personality-aware response styling
+- Universal discovery patterns that work for any channel type
 
-1. **Phase 8.2**: Visual Intelligence & Pattern Recognition
+## 📋 Phase 8.2: Intelligent Curation Companion Implementation Plan
+
+### **🎯 Strategic Problem & Solution**
+**Problem**: Current chat system is too rigid - fails on broad/exploratory queries like "show me something cool", especially with playful channel names. System shuts down instead of embracing Are.na's discovery nature.
+
+**Solution**: Transform chat from "AI search tool" into "intelligent curation companion" that adapts to channel content and user intent without rigid categorization.
+
+### **🏗️ Core Strategy: Flexible Response Patterns**
+
+#### **Content-Aware Fallbacks (Not Rigid Categories)**
+- **Query specificity awareness**: Broad vs specific query handling
+- **Content availability**: What's actually in the channel  
+- **Query-content match**: Semantic similarity scoring
+- **Universal fallback**: Always engage, never shut down
+
+#### **Graceful Degradation Logic**
+```
+If specific match found → Direct answer
+If partial match found → Answer + related discoveries  
+If no clear match → Channel highlights + invitation to explore
+Never → "I don't see..." (complete elimination of shutdown responses)
+```
+
+#### **Universal Response Framework**
+- Always lead with something engaging from the channel
+- Provide context about what you're showing and why
+- Offer exploration paths regardless of query type
+- Maintain conversational flow with follow-up suggestions
+
+### **🛠️ Implementation Phases**
+
+#### **Phase 8.2.1: Prompt Template Enhancement** 
+**Goal**: Update core chat prompts to never shut down and always engage
+- [x] **Enhanced `lib/templates.ts`** with flexible fallback strategies
+- [x] **Universal content sampling** prompts for discovery mode
+- [x] **Follow-up suggestion generation** based on available content
+- [x] **Elimination of shutdown responses** - always find something relevant
+
+#### **Phase 8.2.2: Adaptive Response Logic**
+**Goal**: Content-aware response strategies without rigid categorization  
+- [x] **Query analysis** - detect specificity and intent
+- [x] **Content sampling strategies** - intelligent discovery patterns
+- [x] **Response style adaptation** - match channel vibe naturally
+- [x] **Conversational flow enhancement** - maintain engagement
+
+#### **Phase 8.2.3: Discovery Experience Optimization**
+**Goal**: Create "thoughtful friend who knows the collection" experience
+- [x] **Intelligent browsing patterns** - surface interesting connections
+- [x] **Context-aware suggestions** - relevant follow-up questions
+- [x] **Exploration path generation** - guide discovery naturally
+- [x] **Flow state maintenance** - never break user engagement
+
+### **📊 Success Metrics**
+- **Zero shutdown responses** - eliminate "I don't see..." completely
+- **Increased chat session length** - users explore longer
+- **More follow-up questions** per session - natural conversation flow
+- **User experience feedback** - "helpful companion" vs "rigid search"
+
+### **🎯 Benefits of Flexible Approach**
+1. **Works for any channel** - no need to predict all Are.na use cases
+2. **Scales naturally** - new content types automatically supported  
+3. **Maintains Are.na spirit** - encourages discovery over rigid search
+4. **Simpler implementation** - fewer edge cases to handle
+5. **Better user retention** - engaging experience vs frustrating shutdowns
+
+**Success Criteria**: ✅ Chat feels like intelligent curation companion, never shuts down, encourages discovery
+
+## Next Steps After Prompt Intelligence
+
+1. **Phase 8.3**: Visual Intelligence & Pattern Recognition (later priority)
 2. **Multiple channels**: Support for channel combinations
 3. **Advanced templates**: Research reports, brainstorming
 4. **Payment integration**: Polar.sh subscription management

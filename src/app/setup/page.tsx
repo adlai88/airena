@@ -33,8 +33,6 @@ export default function SetupPage() {
     blockCount: number;
   }[]>([]);
   const [hoveredChannel, setHoveredChannel] = useState<string | null>(null);
-  const [channelBlockCount, setChannelBlockCount] = useState<number | null>(null);
-  const [channelTitle, setChannelTitle] = useState<string | null>(null);
   const [blockLimitWarning, setBlockLimitWarning] = useState<string | null>(null);
   const router = useRouter();
 
@@ -178,14 +176,10 @@ export default function SetupPage() {
     const slug = extractSlugFromUrl(value);
     setChannelSlug(slug);
     setBlockLimitWarning(null);
-    setChannelBlockCount(null);
-    setChannelTitle(null);
     if (slug) {
       try {
         // Fetch channel info to get block count
         const info = await arenaClient.getChannel(slug);
-        setChannelBlockCount(info.length);
-        setChannelTitle(info.title || slug);
         if (info.length > 100) {
           setBlockLimitWarning(`This channel has ${info.length} blocks. Only the first 100 will be processed.`);
         }
