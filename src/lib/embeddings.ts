@@ -2,7 +2,8 @@
 import { openai } from '@ai-sdk/openai';
 import { embed } from 'ai';
 import { supabase, Block } from './supabase';
-import { ProcessedBlock } from './extraction';
+import { ProcessedAnyBlock, ProcessedBlock } from './extraction';
+import { ProcessedImageBlock } from './vision';
 
 export interface EmbeddingChunk {
   text: string;
@@ -85,13 +86,29 @@ export class EmbeddingService {
   /**
    * Create embeddings for a processed block with chunking
    */
-  async createBlockEmbedding(block: ProcessedBlock): Promise<EmbeddingChunk[]> {
-    // Combine title, description, and content for embedding
-    const fullText = [
-      block.title,
-      block.description,
-      block.content
-    ].filter(Boolean).join('\n\n');
+  async createBlockEmbedding(block: ProcessedAnyBlock): Promise<EmbeddingChunk[]> {
+    // Get the content to embed based on block type
+    let contentToEmbed: string;
+    
+    if (block.blockType === 'Image') {
+      // For images, use the processed content from vision analysis
+      const imageBlock = block as ProcessedImageBlock;
+      contentToEmbed = [
+        block.title,
+        block.description,
+        imageBlock.processedContent
+      ].filter(Boolean).join('\n\n');
+    } else {
+      // For links, use the original content structure
+      const linkBlock = block as ProcessedBlock;
+      contentToEmbed = [
+        block.title,
+        block.description,
+        linkBlock.content
+      ].filter(Boolean).join('\n\n');
+    }
+
+    const fullText = contentToEmbed;
 
     if (!fullText.trim()) {
       throw new Error('No text content to embed');
@@ -134,11 +151,15 @@ export class EmbeddingService {
    * Store a block with its embeddings in the database
    */
   async storeBlock(
-    block: ProcessedBlock, 
+    block: ProcessedAnyBlock, 
     channelId: number,
     embedding: number[]
   ): Promise<void> {
     try {
+      // Prepare data based on block type
+      const url = block.blockType === 'Image' ? (block as ProcessedImageBlock).imageUrl : (block as ProcessedBlock).url;
+      const content = block.blockType === 'Image' ? (block as ProcessedImageBlock).processedContent : (block as ProcessedBlock).content;
+
       const { error } = await supabase
         .from('blocks')
         .upsert({
@@ -146,8 +167,8 @@ export class EmbeddingService {
           channel_id: channelId,
           title: block.title,
           description: block.description,
-          content: block.content,
-          url: block.url,
+          content: content,
+          url: url,
           block_type: block.blockType,
           embedding: embedding,
           updated_at: new Date().toISOString(),

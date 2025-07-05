@@ -1,6 +1,7 @@
 // Content extraction service for processing Are.na blocks
 import axios from 'axios';
 import { ArenaBlock } from './arena';
+import { visionService, ProcessedImageBlock } from './vision';
 
 export interface ProcessedBlock {
   arenaId: number;
@@ -11,6 +12,9 @@ export interface ProcessedBlock {
   blockType: string;
   originalBlock: ArenaBlock;
 }
+
+// Union type for all processed block types
+export type ProcessedAnyBlock = ProcessedBlock | ProcessedImageBlock;
 
 export class ContentExtractor {
   private jinaApiKey: string;
@@ -80,10 +84,9 @@ export class ContentExtractor {
   }
 
   /**
-   * Process an Are.na block and extract its content
+   * Process an Are.na block and extract its content (Link blocks)
    */
-  async processBlock(block: ArenaBlock): Promise<ProcessedBlock | null> {
-    // Only process Link blocks for MVP
+  async processLinkBlock(block: ArenaBlock): Promise<ProcessedBlock | null> {
     if (block.class !== 'Link' || !block.source_url) {
       return null;
     }
@@ -119,9 +122,52 @@ export class ContentExtractor {
         originalBlock: block,
       };
     } catch (error) {
-      console.error(`Failed to process block ${block.id}:`, error);
+      console.error(`Failed to process link block ${block.id}:`, error);
       return null;
     }
+  }
+
+  /**
+   * Process an Are.na Image block using vision analysis
+   */
+  async processImageBlock(block: ArenaBlock): Promise<ProcessedImageBlock | null> {
+    if (block.class !== 'Image' || !block.source_url) {
+      return null;
+    }
+
+    try {
+      const processedImage = await visionService.processImageBlock({
+        id: block.id,
+        title: block.title,
+        description: block.description,
+        source_url: block.source_url
+      });
+
+      if (!processedImage) {
+        console.warn(`Failed to process image block ${block.id}`);
+        return null;
+      }
+
+      console.log(`✅ Processed image: ${processedImage.title}`);
+      return processedImage;
+    } catch (error) {
+      console.error(`Failed to process image block ${block.id}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Process any Are.na block (Link or Image)
+   */
+  async processBlock(block: ArenaBlock): Promise<ProcessedAnyBlock | null> {
+    if (block.class === 'Link') {
+      return this.processLinkBlock(block);
+    } else if (block.class === 'Image') {
+      return this.processImageBlock(block);
+    }
+    
+    // Skip other block types for now
+    return null;
   }
 
   /**
@@ -154,39 +200,45 @@ export class ContentExtractor {
   /**
    * Process multiple blocks with rate limiting
    */
-  async processBlocks(blocks: ArenaBlock[], onProgress?: (processed: number, total: number) => void): Promise<ProcessedBlock[]> {
-    const processedBlocks: ProcessedBlock[] = [];
-    const linkBlocks = blocks.filter(block => block.class === 'Link' && block.source_url);
+  async processBlocks(blocks: ArenaBlock[], onProgress?: (processed: number, total: number) => void): Promise<ProcessedAnyBlock[]> {
+    const processedBlocks: ProcessedAnyBlock[] = [];
+    const processableBlocks = blocks.filter(block => 
+      (block.class === 'Link' || block.class === 'Image') && block.source_url
+    );
 
-    console.log(`Processing ${linkBlocks.length} link blocks...`);
+    console.log(`Processing ${processableBlocks.length} blocks (${blocks.filter(b => b.class === 'Link').length} links, ${blocks.filter(b => b.class === 'Image').length} images)...`);
 
-    for (let i = 0; i < linkBlocks.length; i++) {
-      const block = linkBlocks[i];
+    for (let i = 0; i < processableBlocks.length; i++) {
+      const block = processableBlocks[i];
       
       try {
         const processedBlock = await this.processBlock(block);
         if (processedBlock) {
           processedBlocks.push(processedBlock);
-          console.log(`✅ Processed: ${processedBlock.title}`);
+          console.log(`✅ Processed ${block.class}: ${processedBlock.title}`);
         } else {
-          console.log(`⚠️  Skipped: ${block.source_url}`);
+          console.log(`⚠️  Skipped ${block.class}: ${block.source_url}`);
         }
       } catch (error) {
-        console.error(`❌ Failed to process block ${block.id}:`, error);
+        console.error(`❌ Failed to process ${block.class} block ${block.id}:`, error);
       }
 
       // Progress callback
       if (onProgress) {
-        onProgress(i + 1, linkBlocks.length);
+        onProgress(i + 1, processableBlocks.length);
       }
 
-      // Rate limiting: wait between requests
-      if (i < linkBlocks.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 500)); // 500ms delay
+      // Rate limiting: wait between requests (longer for vision API calls)
+      if (i < processableBlocks.length - 1) {
+        const delay = block.class === 'Image' ? 1000 : 500; // 1s for images, 500ms for links
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
 
-    console.log(`\n📊 Processing complete: ${processedBlocks.length}/${linkBlocks.length} blocks processed successfully`);
+    const linkCount = processedBlocks.filter(b => b.blockType === 'Link').length;
+    const imageCount = processedBlocks.filter(b => b.blockType === 'Image').length;
+    
+    console.log(`\n📊 Processing complete: ${processedBlocks.length}/${processableBlocks.length} blocks processed successfully (${linkCount} links, ${imageCount} images)`);
     return processedBlocks;
   }
 }

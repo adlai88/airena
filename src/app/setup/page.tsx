@@ -31,6 +31,7 @@ export default function SetupPage() {
     lastSync: string;
     blockCount: number;
   }[]>([]);
+  const [hoveredChannel, setHoveredChannel] = useState<string | null>(null);
   const router = useRouter();
 
   // Load recent channels on mount
@@ -246,7 +247,7 @@ export default function SetupPage() {
         subtitle="Manage your Are.na channel connection"
         variant="narrow"
       />
-      <div className="max-w-md mx-auto pb-8 sm:pb-12 px-4 sm:px-0">
+      <div className="max-w-md sm:max-w-lg md:max-w-xl mx-auto pb-8 sm:pb-12 px-4 sm:px-0">
         {/* Show current channel if connected */}
         {connectedChannel && (
           <div className="flex justify-center mb-6">
@@ -295,7 +296,7 @@ export default function SetupPage() {
                 {isLoading ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground mr-2"></div>
-                    Syncing...
+                    Syncing... <span className="hidden sm:inline">(this might take a few minutes)</span>
                   </>
                 ) : (
                   connectedChannel ? 'Switch Channel' : 'Sync Channel'
@@ -318,6 +319,11 @@ export default function SetupPage() {
                         connectedChannel === channel.slug ? 'border-primary bg-primary/5' : 'border-border'
                       }`}
                       onClick={() => !isLoading && handleQuickSwitch(channel.slug)}
+                      onMouseEnter={() => setHoveredChannel(channel.slug)}
+                      onMouseLeave={() => setHoveredChannel(null)}
+                      onFocus={() => setHoveredChannel(channel.slug)}
+                      onBlur={() => setHoveredChannel(null)}
+                      tabIndex={0}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">
@@ -328,10 +334,16 @@ export default function SetupPage() {
                             {channel.blockCount} blocks • Last synced {new Date(channel.lastSync).toLocaleDateString()}
                           </div>
                         </div>
-                        {connectedChannel === channel.slug && (
+                        {connectedChannel === channel.slug ? (
                           <Badge variant="secondary" className="ml-2 text-xs">
                             Active
                           </Badge>
+                        ) : (
+                          hoveredChannel === channel.slug && (
+                            <Badge variant="outline" className="ml-2 text-xs">
+                              Switch
+                            </Badge>
+                          )
                         )}
                       </div>
                     </div>

@@ -164,6 +164,61 @@ export class ArenaClient {
   }
 
   /**
+   * Filter blocks by type and get detailed info for Image blocks
+   */
+  async getDetailedImageBlocks(blocks: ArenaBlock[]): Promise<ArenaBlock[]> {
+    const imageBlocks = blocks.filter(block => block.class === 'Image');
+    const detailedBlocks: ArenaBlock[] = [];
+
+    console.log(`Fetching detailed info for ${imageBlocks.length} image blocks...`);
+
+    for (const block of imageBlocks) {
+      try {
+        const detailedBlock = await this.getBlock(block.id);
+        
+        // For Image blocks, we need the image URL which is typically in source_url
+        const hasImageUrl = detailedBlock.source_url || detailedBlock.source?.url;
+        
+        if (hasImageUrl) {
+          // Normalize the source_url field
+          if (!detailedBlock.source_url && detailedBlock.source?.url) {
+            detailedBlock.source_url = detailedBlock.source.url;
+          }
+          detailedBlocks.push(detailedBlock);
+        }
+
+        // Rate limiting
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (error) {
+        console.warn(`Failed to get details for image block ${block.id}:`, error);
+      }
+    }
+
+    console.log(`Found ${detailedBlocks.length} image blocks with URLs`);
+    return detailedBlocks;
+  }
+
+  /**
+   * Get detailed blocks for both Link and Image types
+   */
+  async getDetailedProcessableBlocks(blocks: ArenaBlock[]): Promise<{
+    linkBlocks: ArenaBlock[];
+    imageBlocks: ArenaBlock[];
+    allBlocks: ArenaBlock[];
+  }> {
+    const [linkBlocks, imageBlocks] = await Promise.all([
+      this.getDetailedLinkBlocks(blocks),
+      this.getDetailedImageBlocks(blocks)
+    ]);
+
+    return {
+      linkBlocks,
+      imageBlocks,
+      allBlocks: [...linkBlocks, ...imageBlocks]
+    };
+  }
+
+  /**
    * Filter blocks by type - for MVP we only want Link blocks (websites)
    */
   filterLinkBlocks(blocks: ArenaBlock[]): ArenaBlock[] {

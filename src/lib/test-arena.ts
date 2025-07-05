@@ -76,8 +76,12 @@ async function testArenaIntegration() {
       if (processedBlock) {
         console.log('✅ Block processing successful:');
         console.log(`   - Title: ${processedBlock.title}`);
-        console.log(`   - Content length: ${processedBlock.content.length} characters`);
-        console.log(`   - URL: ${processedBlock.url}`);
+        console.log(`   - Block type: ${processedBlock.blockType}`);
+        if (processedBlock.blockType === 'Image') {
+          console.log(`   - Image processed with vision analysis`);
+        } else {
+          console.log(`   - Link content extracted`);
+        }
       } else {
         console.log('⚠️  Block processing returned null');
       }

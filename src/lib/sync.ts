@@ -1,7 +1,7 @@
 // Sync service to orchestrate the entire content processing pipeline
 import { supabase } from './supabase';
 import { arenaClient, ArenaChannel } from './arena';
-import { contentExtractor, ProcessedBlock } from './extraction';
+import { contentExtractor, ProcessedAnyBlock } from './extraction';
 import { embeddingService } from './embeddings';
 
 export interface SyncProgress {
@@ -128,31 +128,31 @@ export class SyncService {
 
       const allBlocks = await arenaClient.getAllChannelContents(channelSlug);
       
-      // Get detailed info for link blocks to access source URLs
-      const linkBlocks = await arenaClient.getDetailedLinkBlocks(allBlocks);
+      // Get detailed info for both link and image blocks
+      const { linkBlocks, imageBlocks, allBlocks: processableBlocks } = await arenaClient.getDetailedProcessableBlocks(allBlocks);
 
       this.reportProgress({
         stage: 'fetching',
-        message: `Found ${linkBlocks.length} link blocks out of ${allBlocks.length} total blocks`,
+        message: `Found ${processableBlocks.length} processable blocks (${linkBlocks.length} links, ${imageBlocks.length} images) out of ${allBlocks.length} total blocks`,
         progress: 20,
-        totalBlocks: linkBlocks.length,
+        totalBlocks: processableBlocks.length,
       });
 
-      if (linkBlocks.length === 0) {
+      if (processableBlocks.length === 0) {
         return {
           success: true,
           channelId: channel.id,
           totalBlocks: allBlocks.length,
           processedBlocks: 0,
           skippedBlocks: allBlocks.length,
-          errors: ['No link blocks found to process'],
+          errors: ['No processable blocks found (no links or images with URLs)'],
           duration: Date.now() - startTime,
         };
       }
 
       // Get existing blocks to avoid re-processing
       const existingBlocks = await this.getExistingBlocks(channel.id);
-      const newBlocks = linkBlocks.filter(block => !existingBlocks.has(block.id));
+      const newBlocks = processableBlocks.filter(block => !existingBlocks.has(block.id));
 
       if (newBlocks.length === 0) {
         return {
@@ -174,7 +174,7 @@ export class SyncService {
       });
 
       // Stage 2: Extract content from new blocks
-      const processedBlocksList: ProcessedBlock[] = [];
+      const processedBlocksList: ProcessedAnyBlock[] = [];
 
       for (let i = 0; i < newBlocks.length; i++) {
         const block = newBlocks[i];
