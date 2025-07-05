@@ -50,6 +50,7 @@ export class SyncService {
 
     if (existingChannel) {
       // Update existing channel with all fields including username
+      console.log(`Updating existing channel ${channel.slug} with username: ${channel.user.username}`);
       const { error } = await supabase
         .from('channels')
         .update({
@@ -62,10 +63,13 @@ export class SyncService {
         .eq('arena_id', channel.id);
 
       if (error) {
+        console.error(`Failed to update channel ${channel.slug}:`, error);
         throw new Error(`Failed to update channel: ${error.message}`);
       }
+      console.log(`Successfully updated channel ${channel.slug} with username: ${channel.user.username}`);
     } else {
       // Insert new channel
+      console.log(`Inserting new channel ${channel.slug} with username: ${channel.user.username}`);
       const { error } = await supabase
         .from('channels')
         .insert({
@@ -79,8 +83,10 @@ export class SyncService {
         });
 
       if (error) {
+        console.error(`Failed to insert channel ${channel.slug}:`, error);
         throw new Error(`Failed to insert channel: ${error.message}`);
       }
+      console.log(`Successfully inserted new channel ${channel.slug} with username: ${channel.user.username}`);
     }
   }
 

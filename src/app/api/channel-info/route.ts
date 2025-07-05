@@ -24,7 +24,7 @@ export async function GET() {
     }
 
     if (channels && channels.length > 0) {
-      console.log('Channel-info API: Returning channel:', channels[0].slug);
+      console.log('Channel-info API: Returning channel:', channels[0].slug, 'username:', channels[0].username);
       return NextResponse.json({ 
         channelSlug: channels[0].slug, 
         username: channels[0].username,
