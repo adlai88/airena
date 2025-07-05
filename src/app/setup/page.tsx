@@ -16,7 +16,7 @@ export default function SetupPage() {
   const { channelSlug: connectedChannel, username: connectedUsername, isDefault: isDefaultChannel, refresh: refreshChannel } = useChannel();
   const [channelSlug, setChannelSlug] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isSwitching, setIsSwitching] = useState(false);
+  const [switchingToChannel, setSwitchingToChannel] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
@@ -217,7 +217,7 @@ export default function SetupPage() {
   };
 
   const handleQuickSwitch = async (slug: string) => {
-    setIsSwitching(true);
+    setSwitchingToChannel(slug);
     setError(null);
     
     try {
@@ -255,7 +255,7 @@ export default function SetupPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to switch channel');
     } finally {
-      setIsSwitching(false);
+      setSwitchingToChannel(null);
     }
   };
 
@@ -341,11 +341,11 @@ export default function SetupPage() {
                     <div
                       key={channel.slug}
                       className={`p-3 rounded-lg border transition-all cursor-pointer ${
-                        isSwitching ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary/50 hover:bg-muted/50'
+                        switchingToChannel ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary/50 hover:bg-muted/50'
                       } ${
                         connectedChannel === channel.slug ? 'border-primary bg-primary/5' : 'border-border'
                       }`}
-                      onClick={() => !isSwitching && handleQuickSwitch(channel.slug)}
+                      onClick={() => !switchingToChannel && handleQuickSwitch(channel.slug)}
                       onMouseEnter={() => setHoveredChannel(channel.slug)}
                       onMouseLeave={() => setHoveredChannel(null)}
                       onFocus={() => setHoveredChannel(channel.slug)}
@@ -365,6 +365,11 @@ export default function SetupPage() {
                           {connectedChannel === channel.slug ? (
                             <Badge variant="secondary" className="text-xs">
                               Active
+                            </Badge>
+                          ) : switchingToChannel === channel.slug ? (
+                            <Badge variant="outline" className="text-xs">
+                              <div className="animate-spin rounded-full h-2 w-2 border-b border-current mr-1"></div>
+                              Connecting...
                             </Badge>
                           ) : (
                             hoveredChannel === channel.slug && (
