@@ -13,7 +13,7 @@ export async function GET() {
     // Get the most recently used channel from the database
     const { data: channels, error } = await supabase
       .from('channels')
-      .select('slug')
+      .select('slug, username')
       .order('last_sync', { ascending: false })
       .limit(1);
 
@@ -25,7 +25,11 @@ export async function GET() {
 
     if (channels && channels.length > 0) {
       console.log('Channel-info API: Returning channel:', channels[0].slug);
-      return NextResponse.json({ channelSlug: channels[0].slug, isDefault: false });
+      return NextResponse.json({ 
+        channelSlug: channels[0].slug, 
+        username: channels[0].username,
+        isDefault: false 
+      });
     }
 
     // Return default channel if no channels found

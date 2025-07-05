@@ -15,7 +15,7 @@ type GenerationStage = 'template-selection' | 'customization' | 'generation' | '
 
 function GenerateContent() {
   const router = useRouter();
-  const { channelSlug } = useChannel();
+  const { channelSlug, username } = useChannel();
   const [stage, setStage] = useState<GenerationStage>('template-selection');
   const [selectedTemplate, setSelectedTemplate] = useState<NewsletterTemplate | null>(null);
   const [options, setOptions] = useState<{
@@ -139,7 +139,7 @@ function GenerateContent() {
           <div className="flex justify-center mb-8">
             <Badge variant="secondary" className="px-3 py-1">
               🔗 Connected to: <a 
-                href={`https://are.na/${channelSlug}`} 
+                href={username ? `https://are.na/${username}/${channelSlug}` : `https://are.na/${channelSlug}`} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="underline hover:no-underline transition-all"
@@ -186,7 +186,7 @@ function GenerateContent() {
           <div className="flex justify-center mb-8">
             <Badge variant="secondary" className="px-3 py-1">
               🔗 Connected to: <a 
-                href={`https://are.na/${channelSlug}`} 
+                href={username ? `https://are.na/${username}/${channelSlug}` : `https://are.na/${channelSlug}`} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="underline hover:no-underline transition-all"

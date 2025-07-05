@@ -47,6 +47,7 @@ export class SyncService {
         arena_id: channel.id,
         title: channel.title,
         slug: channel.slug,
+        username: channel.user.username, // Store username for proper Are.na URLs
         user_id: null, // TODO: Add user management later
         last_sync: new Date().toISOString(),
         updated_at: new Date().toISOString(),

@@ -12,7 +12,7 @@ import { PageHeader } from '@/components/page-header';
 import { useChannel } from '@/hooks/useChannel';
 
 export default function SetupPage() {
-  const { channelSlug: connectedChannel, isDefault: isDefaultChannel } = useChannel();
+  const { channelSlug: connectedChannel, username: connectedUsername, isDefault: isDefaultChannel, refresh: refreshChannel } = useChannel();
   const [channelSlug, setChannelSlug] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
@@ -22,6 +22,7 @@ export default function SetupPage() {
     channelTitle?: string;
     totalBlocks?: number;
     processedBlocks?: number;
+    switchedToChannel?: string;
   }>({});
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [recentChannels, setRecentChannels] = useState<{
@@ -79,9 +80,13 @@ export default function SetupPage() {
         setSyncDetails({
           channelTitle: result.channelTitle,
           totalBlocks: result.totalBlocks,
-          processedBlocks: result.processedBlocks
+          processedBlocks: result.processedBlocks,
+          switchedToChannel: channelSlug // Store the channel we synced
         });
         setStatus(`Success! Processed ${result.processedBlocks} blocks from "${result.channelTitle || channelSlug}".`);
+        
+        // Refresh the hook to get updated channel info
+        refreshChannel();
         
         // Reload recent channels to include the newly synced channel
         const loadRecentChannels = async () => {
@@ -174,7 +179,11 @@ export default function SetupPage() {
       setSyncDetails({
         channelTitle: result.channelTitle,
         processedBlocks: result.blockCount,
+        switchedToChannel: slug, // Store the channel we switched to
       });
+      
+      // Refresh the hook to get updated channel info
+      refreshChannel();
       
       console.log('Setup: Updated connectedChannel state to:', slug);
       
@@ -201,7 +210,7 @@ export default function SetupPage() {
           <div className="flex justify-center mb-6">
             <Badge variant="secondary" className="px-3 py-1">
               🔗 {isDefaultChannel ? 'Default channel' : 'Connected to'}: <a 
-                href={`https://are.na/${connectedChannel}`} 
+                href={connectedUsername ? `https://are.na/${connectedUsername}/${connectedChannel}` : `https://are.na/${connectedChannel}`} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="underline hover:no-underline transition-all"
@@ -345,7 +354,7 @@ export default function SetupPage() {
               ✅ Channel Synced Successfully!
             </DialogTitle>
             <DialogDescription className="mt-2">
-              Your <span className="font-medium">{connectedChannel}</span> channel is ready with{' '}
+              Your <span className="font-medium">{syncDetails.switchedToChannel || connectedChannel}</span> channel is ready with{' '}
               <span className="font-medium">{syncDetails.processedBlocks || 0}</span> curated items processed.
             </DialogDescription>
           </DialogHeader>

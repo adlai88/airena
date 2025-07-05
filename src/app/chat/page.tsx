@@ -9,7 +9,7 @@ import { PromptTemplates } from '@/lib/templates';
 import { useChannel } from '@/hooks/useChannel';
 
 function ChatContent() {
-  const { channelSlug } = useChannel();
+  const { channelSlug, username } = useChannel();
   const [previousChannelSlug, setPreviousChannelSlug] = useState<string | null>(null);
 
   const [messages, setMessages] = useState<Array<{
@@ -207,7 +207,7 @@ function ChatContent() {
               <div className="flex justify-center mb-4">
                 <Badge variant="secondary" className="px-3 py-1">
                   🔗 Connected to: <a 
-                    href={`https://are.na/${channelSlug}`} 
+                    href={username ? `https://are.na/${username}/${channelSlug}` : `https://are.na/${channelSlug}`} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="underline hover:no-underline transition-all"
