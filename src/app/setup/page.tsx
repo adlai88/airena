@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Layout } from '@/components/layout';
 import { PageHeader } from '@/components/page-header';
 import { useChannel } from '@/hooks/useChannel';
+import { arenaClient } from '@/lib/arena';
 
 export default function SetupPage() {
   const { channelSlug: connectedChannel, username: connectedUsername, isDefault: isDefaultChannel, refresh: refreshChannel } = useChannel();
@@ -32,6 +33,9 @@ export default function SetupPage() {
     blockCount: number;
   }[]>([]);
   const [hoveredChannel, setHoveredChannel] = useState<string | null>(null);
+  const [channelBlockCount, setChannelBlockCount] = useState<number | null>(null);
+  const [channelTitle, setChannelTitle] = useState<string | null>(null);
+  const [blockLimitWarning, setBlockLimitWarning] = useState<string | null>(null);
   const router = useRouter();
 
   // Load recent channels on mount
@@ -169,10 +173,26 @@ export default function SetupPage() {
     return input.trim();
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const slug = extractSlugFromUrl(value);
     setChannelSlug(slug);
+    setBlockLimitWarning(null);
+    setChannelBlockCount(null);
+    setChannelTitle(null);
+    if (slug) {
+      try {
+        // Fetch channel info to get block count
+        const info = await arenaClient.getChannel(slug);
+        setChannelBlockCount(info.length);
+        setChannelTitle(info.title || slug);
+        if (info.length > 100) {
+          setBlockLimitWarning(`This channel has ${info.length} blocks. Only the first 100 will be processed.`);
+        }
+      } catch {
+        // Ignore errors for now (invalid slug, etc.)
+      }
+    }
   };
 
   const handleModalAction = (action: 'generate' | 'chat' | 'sync-another') => {
@@ -285,6 +305,11 @@ export default function SetupPage() {
                 <p className="text-xs text-muted-foreground mt-1">
                   Enter any channel slug or channel URL
                 </p>
+                {blockLimitWarning && (
+                  <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-yellow-800 text-xs">
+                    {blockLimitWarning}
+                  </div>
+                )}
               </div>
 
               <Button

@@ -152,7 +152,14 @@ export class SyncService {
 
       // Get existing blocks to avoid re-processing
       const existingBlocks = await this.getExistingBlocks(channel.id);
-      const newBlocks = processableBlocks.filter(block => !existingBlocks.has(block.id));
+      let newBlocks = processableBlocks.filter(block => !existingBlocks.has(block.id));
+
+      // Enforce a 100-block processing limit for all users (feature gate for future premium users)
+      const BLOCK_LIMIT = 100;
+      if (newBlocks.length > BLOCK_LIMIT) {
+        newBlocks = newBlocks.slice(0, BLOCK_LIMIT);
+        errors.push(`Block limit reached: Only the first ${BLOCK_LIMIT} blocks will be processed.`);
+      }
 
       if (newBlocks.length === 0) {
         return {

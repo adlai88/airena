@@ -295,7 +295,7 @@ function ChatContent() {
                     : 'bg-muted text-muted-foreground'
                 }`}
               >
-                <div className="whitespace-pre-wrap text-sm sm:text-base leading-relaxed">
+                <div className="whitespace-pre-wrap break-all text-sm sm:text-base leading-relaxed">
                   {message.content}
                 </div>
               </div>
