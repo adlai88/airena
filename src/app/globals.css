@@ -91,6 +91,31 @@ html {
   overflow-y: scroll;
 }
 
+/* Mobile touch optimizations */
+@media (max-width: 768px) {
+  /* Eliminate 300ms tap delay on mobile */
+  * {
+    touch-action: manipulation;
+  }
+  
+  /* Improve scroll performance */
+  body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  
+  /* Optimize input performance */
+  input, textarea, button, select {
+    -webkit-appearance: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Smooth scrolling for better UX */
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
