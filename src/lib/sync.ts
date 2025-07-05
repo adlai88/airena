@@ -41,22 +41,46 @@ export class SyncService {
    * Store or update channel in database
    */
   private async upsertChannel(channel: ArenaChannel): Promise<void> {
-    const { error } = await supabase
+    // First try to update existing record
+    const { data: existingChannel } = await supabase
       .from('channels')
-      .upsert({
-        arena_id: channel.id,
-        title: channel.title,
-        slug: channel.slug,
-        username: channel.user.username, // Store username for proper Are.na URLs
-        user_id: null, // TODO: Add user management later
-        last_sync: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }, {
-        onConflict: 'arena_id'
-      });
+      .select('id')
+      .eq('arena_id', channel.id)
+      .single();
 
-    if (error) {
-      throw new Error(`Failed to store channel: ${error.message}`);
+    if (existingChannel) {
+      // Update existing channel with all fields including username
+      const { error } = await supabase
+        .from('channels')
+        .update({
+          title: channel.title,
+          slug: channel.slug,
+          username: channel.user.username,
+          last_sync: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('arena_id', channel.id);
+
+      if (error) {
+        throw new Error(`Failed to update channel: ${error.message}`);
+      }
+    } else {
+      // Insert new channel
+      const { error } = await supabase
+        .from('channels')
+        .insert({
+          arena_id: channel.id,
+          title: channel.title,
+          slug: channel.slug,
+          username: channel.user.username,
+          user_id: null,
+          last_sync: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+
+      if (error) {
+        throw new Error(`Failed to insert channel: ${error.message}`);
+      }
     }
   }
 
