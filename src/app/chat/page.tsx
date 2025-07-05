@@ -24,7 +24,13 @@ function ChatContent() {
 
   // Restore chat messages from session storage on load
   useEffect(() => {
-    const savedMessages = sessionStorage.getItem('airena-chat-messages');
+    if (!channelSlug) {
+      setIsRestoringMessages(false);
+      return;
+    }
+    
+    const storageKey = `airena-chat-messages-${channelSlug}`;
+    const savedMessages = sessionStorage.getItem(storageKey);
     if (savedMessages) {
       try {
         const parsed = JSON.parse(savedMessages);
@@ -34,32 +40,41 @@ function ChatContent() {
       } catch (error) {
         console.log('Failed to restore chat messages:', error);
         // Clear corrupted data
-        sessionStorage.removeItem('airena-chat-messages');
+        sessionStorage.removeItem(storageKey);
       }
     }
     setIsRestoringMessages(false);
-  }, []);
+  }, [channelSlug]);
 
   // Save messages to session storage whenever messages change
   useEffect(() => {
+    if (!channelSlug) return;
+    
+    const storageKey = `airena-chat-messages-${channelSlug}`;
     if (messages.length > 0) {
-      sessionStorage.setItem('airena-chat-messages', JSON.stringify(messages));
+      sessionStorage.setItem(storageKey, JSON.stringify(messages));
     } else {
       // Clear storage if no messages (user might have cleared chat)
-      sessionStorage.removeItem('airena-chat-messages');
+      sessionStorage.removeItem(storageKey);
     }
-  }, [messages]);
+  }, [messages, channelSlug]);
 
   // Clear chat history when channel changes (but not on initial load)
   useEffect(() => {
-    if (previousChannelSlug && channelSlug !== previousChannelSlug) {
-      console.log(`Channel switched from ${previousChannelSlug} to ${channelSlug} - clearing chat history`);
+    // Don't clear on initial load or when restoring messages
+    if (isRestoringMessages) return;
+    
+    // If we have a previous channel and it's different from current, clear current messages
+    // (but don't remove from storage - let the restoration effect handle loading new channel's messages)
+    if (previousChannelSlug && channelSlug && channelSlug !== previousChannelSlug) {
+      console.log(`Chat: Channel switched from ${previousChannelSlug} to ${channelSlug} - clearing current messages`);
       setMessages([]);
-      sessionStorage.removeItem('airena-chat-messages');
       setError(null);
     }
-    // Only set previousChannelSlug after restoration is complete to avoid false channel changes
-    if (!isRestoringMessages) {
+    
+    // Always update previousChannelSlug after restoration is complete
+    if (channelSlug && !isRestoringMessages) {
+      console.log(`Chat: Setting previousChannelSlug to ${channelSlug}`);
       setPreviousChannelSlug(channelSlug);
     }
   }, [channelSlug, previousChannelSlug, isRestoringMessages]);
@@ -71,7 +86,10 @@ function ChatContent() {
   const clearChat = () => {
     setMessages([]);
     setError(null);
-    sessionStorage.removeItem('airena-chat-messages');
+    if (channelSlug) {
+      const storageKey = `airena-chat-messages-${channelSlug}`;
+      sessionStorage.removeItem(storageKey);
+    }
   };
 
   const handleChatSubmit = async (e: React.FormEvent) => {
@@ -339,6 +357,34 @@ function ChatContent() {
               Clear Chat
             </Button>
           </div>
+
+          {/* Compact Suggested Questions for Chat Session */}
+          {messages.length > 0 && (
+            <div className="mb-4">
+              <div className="text-xs text-muted-foreground mb-2">Try asking:</div>
+              <div className="flex flex-wrap gap-2">
+                {suggestedQuestions.slice(0, 3).map((question, index) => (
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className="cursor-pointer hover:bg-primary/10 transition text-xs px-2 py-1"
+                    onClick={() => {
+                      setInput(question);
+                      // Auto-submit the question for better UX
+                      setTimeout(() => {
+                        const form = document.querySelector('form');
+                        if (form) {
+                          form.dispatchEvent(new Event('submit', { bubbles: true }));
+                        }
+                      }, 100);
+                    }}
+                  >
+                    {question}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Input Form */}
           <form onSubmit={handleChatSubmit} className="flex flex-col sm:flex-row gap-3 sm:gap-4">

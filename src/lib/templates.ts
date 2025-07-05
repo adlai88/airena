@@ -83,7 +83,7 @@ Newsletter:`;
   }
 
   /**
-   * Generate contextual chat response
+   * Generate contextual chat response with intelligent curation companion approach
    */
   static chat(
     userMessage: string,
@@ -99,64 +99,147 @@ Newsletter:`;
       ? conversationHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n')
       : '';
 
-    return `You are an intelligent assistant with access to curated content from "${channelTitle}".
+    // Determine query specificity to guide response strategy
+    const isExploratoryQuery = this.isExploratoryQuery(userMessage);
+    const channelVibe = this.getChannelVibe(channelTitle);
+
+    return `You are an intelligent curation companion with access to content from "${channelTitle}". Your role is to help users discover and explore their curated collection in an engaging, helpful way.
 
 CONVERSATION HISTORY:
 ${historyText}
 
-RELEVANT CONTENT FROM ${channelTitle.toUpperCase()}:
+CURATED CONTENT FROM ${channelTitle.toUpperCase()}:
 ${contextText}
 
 USER QUESTION: ${userMessage}
 
-INSTRUCTIONS:
-- Answer based ONLY on the specific content provided above
-- Be specific about what you actually found in the ${channelTitle} content
-- Reference specific sources with URLs when relevant  
-- If the provided content doesn't contain relevant information, say "I don't see specific information about [their question] in the ${channelTitle} content I have access to"
-- Be conversational but grounded in the actual content provided
-- Don't give generic advice - reference specific items, examples, or information from the content
-- Include source attribution for specific details or quotes
-- Adapt your language to match the content type (if it's about recipes, talk about recipes; if it's about startups, talk about startups, etc.)
+RESPONSE STRATEGY:
+${isExploratoryQuery ? this.getExploratoryInstructions(channelVibe) : this.getSpecificInstructions()}
+
+CORE PRINCIPLES:
+- NEVER say "I don't see information about..." - always find something engaging to share
+- Act like a thoughtful friend who knows this collection well
+- If the question is specific and you have relevant content, provide direct answers
+- If the question is broad or exploratory, surface interesting highlights and discoveries
+- If there's no perfect match, share what IS interesting and suggest related exploration
+- Always include source attribution with URLs for credibility
+- Match the tone to the channel vibe: ${channelVibe}
+- End with a follow-up suggestion to keep the conversation flowing
+- Be conversational and maintain the spirit of discovery that makes Are.na special
+
+FALLBACK APPROACH (use when no direct match):
+Instead of shutting down, surface interesting items from the collection with context like:
+"I found some fascinating things in your ${channelTitle} collection that might spark ideas..." or
+"While exploring your channel, these items caught my attention..." or  
+"Your collection has some interesting patterns - here's what stands out..."
 
 Response:`;
   }
 
   /**
-   * Get suggested questions that adapt to any channel title
+   * Determine if a query is exploratory vs specific
+   */
+  private static isExploratoryQuery(userMessage: string): boolean {
+    const exploratoryTerms = [
+      'show me', 'what', 'anything', 'something', 'cool', 'interesting', 
+      'discover', 'explore', 'find', 'see', 'browse', 'random', 'surprise',
+      'highlights', 'overview', 'summary', 'what do you', 'tell me about'
+    ];
+    
+    const lowerMessage = userMessage.toLowerCase();
+    return exploratoryTerms.some(term => lowerMessage.includes(term)) || 
+           userMessage.length < 30; // Short queries tend to be exploratory
+  }
+
+  /**
+   * Determine channel vibe for response tone adaptation
+   */
+  private static getChannelVibe(channelTitle: string): string {
+    const title = channelTitle.toLowerCase();
+    
+    if (title.includes('cool') || title.includes('random') || title.includes('fun')) {
+      return 'playful and curious';
+    } else if (title.includes('research') || title.includes('study') || title.includes('analysis')) {
+      return 'analytical and thorough';
+    } else if (title.includes('design') || title.includes('art') || title.includes('aesthetic')) {
+      return 'visual and thoughtful';
+    } else if (title.includes('startup') || title.includes('business') || title.includes('founder')) {
+      return 'practical and insightful';
+    } else {
+      return 'engaging and knowledgeable';
+    }
+  }
+
+  /**
+   * Instructions for handling exploratory queries
+   */
+  private static getExploratoryInstructions(channelVibe: string): string {
+    return `This is an exploratory query. Your approach:
+- Lead with something immediately engaging from the content
+- Surface 2-3 interesting highlights that showcase the collection's value
+- Provide context about why these items are noteworthy
+- Connect different pieces when possible to show patterns
+- Use a ${channelVibe} tone
+- Invite further exploration with specific follow-up suggestions`;
+  }
+
+  /**
+   * Instructions for handling specific queries
+   */
+  private static getSpecificInstructions(): string {
+    return `This is a specific query. Your approach:
+- If you have relevant content, provide a direct, detailed answer
+- If you have partial matches, answer what you can and surface related discoveries
+- If no direct match exists, acknowledge this briefly then pivot to what IS interesting
+- Always connect to actual content in the collection
+- Provide specific examples and source attribution`;
+  }
+
+  /**
+   * Get suggested questions that adapt to any channel title and encourage discovery
    */
   static getSuggestedQuestions(channelTitle: string): string[] {
     // Extract key terms from channel title for context-aware questions
     const title = channelTitle.toLowerCase();
     const channelName = channelTitle.replace(/^r[-:]?\s*/i, ''); // Remove "R:" or "r-" prefix
     
-    // Base questions that work for any content type
-    const baseQuestions = [
-      `What do you know about ${channelName}?`,
-      "What are the main topics covered?",
-      "What can I learn from this channel?",
-      "What are the key insights?",
+    // Exploratory questions that work for any content type and encourage discovery
+    const exploratoryQuestions = [
+      "Show me something cool",
+      "What's interesting here?",
+      "Surprise me with a discovery",
       "What stands out the most?",
-      "How would you summarize this content?"
+      "What should I explore first?",
+      "Give me the highlights"
+    ];
+
+    // Analytical questions for deeper exploration
+    const analyticalQuestions = [
+      `What patterns do you see in ${channelName}?`,
+      "What are the key insights?",
+      "What can I learn from this?",
+      "How would you summarize this collection?"
     ];
     
     // Add contextual questions based on channel title hints
     const contextualQuestions = [];
     
-    if (title.includes('recipe') || title.includes('cooking') || title.includes('food')) {
-      contextualQuestions.push("What recipes are included?", "What ingredients are commonly used?");
+    if (title.includes('cool') || title.includes('random') || title.includes('fun')) {
+      contextualQuestions.push("Show me the coolest thing here", "What's the most unexpected item?");
+    } else if (title.includes('recipe') || title.includes('cooking') || title.includes('food')) {
+      contextualQuestions.push("What recipes look interesting?", "What cooking techniques are featured?");
     } else if (title.includes('startup') || title.includes('founder') || title.includes('business') || title.includes('vc')) {
-      contextualQuestions.push("What advice is given to founders?", "What business strategies are discussed?");
+      contextualQuestions.push("What advice stands out for founders?", "What business insights are here?");
     } else if (title.includes('design') || title.includes('art') || title.includes('creative')) {
-      contextualQuestions.push("What design principles are featured?", "What creative techniques are shown?");
+      contextualQuestions.push("What design approaches are featured?", "Show me the most inspiring pieces");
     } else if (title.includes('education') || title.includes('learning') || title.includes('teach')) {
-      contextualQuestions.push("What educational approaches are discussed?", "What learning resources are available?");
+      contextualQuestions.push("What learning approaches are discussed?", "What educational resources stand out?");
     } else if (title.includes('tech') || title.includes('programming') || title.includes('code')) {
-      contextualQuestions.push("What technologies are featured?", "What development practices are discussed?");
+      contextualQuestions.push("What technologies are highlighted?", "What development insights are here?");
     }
     
-    // Combine base questions with contextual ones, limit to 6 total
-    const allQuestions = [...baseQuestions, ...contextualQuestions];
+    // Combine exploratory, analytical, and contextual questions
+    const allQuestions = [...exploratoryQuestions.slice(0, 3), ...analyticalQuestions.slice(0, 2), ...contextualQuestions.slice(0, 1)];
     return allQuestions.slice(0, 6);
   }
 
