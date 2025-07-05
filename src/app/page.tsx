@@ -13,7 +13,7 @@ export default function HomePage() {
             Turn your are.na channels into a personal intelligence agent
           </h1>
           <p className="text-xl mb-12 text-foreground">
-            Generate newsletters, reports, and insights using AI
+            Airena transforms your curated inspiration into actionable insights, answers, and creative content—powered by your unique taste.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 mb-16">
@@ -33,9 +33,9 @@ export default function HomePage() {
           <div className="mb-16">
             <h2 className="text-2xl font-bold mb-4 text-foreground">Features</h2>
             <ul className="list-disc pl-6 space-y-2 text-foreground">
-              <li>Chat with your are.na channel</li>
-              <li>Auto-generate newsletters from your curated feed</li>
-              <li>Real-time streaming responses</li>
+              <li>Chat with your Are.na channels to surface hidden connections and patterns</li>
+              <li>Generate newsletters, summaries, and reports from your saved content</li>
+              <li>Unlock a knowledge base that thinks like you do</li>
             </ul>
           </div>
 

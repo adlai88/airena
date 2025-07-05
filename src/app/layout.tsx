@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Airena - AI-Powered Are.na Intelligence",
-  description: "Transform your curated Are.na channels into an intelligent agent that generates newsletters, reports, and insights using AI powered by your own curation.",
+  title: "Airena – Turn your are.na channels into a personal intelligence agent",
+  description: "Airena transforms your Are.na channels into a personal intelligence agent. Generate insights, chat with your research, and create content powered by your unique curation.",
 };
 
 export default function RootLayout({
