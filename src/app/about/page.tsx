@@ -26,7 +26,7 @@ export default function AboutPage() {
       <p className="mb-4">This isn&apos;t another AI tool trained on generic web data. It&apos;s intelligence built from <em>your taste</em>—the articles you found compelling, the designs that caught your eye, the ideas you deemed worth saving.</p>
       <p className="mb-4">While others search through noise, you query signal. While others get generic outputs, you get insights grounded in your own curatorial judgment.</p>
       <h2 className="text-xl font-bold mb-2 mt-8">Why This Matters</h2>
-      <p className="mb-4">We&apos;re creating a new category that sits between visual inspiration and knowledge intelligence. Your are.na channels become more than mood boards—they become thinking partners.</p>
+      <p className="mb-4">Your are.na channels become more than mood boards—they become thinking partners.</p>
       <p className="mb-4">Every piece you&apos;ve curated is a vote for what matters. Airena turns those votes into a knowledge base that thinks like you do.</p>
       <p className="mt-8 font-semibold">Start exploring with the research others have curated, then connect your own channels to unlock the intelligence in your collection.</p>
       </div>
