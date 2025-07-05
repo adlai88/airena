@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export function Footer() {
   return (
     <footer className="border-t border-border bg-background mt-auto">
@@ -5,9 +7,9 @@ export function Footer() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0">
           <p className="text-sm text-muted-foreground text-center sm:text-left">© Airena 2025</p>
           <div className="flex space-x-4 sm:space-x-6 items-center">
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground">About</a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground">Terms</a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground">Privacy</a>
+            <Link href="/about" className="text-sm text-muted-foreground hover:text-foreground">About</Link>
+            <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">Terms</Link>
+            <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">Privacy</Link>
           </div>
         </div>
       </div>
