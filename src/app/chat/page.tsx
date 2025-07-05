@@ -8,6 +8,35 @@ import { Layout } from '@/components/layout';
 import { PromptTemplates } from '@/lib/templates';
 import { useChannel } from '@/hooks/useChannel';
 
+// Component to render text with clickable links
+function MessageContent({ content }: { content: string }) {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  
+  // Split content by URLs and create clickable links
+  const parts = content.split(urlRegex);
+  
+  return (
+    <div className="whitespace-pre-wrap break-all text-sm sm:text-base leading-relaxed">
+      {parts.map((part, index) => {
+        if (part.match(urlRegex)) {
+          return (
+            <a
+              key={index}
+              href={part}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline hover:no-underline transition-colors"
+            >
+              {part}
+            </a>
+          );
+        }
+        return part;
+      })}
+    </div>
+  );
+}
+
 function ChatContent() {
   const { channelSlug, username } = useChannel();
   const [previousChannelSlug, setPreviousChannelSlug] = useState<string | null>(null);
@@ -313,9 +342,7 @@ function ChatContent() {
                     : 'bg-muted text-muted-foreground'
                 }`}
               >
-                <div className="whitespace-pre-wrap break-all text-sm sm:text-base leading-relaxed">
-                  {message.content}
-                </div>
+                <MessageContent content={message.content} />
               </div>
             </div>
           ))}
