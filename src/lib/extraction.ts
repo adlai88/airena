@@ -2,6 +2,7 @@
 import axios from 'axios';
 import { ArenaBlock } from './arena';
 import { visionService, ProcessedImageBlock } from './vision';
+import { VideoExtractor } from '../../lib/video-extraction';
 
 export interface ProcessedBlock {
   arenaId: number;
@@ -13,8 +14,14 @@ export interface ProcessedBlock {
   originalBlock: ArenaBlock;
 }
 
+export interface ProcessedVideoBlock extends ProcessedBlock {
+  blockType: 'Video';
+  hasTranscript: boolean;
+  videoId?: string;
+}
+
 // Union type for all processed block types
-export type ProcessedAnyBlock = ProcessedBlock | ProcessedImageBlock;
+export type ProcessedAnyBlock = ProcessedBlock | ProcessedImageBlock | ProcessedVideoBlock;
 
 export class ContentExtractor {
   private jinaApiKey: string;
@@ -86,7 +93,7 @@ export class ContentExtractor {
   /**
    * Process an Are.na block and extract its content (Link blocks)
    */
-  async processLinkBlock(block: ArenaBlock): Promise<ProcessedBlock | null> {
+  async processLinkBlock(block: ArenaBlock): Promise<ProcessedBlock | ProcessedVideoBlock | null> {
     if (block.class !== 'Link' || !block.source_url) {
       return null;
     }
@@ -94,6 +101,11 @@ export class ContentExtractor {
     // Skip non-web URLs
     if (!block.source_url.startsWith('http')) {
       return null;
+    }
+
+    // Check if this is a video URL
+    if (VideoExtractor.isVideoUrl(block.source_url)) {
+      return this.processVideoBlock(block);
     }
 
     try {
@@ -157,10 +169,50 @@ export class ContentExtractor {
   }
 
   /**
-   * Process any Are.na block (Link or Image)
+   * Process video blocks (YouTube URLs) using transcript extraction
+   */
+  async processVideoBlock(block: ArenaBlock): Promise<ProcessedVideoBlock | null> {
+    if (!block.source_url || !VideoExtractor.isVideoUrl(block.source_url)) {
+      return null;
+    }
+
+    try {
+      // Validate video first
+      const validation = await VideoExtractor.validateVideoForProcessing(block.source_url);
+      
+      // Extract video content
+      const rawContent = await VideoExtractor.extractVideo(block.source_url);
+      const cleanedContent = this.cleanContent(rawContent);
+
+      // Create title from block title or extract from metadata
+      const metadata = await VideoExtractor.getVideoMetadata(block.source_url);
+      const title = block.title || 
+                   block.description || 
+                   metadata.title;
+
+      return {
+        arenaId: block.id,
+        title,
+        description: block.description,
+        content: cleanedContent,
+        url: block.source_url,
+        blockType: 'Video',
+        hasTranscript: validation.hasTranscript || false,
+        videoId: metadata.videoId,
+        originalBlock: block,
+      };
+    } catch (error) {
+      console.error(`Failed to process video block ${block.id}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Process any Are.na block (Link, Image, or Video)
    */
   async processBlock(block: ArenaBlock): Promise<ProcessedAnyBlock | null> {
     if (block.class === 'Link') {
+      // processLinkBlock now handles both websites and videos
       return this.processLinkBlock(block);
     } else if (block.class === 'Image') {
       return this.processImageBlock(block);
@@ -206,7 +258,13 @@ export class ContentExtractor {
       (block.class === 'Link' || block.class === 'Image') && block.source_url
     );
 
-    console.log(`Processing ${processableBlocks.length} blocks (${blocks.filter(b => b.class === 'Link').length} links, ${blocks.filter(b => b.class === 'Image').length} images)...`);
+    // Count different types of content
+    const linkBlocks = blocks.filter(b => b.class === 'Link' && b.source_url);
+    const imageBlocks = blocks.filter(b => b.class === 'Image' && b.source_url);
+    const videoBlocks = linkBlocks.filter(b => b.source_url && VideoExtractor.isVideoUrl(b.source_url));
+    const websiteBlocks = linkBlocks.filter(b => b.source_url && !VideoExtractor.isVideoUrl(b.source_url));
+
+    console.log(`Processing ${processableBlocks.length} blocks (${websiteBlocks.length} websites, ${videoBlocks.length} videos, ${imageBlocks.length} images)...`);
 
     for (let i = 0; i < processableBlocks.length; i++) {
       const block = processableBlocks[i];
@@ -215,12 +273,18 @@ export class ContentExtractor {
         const processedBlock = await this.processBlock(block);
         if (processedBlock) {
           processedBlocks.push(processedBlock);
-          console.log(`✅ Processed ${block.class}: ${processedBlock.title}`);
+          const blockType = processedBlock.blockType === 'Video' ? 'video' : 
+                           processedBlock.blockType === 'Image' ? 'image' : 'website';
+          console.log(`✅ Processed ${blockType}: ${processedBlock.title}`);
         } else {
-          console.log(`⚠️  Skipped ${block.class}: ${block.source_url}`);
+          const blockType = block.class === 'Image' ? 'image' : 
+                           (block.source_url && VideoExtractor.isVideoUrl(block.source_url)) ? 'video' : 'website';
+          console.log(`⚠️  Skipped ${blockType}: ${block.source_url}`);
         }
       } catch (error) {
-        console.error(`❌ Failed to process ${block.class} block ${block.id}:`, error);
+        const blockType = block.class === 'Image' ? 'image' : 
+                         (block.source_url && VideoExtractor.isVideoUrl(block.source_url)) ? 'video' : 'website';
+        console.error(`❌ Failed to process ${blockType} block ${block.id}:`, error);
       }
 
       // Progress callback
@@ -230,15 +294,18 @@ export class ContentExtractor {
 
       // Rate limiting: wait between requests (longer for vision API calls)
       if (i < processableBlocks.length - 1) {
-        const delay = block.class === 'Image' ? 1000 : 500; // 1s for images, 500ms for links
+        const isImage = block.class === 'Image';
+        const isVideo = block.source_url && VideoExtractor.isVideoUrl(block.source_url);
+        const delay = isImage ? 1000 : isVideo ? 750 : 500; // 1s for images, 750ms for videos, 500ms for websites
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
 
-    const linkCount = processedBlocks.filter(b => b.blockType === 'Link').length;
+    const websiteCount = processedBlocks.filter(b => b.blockType === 'Link').length;
+    const videoCount = processedBlocks.filter(b => b.blockType === 'Video').length;
     const imageCount = processedBlocks.filter(b => b.blockType === 'Image').length;
     
-    console.log(`\n📊 Processing complete: ${processedBlocks.length}/${processableBlocks.length} blocks processed successfully (${linkCount} links, ${imageCount} images)`);
+    console.log(`\n📊 Processing complete: ${processedBlocks.length}/${processableBlocks.length} blocks processed successfully (${websiteCount} websites, ${videoCount} videos, ${imageCount} images)`);
     return processedBlocks;
   }
 }

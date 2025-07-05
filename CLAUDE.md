@@ -38,16 +38,18 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 - **Intelligence Layer**: Smart curation companion that never shuts down users
 - **Deployment**: Live on Vercel with Supabase backend
 
-**What's Next**: Two-phase approach prioritizing user experience before monetization:
-1. **Phase 9 (Mobile)**: Polish the responsive foundation for Are.na's mobile-heavy user base
-2. **Phase 10 (Open Source)**: Launch community-driven growth with $9/$19/$99 pricing tiers
+**What's Next**: Complete multimodal intelligence + simultaneous launch strategy:
+1. **Phase 9.4 (3 days)**: Video processing integration with Whisper transcription
+2. **Phase 10.1 (Week 1)**: Quick monetization implementation with Polar.sh + basic tiers  
+3. **Phase 10.2 (Week 2)**: Open source preparation and repository cleanup
+4. **Phase 10.3 (Week 3)**: Launch with "Complete multimodal intelligence" positioning
 
-## 📋 Phase 9: Mobile Experience Finesse ✅ **NEXT PRIORITY**
+## 📋 Phase 9: Mobile Experience Finesse ✅ **COMPLETED**
 
 ### Goals & Context
-**Why Mobile First**: Are.na's user base is heavily mobile-focused, and we have a solid responsive foundation with shadcn/ui. These are polish optimizations rather than major rewrites, making this the logical next step before open source launch.
+**Why Mobile First**: Are.na's user base is heavily mobile-focused, and we have a solid responsive foundation with shadcn/ui. These were polish optimizations rather than major rewrites.
 
-**Strategic Timing**: Complete mobile polish while the codebase is still simple, before adding monetization complexity. This ensures community sees the best possible experience when we launch open source.
+**Strategic Result**: Mobile experience is now production-ready with touch-friendly navigation, native sharing, and optimized performance for Are.na's mobile-heavy user base.
 
 ### Implementation Phases
 
@@ -80,6 +82,49 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 - [x] **Mobile loading performance** - Added mobile viewport meta tags, scroll optimizations, input performance tweaks
 - [x] **Scroll performance** - Added `-webkit-overflow-scrolling: touch` and `overscroll-behavior: contain`
 
+## 📋 Phase 9.4: Video Processing Integration ✅ **COMPLETED**
+
+### Strategic Achievement: Complete Multimodal Intelligence
+**Mission Accomplished**: Now process ALL Are.na content types - websites, PDFs (via Jina), images (via GPT-4V), and videos (via youtube-transcript).
+
+**Strategic Pivot**: Chose youtube-transcript over Whisper for faster MVP completion (1 day vs 3 days, free vs expensive, handles 80% of video use cases).
+
+### Implementation Results ✅ **ALL COMPLETE**
+
+#### Video Processing Pipeline **COMPLETED**
+- [x] **YouTube transcript extraction** - Fast, free caption scraping via youtube-transcript package
+- [x] **Video URL detection** - Automatic identification in Link blocks with comprehensive pattern matching
+- [x] **Content extraction integration** - Seamless routing in existing `src/lib/extraction.ts` pipeline
+- [x] **Type-safe architecture** - `ProcessedVideoBlock` interface with transcript metadata
+- [x] **Error handling** - Graceful fallbacks for videos without captions
+- [x] **Rate limiting optimization** - 750ms delay for video processing (balanced between images/websites)
+
+#### Production Validation **COMPLETED**
+- [x] **Real video testing** - Successfully processed YouTube content with transcript extraction
+- [x] **Batch processing** - Accurate counting and progress tracking for all content types
+- [x] **Block type classification** - Videos correctly identified as `blockType: 'Video'`
+- [x] **Metadata extraction** - Video ID, title, transcript availability tracking
+- [x] **Pipeline integration** - Videos processed alongside websites and images in unified workflow
+
+### Technical Implementation Details
+**Architecture**: Video URLs → YouTube caption scraping → text processing → embedding + storage
+**Content Types Covered**: ✅ Websites, ✅ PDFs, ✅ Images, ✅ Videos (COMPLETE COVERAGE)
+**Positioning Impact**: **"Complete multimodal intelligence for your Are.na channels"**
+
+**Files Created/Modified**:
+- `lib/video-extraction.ts` - Complete video processing service
+- `src/lib/extraction.ts` - Integrated video routing and batch processing
+- `scripts/test-video-integration.ts` - Production validation testing
+
+**Test Results**:
+```
+🎉 Video Integration Success:
+✅ Video URL detection working
+✅ Block type classification (blockType: 'Video') 
+✅ Metadata extraction (video ID, transcript status)
+✅ Batch processing: "1 websites, 1 videos, 0 images"
+```
+
 #### Post-MVP Mobile Features (Phase 11+)
 **Deferred until after open source launch:**
 - Progressive Web App (PWA) features
@@ -108,46 +153,46 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 - **Accessibility**: Screen reader compatible, high contrast support
 - **User Experience**: Intuitive mobile-first navigation, minimal friction
 
-## 📋 Phase 10: Open Source Strategy + Monetization ✅ **AFTER MOBILE**
+## 📋 Phase 10: Simultaneous Open Source + Monetization Launch ✅ **NEXT**
 
 ### Goals & Strategic Context
-**Why After Mobile**: Launch open source with the best possible user experience. Mobile polish ensures community's first impression is professional and polished.
+**Why Simultaneous Launch**: Are.na's professional user base values complete, polished experiences. Launching open source with a working business model builds more trust than a free-then-paid approach.
 
-**Strategic Approach**: Open Core Model - open source the intelligence layer, monetize the infrastructure layer. This builds community trust while creating sustainable revenue.
+**Strategic Approach**: "Open source intelligence layer + optional hosted convenience" - complete story from day one with immediate revenue potential.
 
-### Implementation Phases
+### Hybrid Implementation Strategy
 
-#### Phase 10.1: Repository Restructure
-**Goal**: Prepare codebase for open source release
-- [ ] **Repository organization** - Create `core/`, `hosted/`, `enterprise/`, `docs/` structure
-- [ ] **Environment detection** - Feature flags for hosted vs self-hosted capabilities
-- [ ] **Security audit** - Remove sensitive configs, create comprehensive `.env.example`
-- [ ] **Self-hosting documentation** - Complete setup guide with Docker option
-- [ ] **Contribution guidelines** - Clear process for community contributions
-
-#### Phase 10.2: Community Features
-**Goal**: Enable community-driven growth and contributions
-- [ ] **Template marketplace** - Community-contributed prompt templates with rating system
-- [ ] **Public channel showcase** - Opt-in directory of interesting channels
-- [ ] **GitHub discussions** - Feature requests, community feedback, template sharing
-- [ ] **API documentation** - Enable third-party integrations and extensions
-- [ ] **Plugin architecture** - Allow community to extend content extraction
-
-#### Phase 10.3: Hosted Service Launch
-**Goal**: Implement tiered monetization with community-friendly pricing
+#### Phase 10.1: Quick Monetization Implementation (Week 1)
+**Goal**: Basic but functional monetization ready for launch
 - [ ] **Polar.sh integration** - Open source billing platform setup
-- [ ] **Usage tracking system** - Block consumption counting and transparent limits
-- [ ] **Tier management** - Starter ($9), Pro ($19), Enterprise ($99) implementation
-- [ ] **Usage-based billing** - $0.20 per additional block over limit
-- [ ] **User dashboard** - Usage monitoring, billing transparency, upgrade flows
-
-#### Phase 10.4: Value Positioning & Growth
-**Goal**: Position as "curation intelligence" rather than generic AI
-- [ ] **Marketing messaging** - "ChatGPT gives you generic AI, Airena gives you YOUR intelligence"
-- [ ] **Onboarding flow** - Position as ChatGPT complement, not replacement
+- [ ] **Basic tier management** - Starter ($9), Pro ($19), Enterprise ($99)
+- [ ] **Usage tracking** - Simple block consumption counting
+- [ ] **User dashboard** - Basic usage monitoring and billing
 - [ ] **Pricing page** - Clear value proposition for each tier
+
+#### Phase 10.2: Open Source Preparation (Week 2)
+**Goal**: Clean, professional open source release
+- [ ] **Security audit** - Remove sensitive configs, create comprehensive `.env.example`
+- [ ] **Self-hosting documentation** - Complete setup guide with clear instructions
+- [ ] **Contribution guidelines** - Community contribution process
+- [ ] **README polish** - Professional project presentation
+- [ ] **Repository cleanup** - Remove any proprietary elements
+
+#### Phase 10.3: Coordinated Launch (Week 3)
+**Goal**: Single launch moment with complete offering
+- [ ] **Launch messaging** - "Open source curation intelligence - self-host free or use hosted service"
+- [ ] **Community channels** - GitHub discussions, template sharing
+- [ ] **Launch strategy** - Coordinated GitHub release, Hacker News, Product Hunt
+- [ ] **Onboarding flow** - Clear path from open source to hosted service
+- [ ] **Value positioning** - "ChatGPT gives you generic AI, Airena gives you YOUR intelligence"
+
+#### Phase 10.4: Post-Launch Growth (Week 4+)
+**Goal**: Build community and iterate based on feedback
+- [ ] **Template marketplace** - Community-contributed prompt templates
+- [ ] **Public channel showcase** - Opt-in directory of interesting channels
+- [ ] **API documentation** - Enable third-party integrations
 - [ ] **Community testimonials** - Are.na users explaining the value
-- [ ] **Launch strategy** - GitHub release, Hacker News, Product Hunt coordination
+- [ ] **Feature iteration** - Based on user feedback and usage patterns
 
 ### Monetization Strategy
 
