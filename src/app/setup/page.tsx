@@ -303,7 +303,7 @@ export default function SetupPage() {
                   required
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Add a completely new channel or refresh any existing channel not shown above
+                  Add a completely new channel or refresh any existing channel
                 </p>
                 {blockLimitWarning && (
                   <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-yellow-800 text-xs">
