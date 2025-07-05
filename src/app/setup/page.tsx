@@ -61,7 +61,7 @@ export default function SetupPage() {
     setSyncDetails({});
 
     try {
-      // Call our sync API endpoint (we'll need to create this)
+      // Use EventSource for Server-Sent Events
       const response = await fetch('/api/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -73,42 +73,84 @@ export default function SetupPage() {
         throw new Error(errorText || 'Sync failed');
       }
 
-      const result = await response.json();
-      
-      if (result.success) {
-        setProgress(100);
-        setSyncDetails({
-          channelTitle: result.channelTitle,
-          totalBlocks: result.totalBlocks,
-          processedBlocks: result.processedBlocks,
-          switchedToChannel: channelSlug // Store the channel we synced
-        });
-        setStatus(`Success! Processed ${result.processedBlocks} blocks from "${result.channelTitle || channelSlug}".`);
-        
-        // Refresh the hook to get updated channel info
-        refreshChannel();
-        
-        // Reload recent channels to include the newly synced channel
-        const loadRecentChannels = async () => {
-          try {
-            const response = await fetch('/api/recent-channels');
-            if (response.ok) {
-              const data = await response.json();
-              setRecentChannels(data.channels || []);
-            }
-          } catch {
-            console.log('Failed to load recent channels');
-          }
-        };
-        loadRecentChannels();
-        
-        // Show success modal instead of redirecting
-        setTimeout(() => {
-          setShowSuccessModal(true);
-        }, 1500);
-      } else {
-        setError(`Sync failed: ${result.errors?.join(', ') || 'Unknown error'}`);
+      // Read the streaming response
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('No response stream available');
       }
+
+      const decoder = new TextDecoder();
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ') && line.length > 6) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              
+              if (data.type === 'complete' && data.result) {
+                // Handle completion
+                const result = data.result;
+                setProgress(100);
+                setSyncDetails({
+                  channelTitle: result.channelTitle,
+                  totalBlocks: result.totalBlocks,
+                  processedBlocks: result.processedBlocks,
+                  switchedToChannel: channelSlug
+                });
+                setStatus(`Success! Processed ${result.processedBlocks} blocks from "${result.channelTitle || channelSlug}".`);
+                
+                // Refresh the hook to get updated channel info
+                refreshChannel();
+                
+                // Reload recent channels
+                const loadRecentChannels = async () => {
+                  try {
+                    const response = await fetch('/api/recent-channels');
+                    if (response.ok) {
+                      const data = await response.json();
+                      setRecentChannels(data.channels || []);
+                    }
+                  } catch {
+                    console.log('Failed to load recent channels');
+                  }
+                };
+                loadRecentChannels();
+                
+                // Show success modal
+                setTimeout(() => {
+                  setShowSuccessModal(true);
+                }, 1500);
+                
+              } else if (data.type === 'error') {
+                // Handle error
+                throw new Error(data.error || 'Sync failed');
+                
+              } else if (data.stage) {
+                // Handle progress update
+                setProgress(Math.round(data.progress) || 0);
+                setStatus(data.message || 'Processing...');
+                
+                if (data.totalBlocks || data.processedBlocks) {
+                  setSyncDetails(prev => ({
+                    ...prev,
+                    totalBlocks: data.totalBlocks || prev.totalBlocks,
+                    processedBlocks: data.processedBlocks || prev.processedBlocks,
+                  }));
+                }
+              }
+            } catch (parseError) {
+              console.log('Failed to parse SSE data:', parseError);
+            }
+          }
+        }
+      }
+      
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Sync failed');
     } finally {
@@ -300,14 +342,28 @@ export default function SetupPage() {
 
             {/* Progress Bar */}
             {isLoading && (
-              <div className="space-y-2">
-                <div className="text-sm text-muted-foreground">Syncing progress...</div>
-                <div className="w-full bg-muted rounded-full h-2">
-                  <div 
-                    className="bg-primary h-2 rounded-full transition-all duration-300 ease-out"
-                    style={{ width: `${progress}%` }}
-                  ></div>
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">
+                      {status || 'Processing...'}
+                    </span>
+                    <span className="text-muted-foreground font-medium">
+                      {progress}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div 
+                      className="bg-primary h-2 rounded-full transition-all duration-500 ease-out"
+                      style={{ width: `${progress}%` }}
+                    ></div>
+                  </div>
                 </div>
+                {syncDetails.totalBlocks !== undefined && syncDetails.processedBlocks !== undefined && (
+                  <div className="text-xs text-muted-foreground text-center">
+                    Processed {syncDetails.processedBlocks} of {syncDetails.totalBlocks} blocks
+                  </div>
+                )}
               </div>
             )}
 
