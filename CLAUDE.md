@@ -28,10 +28,10 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 ✅ **Successfully deployed to Vercel**  
 ✅ **Phase 9: Mobile Experience Finesse** (COMPLETED - MVP-focused mobile optimization)
 ✅ **Phase 9.5: Video Intelligence** (COMPLETED - YouTube API integration)
-✅ **Phase 9.6: PDF Processing** (COMPLETED - Document intelligence added)
+✅ **Phase 9.6: PDF Processing** (COMPLETED - Production tested with real PDFs)
 🔄 **Phase 10: Open Source Strategy + Monetization** (READY - Community-driven growth)
 
-**Live Application**: https://airena-mu.vercel.app/
+**Live Application**: https://airena-e6f38mhub-adlai88s-projects.vercel.app/
 
 ## Where We Are
 
@@ -203,6 +203,15 @@ const processableBlocks = blocks.filter(block =>
 ```
 
 **Production Impact**: Document-heavy Are.na channels (research, academic content, policy documents) now fully processable, completing true multimodal intelligence.
+
+#### **Production Validation ✅ CONFIRMED**
+- **Real PDF uploaded**: AI+Crypto Buildathon document successfully processed
+- **Content extracted**: 3,788 characters of structured content via Jina AI  
+- **Database stored**: Embedded and searchable in Supabase knowledge base
+- **Chat integration**: PDF content accessible via conversational interface
+- **Sync reliability**: Attachment blocks detected and processed automatically
+
+**Result**: Both PDF upload methods working in production (direct upload → Attachment blocks, bookmarked URLs → Link blocks).
 
 ## 📋 Phase 9: Mobile Experience Finesse ✅ **COMPLETED**
 
@@ -420,10 +429,10 @@ npm run debug:channel     # Debug channel contents and block types
 
 ## Quick Reference
 
-**Live Application**: https://airena-mu.vercel.app/
+**Live Application**: https://airena-e6f38mhub-adlai88s-projects.vercel.app/
 **Repository**: Current working directory
 **Database**: Supabase with pgvector extension
-**Current Channel**: r-startups-founder-mode (default with demo data)
+**Current Channel**: r-startups-founder-mode (default with demo data + PDF processing)
 
 ## Implementation History
 
