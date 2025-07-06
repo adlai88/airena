@@ -369,7 +369,7 @@ function GenerateContent() {
           title="Generating Your Newsletter"
           subtitle="Processing the curated research..."
         />
-        <div className="flex flex-col items-center justify-center" style={{ minHeight: 'calc(100vh - 300px)' }}>
+        <div className="flex flex-col items-center justify-center min-h-screen -mt-24">
           <Badge variant="secondary" className="px-3 py-1 mb-8">
             ⚡ Connected to: {channelSlug}
           </Badge>
