@@ -27,12 +27,27 @@ export function Navigation({ homeNav = false }: NavigationProps) {
   const isAppPage = !homeNav && pathname !== '/';
   
   // Determine active tab based on current route
-  const navigateWithParams = (path: string) => {
-    // Preserve query parameters when navigating
-    const searchParams = new URLSearchParams(window.location.search);
-    const queryString = searchParams.toString();
-    const fullPath = queryString ? `${path}?${queryString}` : path;
-    router.push(fullPath);
+  const navigateWithParams = async (path: string) => {
+    if (path === '/chat') {
+      // For chat, we need to get the current channel and use path-based routing
+      try {
+        const response = await fetch('/api/channel-info');
+        if (response.ok) {
+          const data = await response.json();
+          router.push(`/chat/${data.channelSlug}`);
+        } else {
+          router.push('/chat/r-startups-founder-mode'); // fallback to default
+        }
+      } catch {
+        router.push('/chat/r-startups-founder-mode'); // fallback to default
+      }
+    } else {
+      // For other pages, preserve query parameters when navigating
+      const searchParams = new URLSearchParams(window.location.search);
+      const queryString = searchParams.toString();
+      const fullPath = queryString ? `${path}?${queryString}` : path;
+      router.push(fullPath);
+    }
   };
 
   const isActivePage = (path: string) => {

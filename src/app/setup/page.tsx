@@ -204,7 +204,7 @@ export default function SetupPage() {
         break;
       case 'chat':
         console.log('Setup: Navigating to chat with channel:', connectedChannel);
-        router.push(`/chat?channel=${connectedChannel}`);
+        router.push(`/chat/${connectedChannel}`);
         break;
       case 'sync-another':
         // Reset form for new channel
