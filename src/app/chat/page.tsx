@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Layout } from '@/components/layout';
 import { PromptTemplates } from '@/lib/templates';
 import { useChannel } from '@/hooks/useChannel';
+import { AutoTextarea } from '@/components/ui/auto-textarea';
+import { ArrowUpIcon } from 'lucide-react';
 
 // Component to render text with clickable links
 function MessageContent({ content }: { content: string }) {
@@ -320,6 +322,16 @@ function ChatContent() {
   // Dynamic suggested questions based on channel content
   const suggestedQuestions = PromptTemplates.getSuggestedQuestions(channelTitle || channelSlug);
 
+  const [suggestionsCollapsed, setSuggestionsCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Show loading state while restoring messages
   if (isRestoringMessages) {
     return (
@@ -364,25 +376,28 @@ function ChatContent() {
             {/* Chat Input Form */}
             <form onSubmit={handleChatSubmit} className="mb-8">
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                <Input
-                  ref={inputRef}
-                  type="text"
-                  value={input}
-                  onChange={handleInputChange}
-                  placeholder="Ask about your channel... (e.g., 'What are the key insights?')"
-                  disabled={isLoading}
-                  className="flex-1 min-h-[44px] text-base"
-                  autoComplete="off"
-                  autoCapitalize="sentences"
-                  autoCorrect="on"
-                />
-                <Button
-                  type="submit"
-                  disabled={isLoading || !input.trim() || !channelSlug.trim()}
-                  className="min-h-[44px] sm:min-h-auto px-6 sm:px-4"
-                >
-                  {isLoading ? 'Sending...' : 'Send'}
-                </Button>
+                <div className="relative flex-1">
+                  <AutoTextarea
+                    ref={inputRef as any}
+                    value={input}
+                    onChange={e => setInput(e.target.value)}
+                    placeholder="Ask about your channel... (e.g., 'What are the key insights?')"
+                    disabled={isLoading}
+                    className="pr-10 min-h-[44px] text-base"
+                    maxRows={isMobile ? 4 : 6}
+                    autoComplete="off"
+                    autoCapitalize="sentences"
+                    autoCorrect="on"
+                  />
+                  <button
+                    type="submit"
+                    disabled={isLoading || !input.trim() || !channelSlug.trim()}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full text-muted-foreground hover:text-primary transition disabled:opacity-50"
+                    tabIndex={0}
+                  >
+                    <ArrowUpIcon className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
             </form>
 
@@ -396,28 +411,39 @@ function ChatContent() {
             )}
 
             {/* Suggested Questions */}
-            <div className="text-center">
-              <div className="mb-4 text-sm text-muted-foreground font-medium">
-                Try asking about:
-              </div>
-              <div className="flex flex-wrap gap-2 justify-center">
-                {suggestedQuestions.map((question, index) => (
-                  <Badge
-                    key={index}
-                    variant="secondary"
-                    className="cursor-pointer hover:bg-primary/10 transition px-3 py-1"
-                    onClick={() => {
-                      setInput(question);
-                      // Auto-submit the question
-                      const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
-                      handleChatSubmit(fakeEvent);
-                    }}
+            {!isMobile && (
+              <div className="text-center">
+                <div className="mb-4 text-sm text-muted-foreground font-medium flex items-center justify-center gap-2">
+                  <span>Try asking about:</span>
+                  <button
+                    type="button"
+                    className="text-xs text-muted-foreground hover:text-primary px-2 py-1 rounded"
+                    onClick={() => setSuggestionsCollapsed(!suggestionsCollapsed)}
                   >
-                    {question}
-                  </Badge>
-                ))}
+                    {suggestionsCollapsed ? 'Show' : 'Hide'}
+                  </button>
+                </div>
+                {!suggestionsCollapsed && (
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    {suggestedQuestions.map((question, index) => (
+                      <Badge
+                        key={index}
+                        variant="secondary"
+                        className="cursor-pointer hover:bg-primary/10 transition px-3 py-1"
+                        onClick={() => {
+                          setInput(question);
+                          // Auto-submit the question
+                          const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+                          handleChatSubmit(fakeEvent);
+                        }}
+                      >
+                        {question}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
+            )}
           </div>
         </div>
       </Layout>
@@ -505,54 +531,67 @@ function ChatContent() {
           </div>
 
           {/* Compact Suggested Questions for Chat Session */}
-          {messages.length > 0 && (
+          {!isMobile && messages.length > 0 && (
             <div className="mb-4">
-              <div className="text-xs text-muted-foreground mb-2">Try asking:</div>
-              <div className="flex flex-wrap gap-2">
-                {suggestedQuestions.slice(0, 3).map((question, index) => (
-                  <Badge
-                    key={index}
-                    variant="secondary"
-                    className="cursor-pointer hover:bg-primary/10 transition text-xs px-2 py-1"
-                    onClick={() => {
-                      setInput(question);
-                      // Auto-submit the question for better UX
-                      setTimeout(() => {
-                        const form = document.querySelector('form');
-                        if (form) {
-                          form.dispatchEvent(new Event('submit', { bubbles: true }));
-                        }
-                      }, 100);
-                    }}
-                  >
-                    {question}
-                  </Badge>
-                ))}
+              <div className="text-xs text-muted-foreground mb-2 flex items-center gap-2">
+                <span>Try asking:</span>
+                <button
+                  type="button"
+                  className="text-xs text-muted-foreground hover:text-primary px-2 py-1 rounded"
+                  onClick={() => setSuggestionsCollapsed(!suggestionsCollapsed)}
+                >
+                  {suggestionsCollapsed ? 'Show' : 'Hide'}
+                </button>
               </div>
+              {!suggestionsCollapsed && (
+                <div className="flex flex-wrap gap-2">
+                  {suggestedQuestions.slice(0, 3).map((question, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="cursor-pointer hover:bg-primary/10 transition text-xs px-2 py-1"
+                      onClick={() => {
+                        setInput(question);
+                        setTimeout(() => {
+                          const form = document.querySelector('form');
+                          if (form) {
+                            form.dispatchEvent(new Event('submit', { bubbles: true }));
+                          }
+                        }, 100);
+                      }}
+                    >
+                      {question}
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
           {/* Input Form */}
           <form onSubmit={handleChatSubmit} className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-            <Input
-              ref={inputRef}
-              type="text"
-              value={input}
-              onChange={handleInputChange}
-              placeholder="Ask about your channel..."
-              disabled={isLoading}
-              className="flex-1 min-h-[44px] text-base"
-              autoComplete="off"
-              autoCapitalize="sentences"
-              autoCorrect="on"
-            />
-            <Button
-              type="submit"
-              disabled={isLoading || !input.trim() || !channelSlug.trim()}
-              className="min-h-[44px] sm:min-h-auto px-6 sm:px-4"
-            >
-              {isLoading ? 'Sending...' : 'Send'}
-            </Button>
+            <div className="relative flex-1">
+              <AutoTextarea
+                ref={inputRef as any}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                placeholder="Ask about your channel..."
+                disabled={isLoading}
+                className="pr-10 min-h-[44px] text-base"
+                maxRows={isMobile ? 4 : 6}
+                autoComplete="off"
+                autoCapitalize="sentences"
+                autoCorrect="on"
+              />
+              <button
+                type="submit"
+                disabled={isLoading || !input.trim() || !channelSlug.trim()}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full text-muted-foreground hover:text-primary transition disabled:opacity-50"
+                tabIndex={0}
+              >
+                <ArrowUpIcon className="w-5 h-5" />
+              </button>
+            </div>
           </form>
         </div>
       </div>
