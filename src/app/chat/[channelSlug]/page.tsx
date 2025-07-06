@@ -591,7 +591,7 @@ function ChatContent() {
               </div>
               {!suggestionsCollapsed && (
                 <div className="flex flex-wrap gap-2">
-                  {suggestedQuestions.slice(0, 3).map((question, index) => (
+                  {suggestedQuestions.slice(0, isMobile ? 3 : 4).map((question, index) => (
                     <Badge
                       key={index}
                       variant="secondary"
