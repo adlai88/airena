@@ -450,22 +450,22 @@ export default function SetupPage() {
 
       {/* Success Modal */}
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
-        <DialogContent className="w-full max-w-sm sm:max-w-lg mx-4 sm:mx-auto max-h-[90vh] overflow-y-auto break-words">
+        <DialogContent className="w-full max-w-sm sm:max-w-lg mx-4 sm:mx-auto max-h-[90vh] overflow-y-auto break-words overflow-wrap-anywhere">
           <DialogHeader className="text-center">
             <DialogTitle className="text-xl sm:text-2xl">
               ✅ {syncDetails.processedBlocks !== undefined ? 'Channel Synced Successfully!' : 'Channel Connected!'}
             </DialogTitle>
-            <DialogDescription className="mt-2 text-sm sm:text-base">
+            <DialogDescription className="mt-2 text-sm sm:text-base break-words">
               {syncDetails.processedBlocks !== undefined ? (
                 // Syncing flow - show new blocks processed
                 <>
-                  Your <span className="font-medium">{syncDetails.switchedToChannel || connectedChannel}</span> channel is ready with{' '}
+                  Your <span className="font-medium break-words">{syncDetails.switchedToChannel || connectedChannel}</span> channel is ready with{' '}
                   <span className="font-medium">{syncDetails.processedBlocks}</span> new blocks processed.
                 </>
               ) : (
                 // Switching flow - show total blocks
                 <>
-                  Connected to <span className="font-medium">{syncDetails.switchedToChannel || connectedChannel}</span> channel with{' '}
+                  Connected to <span className="font-medium break-words">{syncDetails.switchedToChannel || connectedChannel}</span> channel with{' '}
                   <span className="font-medium">{syncDetails.totalBlocks || 0}</span> total blocks.
                 </>
               )}
@@ -486,7 +486,7 @@ export default function SetupPage() {
                 <div className="space-y-1 text-left">
                   <div className="font-medium text-sm sm:text-base">Chat with Your Channel</div>
                   <div className="text-xs sm:text-sm text-muted-foreground font-normal">
-                    Ask questions and explore your channel conversationally
+                    Ask questions about your content
                   </div>
                 </div>
               </Button>
@@ -499,7 +499,7 @@ export default function SetupPage() {
                 <div className="space-y-1 text-left">
                   <div className="font-medium text-sm sm:text-base">Generate Content</div>
                   <div className="text-xs sm:text-sm text-muted-foreground font-normal">
-                    Create newsletters, summaries, and insights from your channel
+                    Create newsletters and insights
                   </div>
                 </div>
               </Button>

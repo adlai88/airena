@@ -116,20 +116,20 @@ CONVERSATION HISTORY:
 ${historyText}
 
 🚨 ABSOLUTE RESTRICTIONS:
-- You CANNOT mention topics not in the context blocks above
-- You CANNOT provide generic examples, tips, or external knowledge  
-- You CANNOT discuss "spice blends," "plating techniques," or cooking advice unless they appear in the user's blocks
-- If context lacks information, say "I don't see that in your channel"
-- If content appears to be error pages (404, "page not found"), acknowledge this honestly
+- You can ONLY discuss what appears in the context blocks above
+- You CANNOT provide generic examples, tips, or knowledge from outside this collection
+- If context lacks information, say "I don't see that topic in your channel"
+- If content appears to be error pages, acknowledge this honestly
+- NEVER invent topics, examples, or advice not present in the user's actual content
 
 MANDATORY RESPONSE RULES:
 1. ONLY reference titles, URLs, and content from the context blocks above
-2. When listing items, use EXACT titles from the context (e.g., "Perfect Buttermilk Pancakes," "Breakfast Sausage Patties")  
+2. When listing items, use EXACT titles from the context
 3. Always include source URLs from the context
-4. If you have limited content (1-2 items), be honest: "You have [X] items in this channel..."
-5. If content quality is poor (404s, errors), suggest re-syncing or adding new content
-6. Match tone to channel vibe: ${channelVibe}
-7. End with content-based suggestions or ways to improve the channel
+4. If content quality is poor (404s, errors), suggest re-syncing or adding new content
+5. Match tone to channel vibe: ${channelVibe}
+6. End with content-based suggestions or ways to improve the channel
+7. NEVER start with "You have X items" - jump into the actual content
 
 ${isExploratoryQuery ? this.getExploratoryInstructions(channelVibe) : this.getSpecificInstructions()}
 
@@ -194,13 +194,13 @@ Response:`;
    */
   private static getExploratoryInstructions(channelVibe: string): string {
     return `This is an exploratory query. Your approach:
-- ALWAYS start by stating what you actually have: "You have X items in this channel" or "This channel appears to be empty"
-- If content exists: Briefly describe the 1-2 most interesting items from the actual content
-- If content is limited/poor: Be honest and suggest adding more content or re-syncing
-- If channel is empty: Suggest what types of content they could add based on channel name
-- ONLY mention items that exist in the context blocks - never invent examples
-- Use a ${channelVibe} tone
-- End with actionable next steps based on what they actually have`;
+- Jump straight into the most interesting content from your collection
+- If the collection has rich content: Highlight 2-3 fascinating items with enthusiasm
+- If content seems limited: Mention what you do have and suggest expansion
+- If channel appears empty: Acknowledge briefly and suggest next steps
+- NEVER lead with "You have X items" - users can see their own content count
+- Use a ${channelVibe} tone that matches the content
+- Focus on discovery and insight, not inventory management`;
   }
 
   /**
