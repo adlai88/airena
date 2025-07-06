@@ -3,6 +3,7 @@
 import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { HamburgerMenu } from '@/components/hamburger-menu';
 import {
   NavigationMenu,
   NavigationMenuList,
@@ -56,9 +57,9 @@ export function Navigation({ homeNav = false }: NavigationProps) {
             </Button>
           </div>
 
-          {/* Center Navigation (only on app pages) */}
+          {/* Center Navigation (only on app pages, hidden on mobile) */}
           {isAppPage && (
-            <div className="flex justify-center flex-1 mx-2 sm:mx-4">
+            <div className="hidden sm:flex justify-center flex-1 mx-2 sm:mx-4">
               <NavigationMenu className="p-1 rounded-lg border border-border bg-background">
                 <NavigationMenuList className="gap-1">
                   <NavigationMenuItem>
@@ -113,27 +114,43 @@ export function Navigation({ homeNav = false }: NavigationProps) {
 
           {/* Right Side Navigation */}
           {homeNav ? (
-            /* Home Navigation: Log in / Sign up */
-            <div className="flex items-center gap-1 sm:gap-2">
-              <ThemeToggle />
-              <Button variant="ghost" size="sm" className="font-medium min-h-[44px] sm:min-h-auto text-sm" asChild>
-                <Link href="#">Log in</Link>
-              </Button>
-              <Button variant="ghost" size="sm" className="font-medium min-h-[44px] sm:min-h-auto text-sm" asChild>
-                <Link href="#">Sign up</Link>
-              </Button>
-            </div>
+            /* Home Navigation: Show hamburger on mobile, buttons on desktop */
+            <>
+              {/* Mobile: Hamburger Menu */}
+              <div className="sm:hidden">
+                <HamburgerMenu homeNav={true} />
+              </div>
+              
+              {/* Desktop: Log in / Sign up */}
+              <div className="hidden sm:flex items-center gap-1 sm:gap-2">
+                <ThemeToggle />
+                <Button variant="ghost" size="sm" className="font-medium min-h-[44px] sm:min-h-auto text-sm" asChild>
+                  <Link href="#">Log in</Link>
+                </Button>
+                <Button variant="ghost" size="sm" className="font-medium min-h-[44px] sm:min-h-auto text-sm" asChild>
+                  <Link href="#">Sign up</Link>
+                </Button>
+              </div>
+            </>
           ) : (
-            /* App Navigation: Theme toggle + Avatar */
-            <div className="flex items-center gap-1 sm:gap-3">
-              <ThemeToggle />
-              <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
-                <AvatarImage src="" alt="User" />
-                <AvatarFallback className="text-xs font-medium">
-                  U
-                </AvatarFallback>
-              </Avatar>
-            </div>
+            /* App Navigation: Show hamburger on mobile, theme + avatar on desktop */
+            <>
+              {/* Mobile: Hamburger Menu */}
+              <div className="sm:hidden">
+                <HamburgerMenu homeNav={false} />
+              </div>
+              
+              {/* Desktop: Theme toggle + Avatar */}
+              <div className="hidden sm:flex items-center gap-1 sm:gap-3">
+                <ThemeToggle />
+                <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
+                  <AvatarImage src="" alt="User" />
+                  <AvatarFallback className="text-xs font-medium">
+                    U
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            </>
           )}
         </div>
       </div>
