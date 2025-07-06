@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,30 +11,73 @@ import { PageHeader } from '@/components/page-header';
 import { useChannel } from '@/hooks/useChannel';
 import { Badge } from '@/components/ui/badge';
 import { Spinner } from '@/components/ui/spinner';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 
 type GenerationStage = 'template-selection' | 'customization' | 'generation' | 'result';
 
-function NewsletterMarkdown({ content }: { content: string }) {
+// Import the same MessageContent component we use in chat for consistent link parsing
+const MessageContent = React.memo(({ content }: { content: string }) => {
+  // Combined regex that handles both URLs and markdown links
+  const combinedRegex = /(\[([^\]]+)\]\(([^)]+)\))|(https?:\/\/[^\s).,;!?]+)/g;
+  
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match;
+  
+  while ((match = combinedRegex.exec(content)) !== null) {
+    // Add text before the match
+    if (match.index > lastIndex) {
+      parts.push(content.slice(lastIndex, match.index));
+    }
+    
+    if (match[1]) {
+      // This is a markdown link [text](url)
+      const linkText = match[2];
+      const linkUrl = match[3];
+      parts.push(
+        <a
+          key={match.index}
+          href={linkUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-orange-500 dark:text-orange-400 hover:text-orange-600 dark:hover:text-orange-300 underline hover:no-underline transition-colors"
+        >
+          {linkText}
+        </a>
+      );
+    } else if (match[4]) {
+      // This is a plain URL
+      const url = match[4];
+      parts.push(
+        <a
+          key={match.index}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-orange-500 dark:text-orange-400 hover:text-orange-600 dark:hover:text-orange-300 underline hover:no-underline transition-colors"
+        >
+          {url}
+        </a>
+      );
+    }
+    
+    lastIndex = match.index + match[0].length;
+  }
+  
+  // Add remaining text after the last match
+  if (lastIndex < content.length) {
+    parts.push(content.slice(lastIndex));
+  }
+  
   return (
-    <ReactMarkdown
-      remarkPlugins={[remarkGfm]}
-      components={{
-        a: ({ node, ...props }) => (
-          <a
-            {...props}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:no-underline text-primary break-words"
-          />
-        ),
-      }}
-    >
-      {content}
-    </ReactMarkdown>
+    <div className="whitespace-pre-wrap break-all leading-relaxed">
+      {parts.map((part, index) => (
+        <span key={index}>{part}</span>
+      ))}
+    </div>
   );
-}
+});
+
+MessageContent.displayName = 'MessageContent';
 
 function GenerateContent() {
   const router = useRouter();
@@ -379,8 +422,8 @@ function GenerateContent() {
               </div>
             )}
             
-            <div className="min-h-[400px] text-foreground leading-relaxed prose prose-invert max-w-none">
-              {completion ? <NewsletterMarkdown content={completion} /> : 'No content generated'}
+            <div className="min-h-[400px] text-foreground leading-relaxed max-w-none">
+              {completion ? <MessageContent content={completion} /> : 'No content generated'}
             </div>
           </CardContent>
         </Card>
