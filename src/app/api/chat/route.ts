@@ -51,7 +51,7 @@ export async function POST(req: Request) {
           query_embedding: queryEmbedding,
           channel_filter: channel.arena_id,
           similarity_threshold: threshold,
-          match_count: 5
+          match_count: 10
         }) as { data: (ContextBlock & { block_type?: string })[] | null; error: unknown };
         
         if (!error && data && data.length > 0) {
