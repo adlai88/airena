@@ -59,7 +59,7 @@ export function HamburgerMenu({ homeNav = false }: HamburgerMenuProps) {
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 cursor-pointer">
           <Menu className="h-4 w-4" />
           <span className="sr-only">Open menu</span>
         </Button>

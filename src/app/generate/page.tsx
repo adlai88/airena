@@ -10,6 +10,7 @@ import { Layout } from '@/components/layout';
 import { PageHeader } from '@/components/page-header';
 import { useChannel } from '@/hooks/useChannel';
 import { Badge } from '@/components/ui/badge';
+import { Spinner } from '@/components/ui/spinner';
 
 type GenerationStage = 'template-selection' | 'customization' | 'generation' | 'result';
 
@@ -310,7 +311,7 @@ function GenerateContent() {
         </div>
         <div className="min-h-[40vh] flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-6"></div>
+            <div className="mx-auto mb-6"><Spinner size={48} /></div>
             <p className="text-lg text-muted-foreground">
               Please wait while we analyze your content...
             </p>
@@ -382,7 +383,7 @@ export default function GeneratePage() {
     <Suspense fallback={
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <div className="mx-auto mb-4"><Spinner size={32} /></div>
           <p className="text-muted-foreground">Loading generate page...</p>
         </div>
       </div>

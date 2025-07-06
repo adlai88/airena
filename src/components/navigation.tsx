@@ -82,7 +82,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                       <Button
                         variant="ghost"
                         onClick={() => navigateWithParams('/setup')}
-                        className={`rounded-md px-4 py-2 transition-colors text-sm font-medium ${
+                        className={`rounded-md px-4 py-2 transition-colors text-sm font-medium cursor-pointer ${
                           isActivePage('/setup')
                             ? 'bg-accent text-accent-foreground'
                             : 'hover:bg-accent hover:text-accent-foreground'
@@ -97,7 +97,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                       <Button
                         variant="ghost"
                         onClick={() => navigateWithParams('/chat')}
-                        className={`rounded-md px-4 py-2 transition-colors text-sm font-medium ${
+                        className={`rounded-md px-4 py-2 transition-colors text-sm font-medium cursor-pointer ${
                           isActivePage('/chat')
                             ? 'bg-accent text-accent-foreground'
                             : 'hover:bg-accent hover:text-accent-foreground'
@@ -112,7 +112,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                       <Button
                         variant="ghost"
                         onClick={() => navigateWithParams('/generate')}
-                        className={`rounded-md px-4 py-2 transition-colors text-sm font-medium ${
+                        className={`rounded-md px-4 py-2 transition-colors text-sm font-medium cursor-pointer ${
                           isActivePage('/generate')
                             ? 'bg-accent text-accent-foreground'
                             : 'hover:bg-accent hover:text-accent-foreground'

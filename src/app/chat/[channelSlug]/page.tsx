@@ -10,6 +10,7 @@ import { useParams } from 'next/navigation';
 import { AutoTextarea } from '@/components/ui/auto-textarea';
 import { ArrowUpIcon } from 'lucide-react';
 import Image from 'next/image';
+import { Spinner } from '@/components/ui/spinner';
 
 // Optimized component to render text with clickable links
 const MessageContent = React.memo(({ content }: { content: string }) => {
@@ -344,7 +345,7 @@ function ChatContent() {
       <Layout>
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <div className="mx-auto mb-4"><Spinner size={32} /></div>
             <p className="text-muted-foreground">Loading chat...</p>
           </div>
         </div>
@@ -405,7 +406,7 @@ function ChatContent() {
                   <button
                     type="submit"
                     disabled={isLoading || !input.trim() || !channelSlug.trim()}
-                    className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full transition disabled:opacity-50 ${
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full transition disabled:opacity-50 cursor-pointer ${
                       input.trim() 
                         ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
                         : 'text-muted-foreground hover:text-primary'
@@ -524,7 +525,7 @@ function ChatContent() {
                 </div>
                 <div className="text-muted-foreground">
                   <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                    <div className="mr-2"><Spinner size={16} /></div>
                     <span className="text-sm">Thinking...</span>
                   </div>
                 </div>
@@ -625,7 +626,7 @@ function ChatContent() {
               <button
                 type="submit"
                 disabled={isLoading || !input.trim() || !channelSlug.trim()}
-                className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full transition disabled:opacity-50 ${
+                className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full transition disabled:opacity-50 cursor-pointer ${
                   input.trim() 
                     ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
                     : 'text-muted-foreground hover:text-primary'
@@ -648,7 +649,7 @@ export default function ChatPage() {
     <Suspense fallback={
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <div className="mx-auto mb-4"><Spinner size={32} /></div>
           <p className="text-muted-foreground">Loading chat interface...</p>
         </div>
       </div>

@@ -11,6 +11,7 @@ import { Layout } from '@/components/layout';
 import { PageHeader } from '@/components/page-header';
 import { useChannel } from '@/hooks/useChannel';
 import { arenaClient } from '@/lib/arena';
+import { Spinner } from '@/components/ui/spinner';
 
 export default function SetupPage() {
   const { channelSlug: connectedChannel, username: connectedUsername, isDefault: isDefaultChannel, refresh: refreshChannel } = useChannel();
@@ -320,7 +321,7 @@ export default function SetupPage() {
               >
                 {isLoading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground mr-2"></div>
+                    <div className="mr-2"><Spinner size={16} /></div>
                     Syncing... <span className="hidden sm:inline">(this might take a few minutes)</span>
                   </>
                 ) : (
@@ -427,7 +428,7 @@ export default function SetupPage() {
                             </Badge>
                           ) : switchingToChannel === channel.slug ? (
                             <Badge variant="outline" className="text-xs">
-                              <div className="animate-spin rounded-full h-2 w-2 border-b border-current mr-1"></div>
+                              <div className="mr-1"><Spinner size={8} /></div>
                               Connecting...
                             </Badge>
                           ) : (
