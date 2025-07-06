@@ -512,31 +512,29 @@ function ChatContent() {
             </div>
           )}
 
-          {/* Clear Chat Button */}
-          <div className="flex justify-end mb-3">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={clearChat}
-              className="text-xs text-muted-foreground hover:text-foreground"
-            >
-              Clear Chat
-            </Button>
-          </div>
-
           {/* Compact Suggested Questions for Chat Session */}
           {!isMobile && messages.length > 0 && (
             <div className="mb-4">
-              <div className="text-xs text-muted-foreground mb-2 flex items-center gap-2">
-                <span>Try asking:</span>
-                <button
+              <div className="flex items-center justify-between text-xs text-muted-foreground mb-2 gap-2">
+                <div className="flex items-center gap-2">
+                  <span>Try asking:</span>
+                  <button
+                    type="button"
+                    className="text-xs text-muted-foreground hover:text-primary px-2 py-1 rounded"
+                    onClick={() => setSuggestionsCollapsed(!suggestionsCollapsed)}
+                  >
+                    {suggestionsCollapsed ? 'Show' : 'Hide'}
+                  </button>
+                </div>
+                <Button
                   type="button"
-                  className="text-xs text-muted-foreground hover:text-primary px-2 py-1 rounded"
-                  onClick={() => setSuggestionsCollapsed(!suggestionsCollapsed)}
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearChat}
+                  className="text-xs text-muted-foreground hover:text-foreground"
                 >
-                  {suggestionsCollapsed ? 'Show' : 'Hide'}
-                </button>
+                  Clear Chat
+                </Button>
               </div>
               {!suggestionsCollapsed && (
                 <div className="flex flex-wrap gap-2">
