@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Layout } from '@/components/layout';
 import { PromptTemplates } from '@/lib/templates';
@@ -90,7 +89,7 @@ function ChatContent() {
   const [sharedMessageId, setSharedMessageId] = useState<string | null>(null);
   
   // Refs for mobile keyboard optimization
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   // Auto-scroll to bottom when new messages arrive
@@ -176,10 +175,6 @@ function ChatContent() {
       setPreviousChannelSlug(channelSlug);
     }
   }, [channelSlug, previousChannelSlug, isRestoringMessages]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInput(e.target.value);
-  };
 
   const clearChat = () => {
     setMessages([]);
@@ -378,7 +373,7 @@ function ChatContent() {
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <div className="relative flex-1">
                   <AutoTextarea
-                    ref={inputRef as any}
+                    ref={inputRef}
                     value={input}
                     onChange={e => setInput(e.target.value)}
                     placeholder="Ask about your channel... (e.g., 'What are the key insights?')"
@@ -572,7 +567,7 @@ function ChatContent() {
           <form onSubmit={handleChatSubmit} className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <div className="relative flex-1">
               <AutoTextarea
-                ref={inputRef as any}
+                ref={inputRef}
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 placeholder="Ask about your channel..."
