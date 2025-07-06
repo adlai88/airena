@@ -89,7 +89,6 @@ function ChatContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [isRestoringMessages, setIsRestoringMessages] = useState(true);
-  const [sharedMessageId, setSharedMessageId] = useState<string | null>(null);
   
   // Refs for mobile keyboard optimization
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -265,34 +264,6 @@ function ChatContent() {
     }
   };
 
-  const handleShareMessage = async (messageId: string, content: string) => {
-    // Check if Web Share API is supported (mainly mobile browsers)
-    if (typeof navigator !== 'undefined' && navigator.share) {
-      try {
-        await navigator.share({
-          title: `Chat response from Airena`,
-          text: content,
-          url: window.location.href
-        });
-        setSharedMessageId(messageId);
-        setTimeout(() => setSharedMessageId(null), 2000);
-      } catch (err) {
-        // User cancelled sharing or error occurred
-        console.log('Share cancelled or failed:', err);
-      }
-    } else {
-      // Fallback: copy to clipboard for desktop
-      try {
-        if (typeof navigator !== 'undefined' && navigator.clipboard) {
-          await navigator.clipboard.writeText(content);
-        }
-        setSharedMessageId(messageId);
-        setTimeout(() => setSharedMessageId(null), 2000);
-      } catch (err) {
-        console.error('Failed to copy text: ', err);
-      }
-    }
-  };
 
   // Determine if the user has sent a message (wait for restoration to complete)
   const hasUserMessage = !isRestoringMessages && messages.some(m => m.role === 'user');
@@ -450,8 +421,8 @@ function ChatContent() {
   return (
     <Layout>
       {/* Messages Area - with bottom padding for fixed input */}
-      <div className="px-4 sm:px-6 lg:px-8 py-6 pb-32">
-        <div className="max-w-3xl mx-auto space-y-4">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-32">
+        <div className="space-y-4">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -470,7 +441,6 @@ function ChatContent() {
               </div>
             </div>
           ))}
-          
           {isLoading && (
             <div className="flex justify-start">
               <div className="bg-muted text-muted-foreground px-4 py-3 rounded-lg">
@@ -481,7 +451,6 @@ function ChatContent() {
               </div>
             </div>
           )}
-          
           {/* Scroll anchor */}
           <div ref={messagesEndRef} />
         </div>
