@@ -58,7 +58,7 @@ export async function POST(req: Request) {
       const { data: searchResults, error: searchError } = await supabase.rpc('search_blocks', {
         query_embedding: queryEmbedding,
         channel_filter: channel.arena_id, // Filter by current channel
-        similarity_threshold: 0.3, // Lower threshold to get more results
+        similarity_threshold: 0.4, // Higher threshold for more relevant results
         match_count: 5
       }) as { data: ContextBlock[] | null; error: unknown };
 

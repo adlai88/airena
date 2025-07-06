@@ -285,8 +285,8 @@ export default function SetupPage() {
           </div>
         )}
         
-        <Card className="p-8">
-          <CardContent className="space-y-6 pt-8">
+        <Card>
+          <CardContent className="space-y-6 p-4 sm:p-6">
 
             <form onSubmit={handleSync} className="space-y-6">
               <div>
@@ -330,61 +330,6 @@ export default function SetupPage() {
                 )}
               </Button>
             </form>
-
-            {/* Available Channels Section */}
-            {recentChannels.length > 0 && (
-              <div className="pt-4 border-t">
-                <h3 className="text-sm font-medium text-foreground mb-2">Available Channels</h3>
-                <p className="text-xs text-muted-foreground mb-3">Click any channel to switch instantly</p>
-                <div className="grid gap-2">
-                  {recentChannels.slice(0, 5).map((channel) => (
-                    <div
-                      key={channel.slug}
-                      className={`p-3 rounded-lg border transition-all cursor-pointer ${
-                        switchingToChannel ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary/50 hover:bg-muted/50'
-                      } ${
-                        connectedChannel === channel.slug ? 'border-primary bg-primary/5' : 'border-border'
-                      }`}
-                      onClick={() => !switchingToChannel && handleQuickSwitch(channel.slug)}
-                      onMouseEnter={() => setHoveredChannel(channel.slug)}
-                      onMouseLeave={() => setHoveredChannel(null)}
-                      onFocus={() => setHoveredChannel(channel.slug)}
-                      onBlur={() => setHoveredChannel(null)}
-                      tabIndex={0}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm truncate">
-                            {channel.title || channel.slug}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {channel.blockCount} blocks • Last synced {new Date(channel.lastSync).toLocaleDateString()}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 ml-2">
-                          {connectedChannel === channel.slug ? (
-                            <Badge variant="secondary" className="text-xs">
-                              Active
-                            </Badge>
-                          ) : switchingToChannel === channel.slug ? (
-                            <Badge variant="outline" className="text-xs">
-                              <div className="animate-spin rounded-full h-2 w-2 border-b border-current mr-1"></div>
-                              Connecting...
-                            </Badge>
-                          ) : (
-                            hoveredChannel === channel.slug && (
-                              <Badge variant="outline" className="text-xs">
-                                Switch
-                              </Badge>
-                            )
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* Progress Bar */}
             {isLoading && (
@@ -444,18 +389,73 @@ export default function SetupPage() {
                 </Button>
               </div>
             )}
+
+            {/* Available Channels Section */}
+            {recentChannels.length > 0 && (
+              <div className="pt-4 border-t">
+                <h3 className="text-sm font-medium text-foreground mb-2">Available Channels</h3>
+                <p className="text-xs text-muted-foreground mb-3">Click any channel to switch instantly</p>
+                <div className="grid gap-2">
+                  {recentChannels.slice(0, 5).map((channel) => (
+                    <div
+                      key={channel.slug}
+                      className={`p-3 rounded-lg border transition-all cursor-pointer ${
+                        switchingToChannel ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary/50 hover:bg-muted/50'
+                      } ${
+                        connectedChannel === channel.slug ? 'border-primary bg-primary/5' : 'border-border'
+                      }`}
+                      onClick={() => !switchingToChannel && handleQuickSwitch(channel.slug)}
+                      onMouseEnter={() => setHoveredChannel(channel.slug)}
+                      onMouseLeave={() => setHoveredChannel(null)}
+                      onFocus={() => setHoveredChannel(channel.slug)}
+                      onBlur={() => setHoveredChannel(null)}
+                      tabIndex={0}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm truncate">
+                            {channel.title || channel.slug}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {channel.blockCount} blocks • Last synced {new Date(channel.lastSync).toLocaleDateString()}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 ml-2">
+                          {connectedChannel === channel.slug ? (
+                            <Badge variant="secondary" className="text-xs">
+                              Active
+                            </Badge>
+                          ) : switchingToChannel === channel.slug ? (
+                            <Badge variant="outline" className="text-xs">
+                              <div className="animate-spin rounded-full h-2 w-2 border-b border-current mr-1"></div>
+                              Connecting...
+                            </Badge>
+                          ) : (
+                            hoveredChannel === channel.slug && (
+                              <Badge variant="outline" className="text-xs">
+                                Switch
+                              </Badge>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
 
       {/* Success Modal */}
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
-        <DialogContent className="mx-4 max-w-lg sm:mx-auto">
+        <DialogContent className="mx-4 max-w-lg sm:mx-auto max-h-[90vh] overflow-y-auto">
           <DialogHeader className="text-center">
-            <DialogTitle className="text-2xl">
+            <DialogTitle className="text-xl sm:text-2xl">
               ✅ {syncDetails.processedBlocks !== undefined ? 'Channel Synced Successfully!' : 'Channel Connected!'}
             </DialogTitle>
-            <DialogDescription className="mt-2">
+            <DialogDescription className="mt-2 text-sm sm:text-base">
               {syncDetails.processedBlocks !== undefined ? (
                 // Syncing flow - show new blocks processed
                 <>
@@ -472,20 +472,20 @@ export default function SetupPage() {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 pt-6">
-            <p className="text-sm text-muted-foreground text-center">
+          <div className="space-y-3 sm:space-y-4 pt-4 sm:pt-6">
+            <p className="text-xs sm:text-sm text-muted-foreground text-center">
               What would you like to do next?
             </p>
             
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               <Button 
                 onClick={() => handleModalAction('chat')}
-                className="w-full h-auto p-4 text-left min-h-[56px] sm:min-h-auto cursor-pointer justify-start"
+                className="w-full h-auto p-3 sm:p-4 text-left min-h-[48px] sm:min-h-[56px] cursor-pointer justify-start"
                 variant="outline"
               >
                 <div className="space-y-1 text-left">
-                  <div className="font-medium">Chat with Your Channel</div>
-                  <div className="text-sm text-muted-foreground font-normal">
+                  <div className="font-medium text-sm sm:text-base">Chat with Your Channel</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground font-normal">
                     Ask questions and explore your channel conversationally
                   </div>
                 </div>
@@ -493,12 +493,12 @@ export default function SetupPage() {
               
               <Button 
                 onClick={() => handleModalAction('generate')}
-                className="w-full h-auto p-4 text-left min-h-[56px] sm:min-h-auto cursor-pointer justify-start"
+                className="w-full h-auto p-3 sm:p-4 text-left min-h-[48px] sm:min-h-[56px] cursor-pointer justify-start"
                 variant="outline"
               >
                 <div className="space-y-1 text-left">
-                  <div className="font-medium">Generate Content</div>
-                  <div className="text-sm text-muted-foreground font-normal">
+                  <div className="font-medium text-sm sm:text-base">Generate Content</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground font-normal">
                     Create newsletters, summaries, and insights from your channel
                   </div>
                 </div>
@@ -508,7 +508,7 @@ export default function SetupPage() {
             <div className="pt-2 border-t">
               <Button 
                 onClick={() => handleModalAction('sync-another')}
-                className="w-full min-h-[44px] sm:min-h-auto"
+                className="w-full min-h-[40px] sm:min-h-[44px] text-sm"
                 variant="ghost"
                 size="sm"
               >
