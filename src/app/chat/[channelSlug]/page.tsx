@@ -391,35 +391,23 @@ function ChatContent() {
               </div>
             )}
 
-            {/* Suggestions and Clear Chat (no Hide/Show toggle) */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-4">
-              <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                {suggestedQuestions.map((question, index) => (
-                  <Badge
-                    key={index}
-                    variant="secondary"
-                    className="cursor-pointer hover:bg-primary/10 transition px-3 py-1"
-                    onClick={() => {
-                      setInput(question);
-                      // Auto-submit the question
-                      const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
-                      handleChatSubmit(fakeEvent);
-                    }}
-                  >
-                    {question}
-                  </Badge>
-                ))}
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={clearChat}
-                className="text-xs text-muted-foreground hover:text-foreground flex items-center justify-center"
-                style={{ lineHeight: 1.5 }}
-              >
-                Clear Chat
-              </Button>
+            {/* Suggestions */}
+            <div className="flex flex-wrap gap-2 justify-center sm:justify-start mt-4">
+              {suggestedQuestions.map((question, index) => (
+                <Badge
+                  key={index}
+                  variant="secondary"
+                  className="cursor-pointer hover:bg-primary/10 transition px-3 py-1"
+                  onClick={() => {
+                    setInput(question);
+                    // Auto-submit the question
+                    const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+                    handleChatSubmit(fakeEvent);
+                  }}
+                >
+                  {question}
+                </Badge>
+              ))}
             </div>
           </div>
         </div>
@@ -431,43 +419,46 @@ function ChatContent() {
   return (
     <Layout>
       {/* Messages Area - with bottom padding for fixed input */}
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-32">
-        <div className="space-y-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div className={`max-w-[85%] sm:max-w-3xl ${message.role === 'user' ? '' : 'space-y-2'}`}>
-                <div
-                  className={`px-4 py-3 rounded-lg ${
-                    message.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground'
-                  }`}
-                >
-                  <MessageContent content={message.content} />
+      <div className="w-full py-6 pb-32">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="space-y-4">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div className={`max-w-[85%] sm:max-w-3xl ${message.role === 'user' ? '' : 'space-y-2'}`}>
+                  <div
+                    className={`px-4 py-3 rounded-lg ${
+                      message.role === 'user'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted text-muted-foreground'
+                    }`}
+                  >
+                    <MessageContent content={message.content} />
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-          {isLoading && (
-            <div className="flex justify-start">
-              <div className="bg-muted text-muted-foreground px-4 py-3 rounded-lg">
-                <div className="flex items-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
-                  <span className="text-sm">Thinking...</span>
+            ))}
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="bg-muted text-muted-foreground px-4 py-3 rounded-lg">
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                    <span className="text-sm">Thinking...</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-          {/* Scroll anchor */}
-          <div ref={messagesEndRef} />
+            )}
+            {/* Scroll anchor */}
+            <div ref={messagesEndRef} />
+          </div>
         </div>
       </div>
 
       {/* Fixed Input Area - always visible above footer */}
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 fixed bottom-0 left-0 right-0 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
+      <div className="w-full fixed bottom-0 left-0 right-0 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-4">
           {/* Error Display */}
           {error && (
