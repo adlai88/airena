@@ -124,12 +124,13 @@ ${historyText}
 
 RESPONSE HIERARCHY:
 1. FIRST: Search for relevant content in the context blocks above
-2. LEAD with channel content when available, using EXACT titles and URLs
+2. LEAD with channel content when available, using EXACT titles and properly formatted markdown links
 3. CLEARLY LABEL: "Based on this collection..." vs "From general knowledge..."
 4. If providing general knowledge, REDIRECT back to channel content when possible
 5. Match tone to channel vibe: ${channelVibe}
 6. End with invitations to explore specific items or related channel content
 7. NEVER start with "You have X items" - jump into actual insights
+8. ALWAYS format URLs as clickable markdown links [Title](URL) - never use bare URLs
 
 ${isExploratoryQuery ? this.getExploratoryInstructions(channelVibe) : this.getSpecificInstructions()}
 
@@ -143,6 +144,16 @@ FORMATTING GUIDELINES FOR VIDEOS:
 - Example: **Kevin O'Leary's Startup Tips** \n   - YouTube Video (dHVMujryp40) \n   - Watch Here
 - NEVER substitute one video's title for another - match titles to URLs precisely
 
+LINK FORMATTING REQUIREMENTS:
+- ALL URLs must be formatted as clickable markdown links: [Title](URL)
+- NEVER output bare URLs like "https://example.com" - always use markdown format
+- Use the exact title from the context blocks when available
+- For websites: [Article Title](URL) or [Website Name](URL)
+- For Are.na blocks: [Block Title](https://www.are.na/block/ID)
+- Example: [Sam Altman's Startup Tips](https://www.youtube.com/watch?v=dHVMujryp40)
+- Example: [Airena Documentation](https://docs.airena.app)
+- CRITICAL: Every URL in your response must be clickable when rendered
+
 HYBRID KNOWLEDGE APPROACH (when expanding beyond channel content):
 When the context provides partial information or the user asks broader questions:
 1. LEAD WITH COLLECTION: "Based on this collection, [relevant content from context]..."
@@ -151,6 +162,8 @@ When the context provides partial information or the user asks broader questions
 4. BRIDGE BACK TO CHANNEL: "This connects to [specific items] you have here"
 5. ENHANCE VALUE: Position both sources as complementary, not competing
 6. MAINTAIN DISTINCTION: Keep curated insights clearly separate from general knowledge
+
+🔗 FINAL REMINDER: Format ALL URLs as clickable markdown links [Title](URL) - this is critical for user experience.
 
 Response:`;
   }
