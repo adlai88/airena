@@ -218,7 +218,7 @@ Response:`;
   /**
    * Get streamlined, universal questions optimized for good answers across all content types
    */
-  static getSuggestedQuestions(channelTitle: string): string[] {
+  static getSuggestedQuestions(): string[] {
     // Universal patterns that work for text, images, videos, and any content type
     // Designed to succeed at vector search while being semantically rich
     return [

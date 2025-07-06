@@ -80,7 +80,7 @@ function ChatContent() {
   const params = useParams();
   const channelSlug = params.channelSlug as string;
   const [username, setUsername] = useState<string>('');
-  const [channelTitle, setChannelTitle] = useState<string>('');
+  const [, setChannelTitle] = useState<string>('');
   const [previousChannelSlug, setPreviousChannelSlug] = useState<string | null>(null);
 
   const [messages, setMessages] = useState<Array<{
@@ -273,7 +273,7 @@ function ChatContent() {
 
 
   // Dynamic suggested questions based on channel content
-  const suggestedQuestions = PromptTemplates.getSuggestedQuestions(channelTitle || channelSlug);
+  const suggestedQuestions = PromptTemplates.getSuggestedQuestions();
 
   const [suggestionsCollapsed, setSuggestionsCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
