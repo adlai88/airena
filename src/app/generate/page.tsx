@@ -175,7 +175,7 @@ function GenerateContent() {
             {[{
               id: 'newsletter',
               name: 'Newsletter',
-              description: 'A roundup of key insights and actionable takeaways from this are.na content'
+              description: 'A roundup of key insights and actionable takeaways from this are.na channel'
             }].map((template) => (
               <Card key={template.id} className="cursor-pointer hover:shadow-lg transition-shadow">
                 <CardHeader>
