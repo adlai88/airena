@@ -186,8 +186,8 @@ export default function SetupPage() {
       try {
         // Fetch channel info to get block count
         const info = await arenaClient.getChannel(slug);
-        if (info.length > 100) {
-          setBlockLimitWarning(`This channel has ${info.length} blocks. Only the first 100 will be processed.`);
+        if (info.length > 50) {
+          setBlockLimitWarning(`This channel has ${info.length} blocks. Only the first 50 will be processed.`);
         }
       } catch {
         // Ignore errors for now (invalid slug, etc.)
