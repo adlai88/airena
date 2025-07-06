@@ -194,44 +194,68 @@ export async function POST(req: Request) {
       maxTokens: 800, // Reduced for faster responses
     });
 
-    // Get detailed block info from Are.na to fetch thumbnail URLs for all block types
-    const contextBlocksWithThumbnails = [];
-    
-    for (const block of relevantBlocks.slice(0, 6)) { // Check more blocks since some may not have images
-      try {
-        // Get detailed block info from Are.na API
-        const response = await fetch(`https://api.are.na/v2/blocks/${block.arena_id || block.id}`);
-        if (response.ok) {
-          const detailedBlock = await response.json();
-          const thumbnailUrl = detailedBlock.image?.thumb?.url || 
-                               detailedBlock.image?.square?.url ||
-                               (detailedBlock.class === 'Image' ? block.image_url : undefined);
-          
-          if (thumbnailUrl) {
-            contextBlocksWithThumbnails.push({
-              title: block.title,
-              url: `https://www.are.na/block/${detailedBlock.id}`, // Link to Are.na block page
-              image_url: thumbnailUrl
-            });
+    // Function to extract mentioned blocks from AI response
+    const extractMentionedBlocks = (aiResponse: string, availableBlocks: typeof relevantBlocks) => {
+      const mentionedBlocks = [];
+      
+      for (const block of availableBlocks) {
+        // Check if block title is mentioned in the AI response
+        const titleWords = block.title.toLowerCase().split(/\s+/).filter(word => word.length > 3);
+        const responseText = aiResponse.toLowerCase();
+        
+        // If at least 2 significant words from the title appear in the response, consider it mentioned
+        if (titleWords.length > 0) {
+          const matchedWords = titleWords.filter(word => responseText.includes(word));
+          if (matchedWords.length >= Math.min(2, titleWords.length)) {
+            mentionedBlocks.push(block);
           }
         }
-      } catch (error) {
-        console.warn(`Failed to fetch thumbnail for block ${block.arena_id || block.id}:`, error);
       }
       
-      // Stop if we have enough thumbnails
-      if (contextBlocksWithThumbnails.length >= 4) break;
-    }
-    
-    const contextImages = contextBlocksWithThumbnails;
+      return mentionedBlocks;
+    };
+
+    // We'll determine mentioned blocks after getting the AI response
+    let contextImages: Array<{ title: string; url: string; image_url: string }> = [];
 
     // Create a streaming response that includes both text and image context
     const stream = new ReadableStream({
       async start(controller) {
-        // Stream text chunks
+        let fullResponse = '';
+        
+        // Stream text chunks and collect full response
         for await (const chunk of result.textStream) {
+          fullResponse += chunk;
           const data = JSON.stringify({ type: 'text', content: chunk });
           controller.enqueue(new TextEncoder().encode(data + '\n'));
+        }
+        
+        // After streaming is complete, extract mentioned blocks and get thumbnails
+        if (relevantBlocks.length > 0) {
+          const mentionedBlocks = extractMentionedBlocks(fullResponse, relevantBlocks);
+          
+          // Get thumbnails only for mentioned blocks
+          for (const block of mentionedBlocks.slice(0, 6)) { // Limit to 6 to prevent too many
+            try {
+              const response = await fetch(`https://api.are.na/v2/blocks/${block.arena_id || block.id}`);
+              if (response.ok) {
+                const detailedBlock = await response.json();
+                const thumbnailUrl = detailedBlock.image?.thumb?.url || 
+                                     detailedBlock.image?.square?.url ||
+                                     (detailedBlock.class === 'Image' ? block.image_url : undefined);
+                
+                if (thumbnailUrl) {
+                  contextImages.push({
+                    title: block.title,
+                    url: `https://www.are.na/block/${detailedBlock.id}`,
+                    image_url: thumbnailUrl
+                  });
+                }
+              }
+            } catch (error) {
+              console.warn(`Failed to fetch thumbnail for mentioned block ${block.arena_id || block.id}:`, error);
+            }
+          }
         }
         
         // Send image context at the end if we have images
