@@ -127,7 +127,7 @@ export class YouTubeOfficialAPI {
         } else {
           contentSections.push('Transcript: Not available (using description and metadata as content)');
         }
-      } catch (error) {
+      } catch {
         contentSections.push('Transcript: Not available (using description and metadata as content)');
       }
 
