@@ -330,7 +330,7 @@ export class SyncService {
           });
 
         } catch (error) {
-          const errorMsg = `Error creating embedding for block ${processedBlock.arenaId}: ${error}`;
+          const errorMsg = `Error creating embedding for block ${'arenaId' in processedBlock ? processedBlock.arenaId : processedBlock.id}: ${error}`;
           errors.push(errorMsg);
           console.error(errorMsg);
         }

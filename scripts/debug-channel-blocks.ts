@@ -22,12 +22,12 @@ async function debugChannelBlocks() {
   
   try {
     // Get channel with all contents
-    const channel = await client.getChannel(channelSlug);
-    console.log(`📊 Total blocks in channel: ${channel.contents.length}`);
+    const allBlocks = await client.getAllChannelContents(channelSlug);
+    console.log(`📊 Total blocks in channel: ${allBlocks.length}`);
     
     // Count block types
     const blockTypeCount: Record<string, number> = {};
-    channel.contents.forEach(block => {
+    allBlocks.forEach(block => {
       blockTypeCount[block.class] = (blockTypeCount[block.class] || 0) + 1;
     });
     
@@ -39,7 +39,7 @@ async function debugChannelBlocks() {
     // Show first few blocks of each type
     const blockTypes = Object.keys(blockTypeCount);
     for (const blockType of blockTypes) {
-      const blocksOfType = channel.contents.filter(block => block.class === blockType);
+      const blocksOfType = allBlocks.filter(block => block.class === blockType);
       console.log(`\n--- ${blockType} blocks (showing first 2) ---`);
       
       for (let i = 0; i < Math.min(blocksOfType.length, 2); i++) {

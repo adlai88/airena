@@ -16,6 +16,11 @@ export interface ArenaBlock {
       url: string;
     };
   };
+  image?: {
+    original?: {
+      url: string;
+    };
+  };
   class: 'Link' | 'Text' | 'Image' | 'Media' | 'Attachment';
   created_at: string;
   updated_at: string;
@@ -178,7 +183,7 @@ export class ArenaClient {
         
         // For Image blocks, check both external links (source_url) and uploaded images (image.original.url)
         const externalImageUrl = detailedBlock.source_url || detailedBlock.source?.url;
-        const uploadedImageUrl = (detailedBlock as any).image?.original?.url;
+        const uploadedImageUrl = detailedBlock.image?.original?.url;
         const hasImageUrl = externalImageUrl || uploadedImageUrl;
         
         if (hasImageUrl) {
