@@ -216,41 +216,39 @@ Response:`;
   }
 
   /**
-   * Get content-safe suggested questions that always have reasonable answers
+   * Get semantically-engineered questions designed to showcase AI intelligence
    */
   static getSuggestedQuestions(channelTitle: string): string[] {
-    // Extract key terms from channel title for context-aware questions
-    const title = channelTitle.toLowerCase();
-    
-    // Bulletproof questions that work with ANY amount of content (0 to many)
-    const bulletproofQuestions = [
-      "What's in this channel?",           // Always answerable: "You have X items" or "This channel is empty"
-      "Show me what you have",             // Always answerable: Shows content or "no content yet"
-      "Tell me about this collection",     // Always answerable: Describes what's there or suggests adding content
-      "What should I know about this?",    // Always answerable: Context-aware but safe
-      "Help me explore this channel",      // Always answerable: Can guide next steps
-      "What type of content is this?"      // Always answerable: Can describe or say "no content to analyze"
+    // Universal semantic patterns that work across any domain
+    // These are designed to succeed at vector search by using words that appear in real content
+    const universalQuestions = [
+      "What are the key insights or lessons here?",
+      "What are the main themes or concepts covered?", 
+      "What strategies or approaches are discussed?",
+      "What are the most actionable recommendations?",
+      "What important ideas emerge from this content?"
     ];
     
-    // Add one context-aware question that's still bulletproof
-    let contextAwareQuestion = "What did I curate here?"; // Safe default
+    // Domain-aware question that uses semantic patterns likely to match content
+    const title = channelTitle.toLowerCase();
+    let domainQuestion = "What patterns do you see across these sources?"; // Safe default
     
     if (title.includes('recipe') || title.includes('cooking') || title.includes('food')) {
-      contextAwareQuestion = "What's in my recipe collection?";
+      domainQuestion = "What cooking techniques and tips are shared?";
     } else if (title.includes('startup') || title.includes('founder') || title.includes('business') || title.includes('vc')) {
-      contextAwareQuestion = "What's in my startup collection?";
+      domainQuestion = "What advice do successful founders share?";
     } else if (title.includes('design') || title.includes('art') || title.includes('creative')) {
-      contextAwareQuestion = "What's in my design collection?";
+      domainQuestion = "What design principles and methods are covered?";
     } else if (title.includes('tech') || title.includes('programming') || title.includes('code')) {
-      contextAwareQuestion = "What's in my tech collection?";
+      domainQuestion = "What technical insights and best practices are discussed?";
     } else if (title.includes('research') || title.includes('study') || title.includes('learning')) {
-      contextAwareQuestion = "What's in my research collection?";
+      domainQuestion = "What key findings and methodologies are presented?";
     }
     
-    // Return 6 bulletproof questions: 5 universal + 1 context-aware
+    // Return mix of universal semantic patterns + domain-aware question
     return [
-      ...bulletproofQuestions.slice(0, 5),
-      contextAwareQuestion
+      ...universalQuestions,
+      domainQuestion
     ];
   }
 
