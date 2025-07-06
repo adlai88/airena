@@ -98,7 +98,7 @@ Newsletter:`;
     conversationHistory: Array<{ role: string; content: string }> = []
   ): string {
     const contextText = context.map((block, i) => 
-      `[${i + 1}] ${block.title}\nReference: ${block.reference || `Block ${i + 1}`}\nURL: ${block.url}\nContent: ${block.content.substring(0, 800)}...\n`
+      `[${i + 1}] ${block.title}\nURL: ${block.url}\nContent: ${block.content.substring(0, 800)}...\n`
     ).join('\n');
 
     const historyText = conversationHistory.length > 0 
@@ -153,13 +153,10 @@ LINK FORMATTING REQUIREMENTS:
 - CRITICAL: Every URL in your response must be clickable when rendered
 
 BLOCK REFERENCE REQUIREMENTS:
-- CRITICAL: When referencing any block, you MUST use the exact "Reference" link provided in the context
-- Each block has a "Reference:" field with a pre-formatted clickable link - USE THAT EXACT LINK
-- NEVER create your own links - always copy the Reference field exactly
-- Example context shows: "Reference: [Block 2](https://www.are.na/block/12345)"
-- You must use: [Block 2](https://www.are.na/block/12345) in your response
-- DO NOT say "Image 2" or plain "Block 2" - always use the full clickable reference
-- This is mandatory for ALL block mentions
+- When referencing blocks, link to the original content (articles, videos, etc.) that users want to consume
+- Reference thumbnails will automatically appear below showing Are.na block context
+- Use natural language like "Wikipedia Vision" or "The Lore Zone" with links to actual content
+- No need to mention "Block N" or create Are.na block links in text
 
 HYBRID KNOWLEDGE APPROACH (when expanding beyond channel content):
 When the context provides partial information or the user asks broader questions:

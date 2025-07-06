@@ -169,17 +169,10 @@ export async function POST(req: Request) {
       content: msg.content.substring(0, 500) // Truncate long messages
     }));
 
-    // Enhance context blocks with numbered references for AI to use
-    const enhancedContext = relevantBlocks.map((block, index) => ({
-      ...block,
-      reference: `[Block ${index + 1}](https://www.are.na/block/${block.arena_id || block.id})`,
-      arena_url: `https://www.are.na/block/${block.arena_id || block.id}`
-    }));
-
     // Generate optimized prompt
     const systemPrompt = PromptTemplates.chat(
       lastMessage.content,
-      enhancedContext,
+      relevantBlocks,
       channel.title,
       conversationHistory.slice(0, -1)
     );
@@ -238,8 +231,8 @@ export async function POST(req: Request) {
         }
         
         // After streaming is complete, extract mentioned blocks and get thumbnails
-        if (enhancedContext.length > 0) {
-          const mentionedBlocks = extractMentionedBlocks(fullResponse, enhancedContext);
+        if (relevantBlocks.length > 0) {
+          const mentionedBlocks = extractMentionedBlocks(fullResponse, relevantBlocks);
           
           // Get thumbnails only for mentioned blocks
           for (const block of mentionedBlocks.slice(0, 6)) { // Limit to 6 to prevent too many
