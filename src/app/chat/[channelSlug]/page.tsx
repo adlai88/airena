@@ -328,10 +328,10 @@ function ChatContent() {
           <div className="w-full max-w-2xl">
             <div className="text-center mb-8">
               <h1 className="text-3xl sm:text-4xl font-bold mb-4">
-                Chat with Your Channel
+                Chat with This Channel
               </h1>
               <p className="text-lg text-muted-foreground mb-4">
-                Ask me anything about your Are.na content
+                Ask me anything about this Are.na content
               </p>
               <div className="flex justify-center mb-4">
                 <Badge variant="secondary" className="px-3 py-1">
@@ -355,7 +355,7 @@ function ChatContent() {
                     ref={inputRef}
                     value={input}
                     onChange={e => setInput(e.target.value)}
-                    placeholder="Ask about your channel... (e.g., 'What are the key insights?')"
+                    placeholder="Ask about this channel... (e.g., 'What are the key insights?')"
                     disabled={isLoading}
                     className="pr-10 min-h-[44px] text-base"
                     maxRows={isMobile ? 4 : 6}
@@ -373,7 +373,11 @@ function ChatContent() {
                   <button
                     type="submit"
                     disabled={isLoading || !input.trim() || !channelSlug.trim()}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full text-muted-foreground hover:text-primary transition disabled:opacity-50"
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full transition disabled:opacity-50 ${
+                      input.trim() 
+                        ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                        : 'text-muted-foreground hover:text-primary'
+                    }`}
                     tabIndex={0}
                   >
                     <ArrowUpIcon className="w-5 h-5" />
@@ -425,24 +429,32 @@ function ChatContent() {
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start items-start'}`}
               >
-                <div className={`max-w-[85%] sm:max-w-3xl ${message.role === 'user' ? '' : 'space-y-2'}`}>
-                  <div
-                    className={`px-4 py-3 rounded-lg ${
-                      message.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-muted-foreground'
-                    }`}
-                  >
-                    <MessageContent content={message.content} />
+                {message.role === 'assistant' && (
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center mr-3 mt-1">
+                    <span className="text-primary-foreground text-xs font-medium">AI</span>
                   </div>
+                )}
+                <div className={`max-w-[85%] sm:max-w-3xl ${message.role === 'user' ? '' : 'space-y-2'}`}>
+                  {message.role === 'user' ? (
+                    <div className="px-4 py-3 rounded-lg bg-primary text-primary-foreground">
+                      <MessageContent content={message.content} />
+                    </div>
+                  ) : (
+                    <div className="text-foreground">
+                      <MessageContent content={message.content} />
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
             {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-muted text-muted-foreground px-4 py-3 rounded-lg">
+              <div className="flex justify-start items-start">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center mr-3 mt-1">
+                  <span className="text-primary-foreground text-xs font-medium">AI</span>
+                </div>
+                <div className="text-muted-foreground">
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
                     <span className="text-sm">Thinking...</span>
@@ -527,7 +539,7 @@ function ChatContent() {
                 ref={inputRef}
                 value={input}
                 onChange={e => setInput(e.target.value)}
-                placeholder="Ask about your channel..."
+                placeholder="Ask about this channel..."
                 disabled={isLoading}
                 className="pr-10 min-h-[44px] text-base"
                 maxRows={isMobile ? 4 : 6}
@@ -545,7 +557,11 @@ function ChatContent() {
               <button
                 type="submit"
                 disabled={isLoading || !input.trim() || !channelSlug.trim()}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full text-muted-foreground hover:text-primary transition disabled:opacity-50"
+                className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full transition disabled:opacity-50 ${
+                  input.trim() 
+                    ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                    : 'text-muted-foreground hover:text-primary'
+                }`}
                 tabIndex={0}
               >
                 <ArrowUpIcon className="w-5 h-5" />

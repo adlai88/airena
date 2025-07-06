@@ -153,8 +153,8 @@ function GenerateContent() {
     return (
       <Layout>
         <PageHeader 
-          title="Generate content with your channel"
-          subtitle="Select a template to structure your AI-generated content"
+          title="Generate content with this channel"
+          subtitle="Select a template to structure the AI-generated content"
         />
         <div className="max-w-4xl mx-auto pb-8 sm:pb-16 px-4 sm:px-6">
           {/* Connected Channel Badge */}
@@ -175,7 +175,7 @@ function GenerateContent() {
             {[{
               id: 'newsletter',
               name: 'Newsletter',
-              description: 'A roundup of key insights and actionable takeaways from your are.na content'
+              description: 'A roundup of key insights and actionable takeaways from this are.na content'
             }].map((template) => (
               <Card key={template.id} className="cursor-pointer hover:shadow-lg transition-shadow">
                 <CardHeader>
@@ -204,7 +204,7 @@ function GenerateContent() {
     return (
       <Layout>
         <PageHeader 
-          title={`Customize Your ${selectedTemplate?.name}`}
+          title={`Customize This ${selectedTemplate?.name}`}
           subtitle="Fine-tune the generation options"
         />
         <div className="max-w-4xl mx-auto pb-8 sm:pb-16 px-4 sm:px-6">
@@ -225,7 +225,7 @@ function GenerateContent() {
           <Card className="mb-8">
             <CardHeader>
               <CardTitle>Generation Options</CardTitle>
-              <CardDescription>Customize how your newsletter will be generated</CardDescription>
+              <CardDescription>Customize how the newsletter will be generated</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -301,7 +301,7 @@ function GenerateContent() {
       <Layout>
         <PageHeader 
           title="Generating Your Newsletter"
-          subtitle="Processing your curated research..."
+          subtitle="Processing the curated research..."
         />
         <div className="flex justify-center mb-8">
           <Badge variant="secondary" className="px-3 py-1">
@@ -325,7 +325,7 @@ function GenerateContent() {
     <Layout>
       <PageHeader 
         title={`Your ${selectedTemplate?.name} ✨`}
-        subtitle="Generated from your curated research"
+        subtitle="Generated from the curated research"
       />
       <div className="max-w-4xl mx-auto pb-8 sm:pb-16 px-4 sm:px-6">
         {/* Connected Channel Badge */}

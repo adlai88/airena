@@ -264,7 +264,7 @@ export default function SetupPage() {
     <Layout>
       <PageHeader 
         title="Channel Setup"
-        subtitle="Manage your Are.na channel connection"
+        subtitle="Manage the Are.na channel connection"
         variant="standard"
       />
       <div className="max-w-lg sm:max-w-xl md:max-w-2xl mx-auto pb-8 sm:pb-12 px-4 sm:px-6">
@@ -459,7 +459,7 @@ export default function SetupPage() {
               {syncDetails.processedBlocks !== undefined ? (
                 // Syncing flow - show new blocks processed
                 <>
-                  Your <span className="font-medium break-words">{syncDetails.switchedToChannel || connectedChannel}</span> channel is ready with{' '}
+                  The <span className="font-medium break-words">{syncDetails.switchedToChannel || connectedChannel}</span> channel is ready with{' '}
                   <span className="font-medium">{syncDetails.processedBlocks}</span> new blocks processed.
                 </>
               ) : (
@@ -484,9 +484,9 @@ export default function SetupPage() {
                 variant="outline"
               >
                 <div className="space-y-1 text-left">
-                  <div className="font-medium text-sm sm:text-base">Chat with Your Channel</div>
+                  <div className="font-medium text-sm sm:text-base">Chat with This Channel</div>
                   <div className="text-xs sm:text-sm text-muted-foreground font-normal">
-                    Ask questions about your content
+                    Ask questions about this content
                   </div>
                 </div>
               </Button>
