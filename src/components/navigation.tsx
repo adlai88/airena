@@ -62,7 +62,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                 <MenubarMenu>
                   <MenubarTrigger 
                     onClick={() => navigateWithParams('/setup')}
-                    className={`cursor-pointer transition-colors px-3 py-2 text-sm font-medium min-h-[44px] sm:min-h-auto ${
+                    className={`cursor-pointer transition-colors px-2 py-1.5 text-sm font-medium min-h-[44px] sm:min-h-auto rounded-sm ${
                       isActivePage('/setup') 
                         ? 'bg-accent text-accent-foreground' 
                         : 'hover:bg-accent hover:text-accent-foreground'
@@ -73,26 +73,26 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                 </MenubarMenu>
                 <MenubarMenu>
                   <MenubarTrigger 
-                    onClick={() => navigateWithParams('/generate')}
-                    className={`cursor-pointer transition-colors px-3 py-2 text-sm font-medium min-h-[44px] sm:min-h-auto ${
-                      isActivePage('/generate') 
-                        ? 'bg-accent text-accent-foreground' 
-                        : 'hover:bg-accent hover:text-accent-foreground'
-                    }`}
-                  >
-                    Generate
-                  </MenubarTrigger>
-                </MenubarMenu>
-                <MenubarMenu>
-                  <MenubarTrigger 
                     onClick={() => navigateWithParams('/chat')}
-                    className={`cursor-pointer transition-colors px-3 py-2 text-sm font-medium min-h-[44px] sm:min-h-auto ${
+                    className={`cursor-pointer transition-colors px-2 py-1.5 text-sm font-medium min-h-[44px] sm:min-h-auto rounded-sm ${
                       isActivePage('/chat') 
                         ? 'bg-accent text-accent-foreground' 
                         : 'hover:bg-accent hover:text-accent-foreground'
                     }`}
                   >
                     Chat
+                  </MenubarTrigger>
+                </MenubarMenu>
+                <MenubarMenu>
+                  <MenubarTrigger 
+                    onClick={() => navigateWithParams('/generate')}
+                    className={`cursor-pointer transition-colors px-2 py-1.5 text-sm font-medium min-h-[44px] sm:min-h-auto rounded-sm ${
+                      isActivePage('/generate') 
+                        ? 'bg-accent text-accent-foreground' 
+                        : 'hover:bg-accent hover:text-accent-foreground'
+                    }`}
+                  >
+                    Generate
                   </MenubarTrigger>
                 </MenubarMenu>
               </Menubar>
