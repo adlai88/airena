@@ -57,7 +57,7 @@ export async function POST(req: Request) {
           .eq('channel_id', channel.arena_id)
           .not('embedding', 'is', null)
           .order('created_at', { ascending: false })
-          .limit(3);
+          .limit(5);
         
         relevantBlocks = (fallbackBlocks || []).map(block => ({
           title: String(block.title || 'Untitled'),
@@ -79,7 +79,7 @@ export async function POST(req: Request) {
         .eq('channel_id', channel.arena_id)
         .not('embedding', 'is', null)
         .order('created_at', { ascending: false })
-        .limit(3);
+        .limit(5);
       
       relevantBlocks = (fallbackBlocks || []).map(block => ({
         title: String(block.title || 'Untitled'),
