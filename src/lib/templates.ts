@@ -81,7 +81,7 @@ GUIDELINES:
 - Include source attribution using Are.na block links (not original URLs)
 - Make it valuable for understanding the themes and insights within this collection
 - Avoid generic advice - focus on specific insights from the curated content
-- When referencing sources, use markdown links with the Are.na Block URLs: [Title](https://www.are.na/block/ID)
+- When referencing sources, use markdown links with the specific Are.na Block URLs provided in the context above
 
 Newsletter:`;
   }
