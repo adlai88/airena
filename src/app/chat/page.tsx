@@ -1,5 +1,6 @@
 'use client';
 
+import React from "react";
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,8 +10,8 @@ import { useChannel } from '@/hooks/useChannel';
 import { AutoTextarea } from '@/components/ui/auto-textarea';
 import { ArrowUpIcon } from 'lucide-react';
 
-// Component to render text with clickable links
-function MessageContent({ content }: { content: string }) {
+// Optimized component to render text with clickable links
+const MessageContent = React.memo(({ content }: { content: string }) => {
   // Combined regex that handles both URLs and markdown links
   // Improved URL regex that excludes trailing punctuation
   const combinedRegex = /(\[([^\]]+)\]\(([^)]+)\))|(https?:\/\/[^\s).,;!?]+)/g;
@@ -71,7 +72,9 @@ function MessageContent({ content }: { content: string }) {
       ))}
     </div>
   );
-}
+});
+
+MessageContent.displayName = 'MessageContent';
 
 function ChatContent() {
   const { channelSlug, username } = useChannel();
@@ -383,6 +386,13 @@ function ChatContent() {
                     autoComplete="off"
                     autoCapitalize="sentences"
                     autoCorrect="on"
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        const form = (e.target as HTMLTextAreaElement).form;
+                        if (form) form.dispatchEvent(new Event('submit', { bubbles: true }));
+                      }
+                    }}
                   />
                   <button
                     type="submit"
@@ -410,33 +420,24 @@ function ChatContent() {
               <div className="text-center">
                 <div className="mb-4 text-sm text-muted-foreground font-medium flex items-center justify-center gap-2">
                   <span>Try asking about:</span>
-                  <button
-                    type="button"
-                    className="text-xs text-muted-foreground hover:text-primary px-2 py-1 rounded"
-                    onClick={() => setSuggestionsCollapsed(!suggestionsCollapsed)}
-                  >
-                    {suggestionsCollapsed ? 'Show' : 'Hide'}
-                  </button>
                 </div>
-                {!suggestionsCollapsed && (
-                  <div className="flex flex-wrap gap-2 justify-center">
-                    {suggestedQuestions.map((question, index) => (
-                      <Badge
-                        key={index}
-                        variant="secondary"
-                        className="cursor-pointer hover:bg-primary/10 transition px-3 py-1"
-                        onClick={() => {
-                          setInput(question);
-                          // Auto-submit the question
-                          const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
-                          handleChatSubmit(fakeEvent);
-                        }}
-                      >
-                        {question}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {suggestedQuestions.map((question, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="cursor-pointer hover:bg-primary/10 transition px-3 py-1"
+                      onClick={() => {
+                        setInput(question);
+                        // Auto-submit the question
+                        const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+                        handleChatSubmit(fakeEvent);
+                      }}
+                    >
+                      {question}
+                    </Badge>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -466,20 +467,6 @@ function ChatContent() {
                 >
                   <MessageContent content={message.content} />
                 </div>
-                
-                {/* Share button for assistant messages */}
-                {message.role === 'assistant' && message.content && (
-                  <div className="flex justify-end">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleShareMessage(message.id, message.content)}
-                      className="text-xs text-muted-foreground hover:text-foreground h-8 px-3"
-                    >
-                      {sharedMessageId === message.id ? 'Shared!' : 'Share'}
-                    </Button>
-                  </div>
-                )}
               </div>
             </div>
           ))}
@@ -515,13 +502,14 @@ function ChatContent() {
           {/* Compact Suggested Questions for Chat Session */}
           {!isMobile && messages.length > 0 && (
             <div className="mb-4">
-              <div className="flex items-center justify-between text-xs text-muted-foreground mb-2 gap-2">
+              <div className="flex items-center justify-between text-xs text-muted-foreground mb-2 gap-2" style={{ minHeight: 32 }}>
                 <div className="flex items-center gap-2">
-                  <span>Try asking:</span>
+                  <span style={{ lineHeight: 1.5, display: 'inline-block' }}>Try asking:</span>
                   <button
                     type="button"
                     className="text-xs text-muted-foreground hover:text-primary px-2 py-1 rounded"
                     onClick={() => setSuggestionsCollapsed(!suggestionsCollapsed)}
+                    style={{ lineHeight: 1.5 }}
                   >
                     {suggestionsCollapsed ? 'Show' : 'Hide'}
                   </button>
@@ -531,7 +519,8 @@ function ChatContent() {
                   variant="ghost"
                   size="sm"
                   onClick={clearChat}
-                  className="text-xs text-muted-foreground hover:text-foreground"
+                  className="text-xs text-muted-foreground hover:text-foreground flex items-center"
+                  style={{ lineHeight: 1.5 }}
                 >
                   Clear Chat
                 </Button>

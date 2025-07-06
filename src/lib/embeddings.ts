@@ -4,6 +4,7 @@ import { embed } from 'ai';
 import { supabase, Block } from './supabase';
 import { ProcessedAnyBlock, ProcessedBlock } from './extraction';
 import { ProcessedImageBlock } from './vision';
+import { embeddingCache } from './embedding-cache';
 
 export interface EmbeddingChunk {
   text: string;
@@ -17,15 +18,23 @@ export class EmbeddingService {
   private readonly model = 'text-embedding-3-small';
 
   /**
-   * Create embedding for a text string
+   * Create embedding for a text string with caching
    */
   async createEmbedding(text: string): Promise<number[]> {
+    // Check cache first
+    const cached = embeddingCache.get(text);
+    if (cached) {
+      return cached;
+    }
+
     try {
       const { embedding } = await embed({
         model: openai.textEmbedding(this.model),
         value: text,
       });
 
+      // Cache the result
+      embeddingCache.set(text, embedding);
       return embedding;
     } catch (error) {
       console.error('Failed to create embedding:', error);

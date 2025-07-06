@@ -23,78 +23,59 @@ export async function POST(req: Request) {
       return new Response('Last message must be from user', { status: 400 });
     }
 
-    // Get channel info
+    // Get channel info with block count in single query
     const { data: channel, error: channelError } = await supabase
       .from('channels')
-      .select('*')
+      .select('arena_id, title, slug')
       .eq('slug', channelSlug)
-      .single() as { data: { arena_id: number; title: string } | null; error: unknown };
+      .single() as { data: { arena_id: number; title: string; slug: string } | null; error: unknown };
 
     if (channelError || !channel) {
-      console.error('Channel not found:', channelError);
       return new Response('Channel not found', { status: 404 });
     }
 
-    console.log('Found channel:', channel);
-
-    // First check if we have any blocks with embeddings
-    const { data: allBlocks, error: blocksError } = await supabase
-      .from('blocks')
-      .select('id, title')
-      .eq('channel_id', channel.arena_id)
-      .not('embedding', 'is', null);
-    
-    console.log('Total blocks with embeddings:', allBlocks?.length || 0);
-    if (blocksError) console.error('Error fetching blocks:', blocksError);
-
-    // Perform vector search for relevant content
+    // Perform optimized vector search
     let relevantBlocks: ContextBlock[] = [];
     try {
-      // Create embedding for user query
+      // Create embedding for user query with caching potential
       const embeddingService = new EmbeddingService();
       const queryEmbedding = await embeddingService.createEmbedding(lastMessage.content);
 
       // Search for similar blocks within the specific channel
       const { data: searchResults, error: searchError } = await supabase.rpc('search_blocks', {
         query_embedding: queryEmbedding,
-        channel_filter: channel.arena_id, // Filter by current channel
-        similarity_threshold: 0.3, // Lower threshold for broader discovery queries
+        channel_filter: channel.arena_id,
+        similarity_threshold: 0.3,
         match_count: 5
       }) as { data: ContextBlock[] | null; error: unknown };
 
-      console.log('Query embedding length:', queryEmbedding.length);
-      console.log('User query:', lastMessage.content);
-
       if (searchError) {
-        console.error('Vector search error:', searchError);
-        // Fall back to recent blocks if vector search fails
-        const { data: fallbackBlocks, error: fallbackError } = await supabase
+        // Optimized fallback query
+        const { data: fallbackBlocks } = await supabase
           .from('blocks')
-          .select('title, url, content, description')
+          .select('title, url, content')
           .eq('channel_id', channel.arena_id)
           .not('embedding', 'is', null)
           .order('created_at', { ascending: false })
           .limit(3);
         
-        console.log('Fallback blocks:', fallbackBlocks, 'Error:', fallbackError);
         relevantBlocks = (fallbackBlocks || []).map(block => ({
           title: String(block.title || 'Untitled'),
           url: String(block.url || ''),
-          content: String(block.content || block.description || ''),
+          content: String(block.content || '').substring(0, 1000), // Truncate for performance
           similarity: 0
         }));
       } else {
-        console.log('Vector search results:', searchResults);
-        relevantBlocks = searchResults || [];
-        console.log('Vector search found', relevantBlocks.length, 'blocks');
-        console.log('Retrieved blocks:', relevantBlocks.map(b => ({ title: b.title, similarity: b.similarity })));
+        relevantBlocks = (searchResults || []).map(block => ({
+          ...block,
+          content: block.content.substring(0, 1000) // Truncate long content
+        }));
       }
-    } catch (error) {
-      console.error('Search failed, using fallback:', error);
-      // Fallback to recent blocks
+    } catch {
+      // Simplified error fallback
       const { data: fallbackBlocks } = await supabase
         .from('blocks')
-        .select('title, url, content, description')
+        .select('title, url, content')
         .eq('channel_id', channel.arena_id)
         .not('embedding', 'is', null)
         .order('created_at', { ascending: false })
@@ -103,35 +84,26 @@ export async function POST(req: Request) {
       relevantBlocks = (fallbackBlocks || []).map(block => ({
         title: String(block.title || 'Untitled'),
         url: String(block.url || ''),
-        content: String(block.content || block.description || ''),
+        content: String(block.content || '').substring(0, 1000),
         similarity: 0
       }));
     }
 
-    // Prepare context blocks - relevantBlocks are already ContextBlock[]
-    const contextBlocks: ContextBlock[] = relevantBlocks;
-
-    console.log('Context blocks prepared:', contextBlocks.length, 'blocks');
-    console.log('Context sample:', contextBlocks.slice(0, 2));
-
-    // Prepare conversation history (limit to last 6 messages for context)
-    const conversationHistory = messages.slice(-6).map((msg: { role: string; content: string }) => ({
+    // Prepare optimized context (limit conversation history for performance)
+    const conversationHistory = messages.slice(-4).map((msg: { role: string; content: string }) => ({
       role: msg.role,
-      content: msg.content
+      content: msg.content.substring(0, 500) // Truncate long messages
     }));
 
-    // Generate prompt with context
+    // Generate optimized prompt
     const systemPrompt = PromptTemplates.chat(
       lastMessage.content,
-      contextBlocks,
+      relevantBlocks,
       channel.title,
-      conversationHistory.slice(0, -1) // Exclude the current message
+      conversationHistory.slice(0, -1)
     );
 
-    console.log('Generated system prompt length:', systemPrompt.length);
-    console.log('System prompt preview:', systemPrompt.substring(0, 500) + '...');
-
-    // Stream the response
+    // Stream optimized response
     const result = await streamText({
       model: openai('gpt-4o-mini'),
       messages: [
@@ -145,7 +117,7 @@ export async function POST(req: Request) {
         }
       ],
       temperature: 0.7,
-      maxTokens: 1000,
+      maxTokens: 800, // Reduced for faster responses
     });
 
     // Create a simple text stream

@@ -120,13 +120,16 @@ ${historyText}
 - You CANNOT provide generic examples, tips, or external knowledge  
 - You CANNOT discuss "spice blends," "plating techniques," or cooking advice unless they appear in the user's blocks
 - If context lacks information, say "I don't see that in your channel"
+- If content appears to be error pages (404, "page not found"), acknowledge this honestly
 
 MANDATORY RESPONSE RULES:
 1. ONLY reference titles, URLs, and content from the context blocks above
 2. When listing items, use EXACT titles from the context (e.g., "Perfect Buttermilk Pancakes," "Breakfast Sausage Patties")  
 3. Always include source URLs from the context
-4. Match tone to channel vibe: ${channelVibe}
-5. End with suggestions based on their actual content only
+4. If you have limited content (1-2 items), be honest: "You have [X] items in this channel..."
+5. If content quality is poor (404s, errors), suggest re-syncing or adding new content
+6. Match tone to channel vibe: ${channelVibe}
+7. End with content-based suggestions or ways to improve the channel
 
 ${isExploratoryQuery ? this.getExploratoryInstructions(channelVibe) : this.getSpecificInstructions()}
 
@@ -144,9 +147,10 @@ FALLBACK APPROACH (use when no direct match):
 When the context doesn't contain information to answer the user's question:
 1. Be honest: "I don't see [specific topic] in your channel"
 2. ONLY if there are related items in the collection, mention them: "However, I do see..."
-3. Suggest what they could add to their channel if relevant
-4. NEVER create examples or fill gaps with generic knowledge
-5. Remember: Better to say "not found" than to hallucinate content not in their curation
+3. If channel is mostly empty or has error content, acknowledge this honestly
+4. Suggest what they could add or mention re-syncing if content seems outdated
+5. NEVER create examples or fill gaps with generic knowledge
+6. Remember: Better to say "not found" than to hallucinate content not in their curation
 
 Response:`;
   }
@@ -190,12 +194,13 @@ Response:`;
    */
   private static getExploratoryInstructions(channelVibe: string): string {
     return `This is an exploratory query. Your approach:
-- Lead with something immediately engaging from the content
-- Surface 2-3 interesting highlights that showcase the collection's value
-- Provide context about why these items are noteworthy
-- Connect different pieces when possible to show patterns
+- If content exists: Lead with 1-2 immediately engaging items from the actual content
+- If content is limited/poor: Be honest about what's actually available
+- ONLY mention items that exist in the context blocks
+- Connect pieces when multiple quality items exist
+- If only 1-2 items exist, focus on what makes them noteworthy
 - Use a ${channelVibe} tone
-- Invite further exploration with specific follow-up suggestions`;
+- For follow-ups, suggest what they could add to improve their channel`;
   }
 
   /**
@@ -211,50 +216,51 @@ Response:`;
   }
 
   /**
-   * Get suggested questions that adapt to any channel title and encourage discovery
+   * Get content-safe suggested questions that always have reasonable answers
    */
   static getSuggestedQuestions(channelTitle: string): string[] {
     // Extract key terms from channel title for context-aware questions
     const title = channelTitle.toLowerCase();
-    const channelName = channelTitle.replace(/^r[-:]?\s*/i, ''); // Remove "R:" or "r-" prefix
     
-    // Exploratory questions that work for any content type and encourage discovery
-    const exploratoryQuestions = [
-      "Show me something cool",
-      "What's interesting here?",
-      "Surprise me with a discovery",
-      "What stands out the most?",
-      "What should I explore first?",
-      "Give me the highlights"
+    // Core questions that work with any amount of content (even 1 item)
+    const safeExploratoryQuestions = [
+      "What's in this channel?",
+      "Show me what you have",
+      "What did I save here?",
+      "Tell me about this collection"
     ];
 
-    // Analytical questions for deeper exploration
-    const analyticalQuestions = [
-      `What patterns do you see in ${channelName}?`,
-      "What are the key insights?",
-      "What can I learn from this?",
-      "How would you summarize this collection?"
+    // Content-safe analytical questions that work with limited content
+    const safeAnalyticalQuestions = [
+      "What stands out most?",
+      "Which item looks most interesting?",
+      "What should I explore first?"
     ];
     
-    // Add contextual questions based on channel title hints
+    // Context-specific questions that are content-safe
     const contextualQuestions = [];
     
-    if (title.includes('cool') || title.includes('random') || title.includes('fun')) {
-      contextualQuestions.push("Show me the coolest thing here", "What's the most unexpected item?");
-    } else if (title.includes('recipe') || title.includes('cooking') || title.includes('food')) {
-      contextualQuestions.push("What recipes look interesting?", "What cooking techniques are featured?");
+    if (title.includes('recipe') || title.includes('cooking') || title.includes('food')) {
+      contextualQuestions.push("What food content is here?", "Tell me about these recipes");
     } else if (title.includes('startup') || title.includes('founder') || title.includes('business') || title.includes('vc')) {
-      contextualQuestions.push("What advice stands out for founders?", "What business insights are here?");
+      contextualQuestions.push("What business content did I save?", "Show me the startup resources");
     } else if (title.includes('design') || title.includes('art') || title.includes('creative')) {
-      contextualQuestions.push("What design approaches are featured?", "Show me the most inspiring pieces");
-    } else if (title.includes('education') || title.includes('learning') || title.includes('teach')) {
-      contextualQuestions.push("What learning approaches are discussed?", "What educational resources stand out?");
+      contextualQuestions.push("What design content is here?", "Show me the creative pieces");
     } else if (title.includes('tech') || title.includes('programming') || title.includes('code')) {
-      contextualQuestions.push("What technologies are highlighted?", "What development insights are here?");
+      contextualQuestions.push("What tech content did I save?", "Tell me about the technical resources");
+    } else if (title.includes('research') || title.includes('study') || title.includes('learning')) {
+      contextualQuestions.push("What research is in here?", "Show me the learning resources");
+    } else {
+      // Generic fallbacks that work for any content type
+      contextualQuestions.push("What type of content is this?", "Describe this collection");
     }
     
-    // Combine exploratory, analytical, and contextual questions
-    const allQuestions = [...exploratoryQuestions.slice(0, 3), ...analyticalQuestions.slice(0, 2), ...contextualQuestions.slice(0, 1)];
+    // Combine 2 safe exploratory + 2 safe analytical + 2 contextual
+    const allQuestions = [
+      ...safeExploratoryQuestions.slice(0, 2),
+      ...safeAnalyticalQuestions.slice(0, 2), 
+      ...contextualQuestions.slice(0, 2)
+    ];
     return allQuestions.slice(0, 6);
   }
 
