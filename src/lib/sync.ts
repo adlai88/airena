@@ -39,6 +39,20 @@ export class SyncService {
   }
 
   /**
+   * Check if a URL is a video URL
+   */
+  private isVideoUrl(url: string): boolean {
+    const videoPatterns = [
+      /youtube\.com\/watch\?v=/,
+      /youtu\.be\//,
+      /vimeo\.com/,
+      /dailymotion\.com/,
+      /twitch\.tv/
+    ];
+    return videoPatterns.some(pattern => pattern.test(url));
+  }
+
+  /**
    * Store or update channel in database
    */
   private async upsertChannel(channel: ArenaChannel): Promise<void> {
@@ -181,9 +195,19 @@ export class SyncService {
       // Get detailed info for link, image, media, attachment, and text blocks
       const { linkBlocks, imageBlocks, mediaBlocks, attachmentBlocks, textBlocks, allBlocks: processableBlocks } = await arenaClient.getDetailedProcessableBlocks(allBlocks);
 
+      // Create non-zero block type message
+      const blockTypes = [];
+      if (linkBlocks.length > 0) blockTypes.push(`${linkBlocks.length} websites`);
+      if (mediaBlocks.length > 0) blockTypes.push(`${mediaBlocks.length} videos`);
+      if (imageBlocks.length > 0) blockTypes.push(`${imageBlocks.length} images`);
+      if (attachmentBlocks.length > 0) blockTypes.push(`${attachmentBlocks.length} attachments`);
+      if (textBlocks.length > 0) blockTypes.push(`${textBlocks.length} text blocks`);
+      
+      const blockTypeMessage = blockTypes.length > 0 ? ` (${blockTypes.join(', ')})` : '';
+
       this.reportProgress({
         stage: 'fetching',
-        message: `Found ${processableBlocks.length} processable blocks (${linkBlocks.length} links, ${imageBlocks.length} images, ${mediaBlocks.length} media, ${attachmentBlocks.length} attachments, ${textBlocks.length} text) out of ${allBlocks.length} total blocks`,
+        message: `Found ${processableBlocks.length} processable blocks${blockTypeMessage} out of ${allBlocks.length} total blocks`,
         progress: 20,
         totalBlocks: processableBlocks.length,
       });
@@ -240,9 +264,25 @@ export class SyncService {
         };
       }
 
+      // Create non-zero block type message for new blocks
+      const newWebsites = newBlocks.filter(b => b.class === 'Link' && !this.isVideoUrl(b.source_url || '')).length;
+      const newVideos = newBlocks.filter(b => (b.class === 'Link' || b.class === 'Media') && this.isVideoUrl(b.source_url || '')).length;
+      const newImages = newBlocks.filter(b => b.class === 'Image').length;
+      const newAttachments = newBlocks.filter(b => b.class === 'Attachment').length;
+      const newTextBlocks = newBlocks.filter(b => b.class === 'Text').length;
+      
+      const newBlockTypes = [];
+      if (newWebsites > 0) newBlockTypes.push(`${newWebsites} websites`);
+      if (newVideos > 0) newBlockTypes.push(`${newVideos} videos`);
+      if (newImages > 0) newBlockTypes.push(`${newImages} images`);
+      if (newAttachments > 0) newBlockTypes.push(`${newAttachments} attachments`);
+      if (newTextBlocks > 0) newBlockTypes.push(`${newTextBlocks} text blocks`);
+      
+      const newBlockTypeMessage = newBlockTypes.length > 0 ? ` (${newBlockTypes.join(', ')})` : '';
+
       this.reportProgress({
         stage: 'extracting',
-        message: `Processing ${newBlocks.length} new blocks...`,
+        message: `Processing ${newBlocks.length} new blocks${newBlockTypeMessage}...`,
         progress: 35,
         totalBlocks: newBlocks.length,
       });

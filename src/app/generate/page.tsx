@@ -11,8 +11,30 @@ import { PageHeader } from '@/components/page-header';
 import { useChannel } from '@/hooks/useChannel';
 import { Badge } from '@/components/ui/badge';
 import { Spinner } from '@/components/ui/spinner';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 type GenerationStage = 'template-selection' | 'customization' | 'generation' | 'result';
+
+function NewsletterMarkdown({ content }: { content: string }) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        a: ({ node, ...props }) => (
+          <a
+            {...props}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:no-underline text-primary break-words"
+          />
+        ),
+      }}
+    >
+      {content}
+    </ReactMarkdown>
+  );
+}
 
 function GenerateContent() {
   const router = useRouter();
@@ -304,12 +326,10 @@ function GenerateContent() {
           title="Generating Your Newsletter"
           subtitle="Processing the curated research..."
         />
-        <div className="flex justify-center mb-8">
-          <Badge variant="secondary" className="px-3 py-1">
+        <div className="flex flex-col min-h-[60vh] items-center justify-center">
+          <Badge variant="secondary" className="px-3 py-1 mb-8">
             📊 Connected to: {channelSlug}
           </Badge>
-        </div>
-        <div className="min-h-[40vh] flex items-center justify-center">
           <div className="text-center">
             <div className="mx-auto mb-6"><Spinner size={48} /></div>
             <p className="text-lg text-muted-foreground">
@@ -359,8 +379,8 @@ function GenerateContent() {
               </div>
             )}
             
-            <div className="min-h-[400px] whitespace-pre-wrap text-foreground leading-relaxed">
-              {completion || 'No content generated'}
+            <div className="min-h-[400px] text-foreground leading-relaxed prose prose-invert max-w-none">
+              {completion ? <NewsletterMarkdown content={completion} /> : 'No content generated'}
             </div>
           </CardContent>
         </Card>
