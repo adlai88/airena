@@ -7,11 +7,14 @@ async function checkChannelVideos() {
   try {
     const channel = await arenaClient.getChannel('r-startups-founder-mode');
     console.log('Channel found:', channel.title);
-    console.log('Total blocks:', channel.contents.length);
+    
+    // Get all contents using the proper method
+    const allContents = await arenaClient.getAllChannelContents('r-startups-founder-mode');
+    console.log('Total blocks:', allContents.length);
     
     // First, let's see ALL blocks and their types
     console.log('\n📋 ALL blocks in channel by type:');
-    const blocksByType = channel.contents.reduce((acc, block) => {
+    const blocksByType = allContents.reduce((acc, block) => {
       acc[block.class] = (acc[block.class] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
@@ -22,7 +25,7 @@ async function checkChannelVideos() {
     
     // Show recent blocks (last 10) with their details
     console.log('\n🕐 Most recent blocks:');
-    const recentBlocks = channel.contents.slice(-10);
+    const recentBlocks = allContents.slice(-10);
     recentBlocks.forEach((block, i) => {
       console.log(`${i + 1}. [${block.class}] ${block.title || 'No title'}`);
       if (block.source_url) {
@@ -34,7 +37,7 @@ async function checkChannelVideos() {
     
     // Get detailed blocks (this fetches source_url for Link/Image/Media blocks)
     console.log('\n🔍 Fetching detailed block information...');
-    const detailedBlocks = await arenaClient.getDetailedProcessableBlocks(channel.contents);
+    const detailedBlocks = await arenaClient.getDetailedProcessableBlocks(allContents);
     console.log('Detailed blocks fetched - links:', detailedBlocks.linkBlocks.length, 'images:', detailedBlocks.imageBlocks.length, 'media:', detailedBlocks.mediaBlocks.length);
     
     // Use the detailed blocks
@@ -72,7 +75,7 @@ async function checkChannelVideos() {
     }
     
     // Also check original Media blocks for reference
-    const originalMediaBlocks = channel.contents.filter(block => block.class === 'Media');
+    const originalMediaBlocks = allContents.filter(block => block.class === 'Media');
     console.log('\n📺 Original Media blocks found:', originalMediaBlocks.length);
     
     if (originalMediaBlocks.length > 0) {
