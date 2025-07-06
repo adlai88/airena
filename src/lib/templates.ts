@@ -77,10 +77,10 @@ STRUCTURE:
 
 GUIDELINES:
 - Synthesize information rather than just summarizing individual pieces
-- Find patterns and connections across the curated content  
+- Find patterns and connections across this curated content  
 - Include source attribution with URLs
-- Make it valuable for someone who curated this collection
-- Avoid generic advice - focus on specific insights from curated content
+- Make it valuable for understanding the themes and insights within this collection
+- Avoid generic advice - focus on specific insights from the curated content
 
 Newsletter:`;
   }
@@ -162,7 +162,7 @@ When the context provides partial information or the user asks broader questions
 1. LEAD WITH COLLECTION: "Based on this collection, [relevant content from context]..."
 2. EXPAND WITH GENERAL: "From general knowledge, [additional context and insights]..."
 3. CONNECT THE DOTS: Show how general knowledge relates to or enhances the curated content
-4. BRIDGE BACK TO CHANNEL: "This connects to [specific items] you have here"
+4. BRIDGE BACK TO CHANNEL: "This connects to [specific items] in this collection"
 5. ENHANCE VALUE: Position both sources as complementary, not competing
 6. MAINTAIN DISTINCTION: Keep curated insights clearly separate from general knowledge
 
