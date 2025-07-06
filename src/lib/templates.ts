@@ -13,6 +13,8 @@ export interface ContextBlock {
   image_url?: string;
   id?: number;
   arena_id?: number;
+  reference?: string;
+  arena_url?: string;
 }
 
 export class PromptTemplates {
@@ -96,7 +98,7 @@ Newsletter:`;
     conversationHistory: Array<{ role: string; content: string }> = []
   ): string {
     const contextText = context.map((block, i) => 
-      `[${i + 1}] ${block.title}\nURL: ${block.url}\nContent: ${block.content.substring(0, 800)}...\n`
+      `[${i + 1}] ${block.title}\nReference: ${block.reference || `Block ${i + 1}`}\nURL: ${block.url}\nContent: ${block.content.substring(0, 800)}...\n`
     ).join('\n');
 
     const historyText = conversationHistory.length > 0 
@@ -149,6 +151,13 @@ LINK FORMATTING REQUIREMENTS:
 - Example: [Sam Altman's Startup Tips](https://www.youtube.com/watch?v=dHVMujryp40)
 - Example: [Airena Documentation](https://docs.airena.app)
 - CRITICAL: Every URL in your response must be clickable when rendered
+
+BLOCK REFERENCE REQUIREMENTS:
+- When referencing blocks, use the provided "Reference" links for each block
+- Instead of saying "Image 5" or "Block 3", use the clickable reference: [Block 3](https://www.are.na/block/ID)
+- This allows users to click directly to the Are.na block page
+- Example: "The landscape in [Block 2](https://www.are.na/block/12345) shows..." instead of "Image 2 shows..."
+- Always make block references clickable using the Reference field provided in context
 
 HYBRID KNOWLEDGE APPROACH (when expanding beyond channel content):
 When the context provides partial information or the user asks broader questions:

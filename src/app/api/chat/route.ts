@@ -169,10 +169,17 @@ export async function POST(req: Request) {
       content: msg.content.substring(0, 500) // Truncate long messages
     }));
 
+    // Enhance context blocks with numbered references for AI to use
+    const enhancedContext = relevantBlocks.map((block, index) => ({
+      ...block,
+      reference: `[Block ${index + 1}](https://www.are.na/block/${block.arena_id || block.id})`,
+      arena_url: `https://www.are.na/block/${block.arena_id || block.id}`
+    }));
+
     // Generate optimized prompt
     const systemPrompt = PromptTemplates.chat(
       lastMessage.content,
-      relevantBlocks,
+      enhancedContext,
       channel.title,
       conversationHistory.slice(0, -1)
     );
