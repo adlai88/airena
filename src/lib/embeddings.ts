@@ -104,15 +104,21 @@ export class EmbeddingService {
       const imageBlock = block as ProcessedImageBlock;
       contentToEmbed = [
         block.title,
-        block.description,
+        'description' in block ? block.description : null,
         imageBlock.processedContent
       ].filter(Boolean).join('\n\n');
+    } else if (block.blockType === 'Text') {
+      // For text blocks, just use title and content
+      contentToEmbed = [
+        block.title,
+        block.content
+      ].filter(Boolean).join('\n\n');
     } else {
-      // For links, use the original content structure
+      // For links, videos, attachments, use the original content structure
       const linkBlock = block as ProcessedBlock;
       contentToEmbed = [
         block.title,
-        block.description,
+        'description' in block ? block.description : null,
         linkBlock.content
       ].filter(Boolean).join('\n\n');
     }
