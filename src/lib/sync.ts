@@ -220,8 +220,8 @@ export class SyncService {
       let newBlocks = processableBlocks.filter(block => !existingBlocks.has(block.id));
       console.log(`Filtered to ${newBlocks.length} new blocks:`, newBlocks.map(b => b.id));
 
-      // Enforce a 100-block processing limit for all users (feature gate for future premium users)
-      const BLOCK_LIMIT = 100;
+      // Enforce a 50-block processing limit for all users (feature gate for future premium users)
+      const BLOCK_LIMIT = 50;
       if (newBlocks.length > BLOCK_LIMIT) {
         newBlocks = newBlocks.slice(0, BLOCK_LIMIT);
         errors.push(`Block limit reached: Only the first ${BLOCK_LIMIT} blocks will be processed.`);

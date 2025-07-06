@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { NEWSLETTER_TEMPLATES, buildPrompt, type NewsletterTemplate } from '@/lib/newsletter-templates';
+import { PromptTemplates, type NewsletterOptions } from '@/lib/templates';
 import { Layout } from '@/components/layout';
 import { PageHeader } from '@/components/page-header';
 import { useChannel } from '@/hooks/useChannel';
@@ -17,12 +17,8 @@ function GenerateContent() {
   const router = useRouter();
   const { channelSlug, username } = useChannel();
   const [stage, setStage] = useState<GenerationStage>('template-selection');
-  const [selectedTemplate, setSelectedTemplate] = useState<NewsletterTemplate | null>(null);
-  const [options, setOptions] = useState<{
-    tone: 'professional' | 'casual' | 'analytical' | 'personal';
-    length: 'brief' | 'standard' | 'detailed';
-    focus: 'insights' | 'resources' | 'trends' | 'actionable';
-  }>({
+  const [selectedTemplate, setSelectedTemplate] = useState<{id: string; name: string; description: string} | null>(null);
+  const [options, setOptions] = useState<NewsletterOptions>({
     tone: 'professional',
     length: 'standard',
     focus: 'insights',
@@ -33,9 +29,13 @@ function GenerateContent() {
   const [copied, setCopied] = useState(false);
   const [shared, setShared] = useState(false);
 
-  const handleTemplateSelect = (template: NewsletterTemplate) => {
+  const handleTemplateSelect = (template: {id: string; name: string; description: string}) => {
     setSelectedTemplate(template);
-    setOptions(template.defaultOptions);
+    setOptions({
+      tone: 'professional',
+      length: 'standard',
+      focus: 'insights'
+    });
     setStage('customization');
   };
 
@@ -51,7 +51,7 @@ function GenerateContent() {
 
     try {
       // Build the prompt using the template
-      const prompt = buildPrompt(selectedTemplate, channelSlug, 0, options);
+      const prompt = PromptTemplates.newsletter([], channelSlug, options);
       
       const response = await fetch('/api/generate', {
         method: 'POST',
@@ -172,7 +172,11 @@ function GenerateContent() {
           </div>
 
           <div className="space-y-6">
-            {NEWSLETTER_TEMPLATES.map((template) => (
+            {[{
+              id: 'newsletter',
+              name: 'Newsletter',
+              description: 'A roundup of key insights and actionable takeaways from your are.na content'
+            }].map((template) => (
               <Card key={template.id} className="cursor-pointer hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <CardTitle className="text-2xl">{template.name}</CardTitle>
@@ -229,7 +233,7 @@ function GenerateContent() {
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Tone
                   </label>
-                  <Select value={options.tone} onValueChange={(value) => setOptions({...options, tone: value as typeof options.tone})}>
+                  <Select value={options.tone} onValueChange={(value) => setOptions({...options, tone: value as NewsletterOptions['tone']})}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -246,7 +250,7 @@ function GenerateContent() {
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Length
                   </label>
-                  <Select value={options.length} onValueChange={(value) => setOptions({...options, length: value as typeof options.length})}>
+                  <Select value={options.length} onValueChange={(value) => setOptions({...options, length: value as NewsletterOptions['length']})}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -262,7 +266,7 @@ function GenerateContent() {
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Focus
                   </label>
-                  <Select value={options.focus} onValueChange={(value) => setOptions({...options, focus: value as typeof options.focus})}>
+                  <Select value={options.focus} onValueChange={(value) => setOptions({...options, focus: value as NewsletterOptions['focus']})}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
