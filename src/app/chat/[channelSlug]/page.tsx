@@ -497,12 +497,12 @@ function ChatContent() {
                                 <Image
                                   src={image.image_url}
                                   alt={image.title}
-                                  width={80}
+                                  width={96}
                                   height={80}
-                                  className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg border border-border hover:border-primary/50 transition-all duration-200 hover:scale-105"
+                                  className="max-w-24 max-h-20 w-auto h-auto object-contain border border-border hover:border-primary/50 transition-all duration-200 hover:scale-105"
                                   unoptimized
                                 />
-                                <div className="absolute inset-0 rounded-lg bg-black/0 group-hover:bg-black/10 transition-colors" />
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                                 {/* Tooltip with title */}
                                 <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-popover text-popover-foreground text-xs px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-nowrap max-w-32 truncate">
                                   {image.title}
