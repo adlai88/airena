@@ -41,13 +41,13 @@ export async function POST(req: Request) {
       const embeddingService = new EmbeddingService();
       const queryEmbedding = await embeddingService.createEmbedding(lastMessage.content);
 
-      // Search for similar blocks within the specific channel - include image_url for thumbnails
+      // Search for similar blocks within the specific channel - include block_type for image identification
       const { data: searchResults, error: searchError } = await supabase.rpc('search_blocks', {
         query_embedding: queryEmbedding,
         channel_filter: channel.arena_id,
         similarity_threshold: 0.3,
         match_count: 5
-      }) as { data: (ContextBlock & { image_url?: string })[] | null; error: unknown };
+      }) as { data: (ContextBlock & { block_type?: string })[] | null; error: unknown };
 
       if (searchError || !searchResults || searchResults.length === 0) {
         // Optimized fallback query - include block_type to identify images
@@ -70,7 +70,7 @@ export async function POST(req: Request) {
         relevantBlocks = (searchResults || []).map(block => ({
           ...block,
           content: block.content.substring(0, 1000), // Truncate long content
-          image_url: block.image_url || undefined
+          image_url: block.block_type === 'Image' ? String(block.url || '') : undefined
         }));
       }
     } catch {
