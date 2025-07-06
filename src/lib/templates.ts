@@ -237,22 +237,26 @@ Response:`;
       "What should I explore first?"
     ];
     
-    // Context-specific questions that are content-safe
-    const contextualQuestions = [];
+    // Dynamic contextual questions that work for any channel type
+    const contextualQuestions = [
+      "What type of content is this?",
+      "Describe this collection"
+    ];
     
+    // Add one channel-aware question if we can detect the theme
     if (title.includes('recipe') || title.includes('cooking') || title.includes('food')) {
-      contextualQuestions.push("What food content is here?", "Tell me about these recipes");
+      contextualQuestions.unshift("Tell me about these recipes");
     } else if (title.includes('startup') || title.includes('founder') || title.includes('business') || title.includes('vc')) {
-      contextualQuestions.push("What business content did I save?", "Show me the startup resources");
+      contextualQuestions.unshift("Show me the startup resources");
     } else if (title.includes('design') || title.includes('art') || title.includes('creative')) {
-      contextualQuestions.push("What design content is here?", "Show me the creative pieces");
+      contextualQuestions.unshift("Show me the creative pieces");
     } else if (title.includes('tech') || title.includes('programming') || title.includes('code')) {
-      contextualQuestions.push("What tech content did I save?", "Tell me about the technical resources");
+      contextualQuestions.unshift("Tell me about the technical content");
     } else if (title.includes('research') || title.includes('study') || title.includes('learning')) {
-      contextualQuestions.push("What research is in here?", "Show me the learning resources");
+      contextualQuestions.unshift("Show me the learning resources");
     } else {
-      // Generic fallbacks that work for any content type
-      contextualQuestions.push("What type of content is this?", "Describe this collection");
+      // For unknown themes, add more generic but useful questions
+      contextualQuestions.unshift("What did I curate here?");
     }
     
     // Combine 2 safe exploratory + 2 safe analytical + 2 contextual
