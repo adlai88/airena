@@ -58,7 +58,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
           {/* Center Navigation (only on app pages) */}
           {isAppPage && (
             <div className="flex justify-center flex-1 mx-2 sm:mx-4">
-              <Menubar className="border-0 bg-transparent h-8 p-0 gap-0 sm:gap-1">
+              <Menubar className="border border-border bg-transparent h-8 p-1 gap-0 sm:gap-1">
                 <MenubarMenu>
                   <MenubarTrigger 
                     onClick={() => navigateWithParams('/setup')}
