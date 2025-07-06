@@ -125,7 +125,7 @@ export class VideoExtractor {
     }
   }
 
-  static async extractVideo(url: string): Promise<string> {
+  static async extractVideo(url: string, description?: string): Promise<string> {
     try {
       if (!this.isYouTubeUrl(url)) {
         return 'Video transcript unavailable (non-YouTube video)';
@@ -134,15 +134,32 @@ export class VideoExtractor {
       const videoId = this.extractVideoId(url);
       const metadata = await this.getVideoMetadata(url);
       
-      // Fetch transcript from YouTube captions
-      const transcript = await YoutubeTranscript.fetchTranscript(videoId);
+      // Try to fetch transcript from YouTube captions
+      let transcriptText = '';
+      try {
+        const transcript = await YoutubeTranscript.fetchTranscript(videoId);
+        
+        if (transcript && transcript.length > 0) {
+          // Convert transcript items to clean text
+          transcriptText = transcript
+            .map(item => item.text)
+            .join(' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+        }
+      } catch (error) {
+        console.warn(`Transcript extraction failed for ${videoId}:`, error);
+      }
       
-      // Convert transcript items to clean text
-      const text = transcript
-        .map(item => item.text)
-        .join(' ')
-        .replace(/\s+/g, ' ')
-        .trim();
+      // If no transcript, use description as content
+      let contentText = '';
+      if (transcriptText && transcriptText.length > 50) {
+        contentText = `Transcript: ${transcriptText}`;
+      } else if (description && description.length > 20) {
+        contentText = `Description: ${description}\n\nNote: Video transcript not available, using description as content.`;
+      } else {
+        contentText = 'Content: Video transcript and description unavailable';
+      }
       
       // Format the content with metadata
       const content = [
@@ -150,22 +167,26 @@ export class VideoExtractor {
         `Video ID: ${videoId}`,
         `Source: ${url}`,
         '',
-        `Transcript: ${text}`
+        contentText
       ].join('\n');
       
       return content;
       
     } catch (error) {
-      console.warn('Video transcript extraction failed:', error);
+      console.warn('Video extraction failed:', error);
       
-      // Fallback: return basic metadata
+      // Fallback: return basic metadata with description if available
       const metadata = await this.getVideoMetadata(url);
+      const fallbackContent = description && description.length > 20 
+        ? `Description: ${description}`
+        : 'Content: Video information unavailable';
+        
       return [
         `Title: ${metadata.title}`,
-        `Video ID: ${metadata.videoId}`,
+        `Video ID: ${metadata.videoId || 'unknown'}`,
         `Source: ${url}`,
         '',
-        'Transcript: Video transcript unavailable (no captions or private video)'
+        fallbackContent
       ].join('\n');
     }
   }

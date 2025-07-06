@@ -181,7 +181,7 @@ export class ContentExtractor {
       const validation = await VideoExtractor.validateVideoForProcessing(block.source_url);
       
       // Extract video content
-      const rawContent = await VideoExtractor.extractVideo(block.source_url);
+      const rawContent = await VideoExtractor.extractVideo(block.source_url, block.description || undefined);
       const cleanedContent = this.cleanContent(rawContent);
 
       // Create title from metadata first, then smart fallbacks
@@ -232,7 +232,7 @@ export class ContentExtractor {
       try {
         // Process as video using existing video processing logic
         const validation = await VideoExtractor.validateVideoForProcessing(block.source_url);
-        const rawContent = await VideoExtractor.extractVideo(block.source_url);
+        const rawContent = await VideoExtractor.extractVideo(block.source_url, block.description || undefined);
         const cleanedContent = this.cleanContent(rawContent);
 
         // Create title from metadata first, then smart fallbacks
