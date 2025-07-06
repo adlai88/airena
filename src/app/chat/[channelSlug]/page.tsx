@@ -36,7 +36,7 @@ const MessageContent = React.memo(({ content }: { content: string }) => {
           href={linkUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline hover:no-underline transition-colors"
+          className="text-orange-500 dark:text-orange-400 hover:text-orange-600 dark:hover:text-orange-300 underline hover:no-underline transition-colors"
         >
           {linkText}
         </a>
@@ -50,7 +50,7 @@ const MessageContent = React.memo(({ content }: { content: string }) => {
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline hover:no-underline transition-colors"
+          className="text-orange-500 dark:text-orange-400 hover:text-orange-600 dark:hover:text-orange-300 underline hover:no-underline transition-colors"
         >
           {url}
         </a>
@@ -425,7 +425,7 @@ function ChatContent() {
       {/* Messages Area - with bottom padding for fixed input */}
       <div className="w-full py-6 pb-32">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="space-y-4">
+          <div className="space-y-6">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -442,7 +442,7 @@ function ChatContent() {
                       <MessageContent content={message.content} />
                     </div>
                   ) : (
-                    <div className="text-foreground">
+                    <div className="text-muted-foreground">
                       <MessageContent content={message.content} />
                     </div>
                   )}
