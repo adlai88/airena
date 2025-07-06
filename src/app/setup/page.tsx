@@ -450,7 +450,7 @@ export default function SetupPage() {
 
       {/* Success Modal */}
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
-        <DialogContent className="mx-4 max-w-lg sm:mx-auto max-h-[90vh] overflow-y-auto">
+        <DialogContent className="mx-4 w-[calc(100vw-2rem)] max-w-lg sm:mx-auto sm:w-auto max-h-[90vh] overflow-y-auto">
           <DialogHeader className="text-center">
             <DialogTitle className="text-xl sm:text-2xl">
               ✅ {syncDetails.processedBlocks !== undefined ? 'Channel Synced Successfully!' : 'Channel Connected!'}
