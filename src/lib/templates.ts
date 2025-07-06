@@ -48,7 +48,7 @@ export class PromptTemplates {
     };
 
     const contextText = context.map((block, i) => 
-      `[${i + 1}] ${block.title}\nURL: ${block.url}\nContent: ${block.content.substring(0, 1000)}...\n`
+      `[${i + 1}] ${block.title}\nAre.na Block: https://www.are.na/block/${block.arena_id || block.id}\nOriginal URL: ${block.url}\nContent: ${block.content.substring(0, 1000)}...\n`
     ).join('\n');
 
     return `You are creating a newsletter from curated content in the "${channelTitle}" collection.
@@ -69,7 +69,7 @@ STRUCTURE:
 3. **Notable Resources** (2-3 items)
    - Highlight the most valuable tools, articles, or references
    - Explain why each resource is worth attention
-   - Include the source URL
+   - Link to the Are.na block (use the "Are.na Block" URLs provided in the context)
 
 4. **What's Next** (1-2 sentences)
    - One actionable takeaway or question to consider
@@ -78,9 +78,10 @@ STRUCTURE:
 GUIDELINES:
 - Synthesize information rather than just summarizing individual pieces
 - Find patterns and connections across this curated content  
-- Include source attribution with URLs
+- Include source attribution using Are.na block links (not original URLs)
 - Make it valuable for understanding the themes and insights within this collection
 - Avoid generic advice - focus on specific insights from the curated content
+- When referencing sources, use markdown links with the Are.na Block URLs: [Title](https://www.are.na/block/ID)
 
 Newsletter:`;
   }
