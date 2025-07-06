@@ -59,14 +59,14 @@ export function Navigation({ homeNav = false }: NavigationProps) {
           {/* Center Navigation (only on app pages) */}
           {isAppPage && (
             <div className="flex justify-center flex-1 mx-2 sm:mx-4">
-              <NavigationMenu className="p-1 rounded-full border border-border bg-background">
+              <NavigationMenu className="p-1 rounded-lg border border-border bg-background">
                 <NavigationMenuList className="gap-1">
                   <NavigationMenuItem>
                     <NavigationMenuLink asChild>
                       <Button
                         variant="ghost"
                         onClick={() => navigateWithParams('/setup')}
-                        className={`rounded-full px-4 py-2 transition-colors text-sm font-medium ${
+                        className={`rounded-md px-4 py-2 transition-colors text-sm font-medium ${
                           isActivePage('/setup')
                             ? 'bg-accent text-accent-foreground'
                             : 'hover:bg-accent hover:text-accent-foreground'
@@ -81,7 +81,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                       <Button
                         variant="ghost"
                         onClick={() => navigateWithParams('/chat')}
-                        className={`rounded-full px-4 py-2 transition-colors text-sm font-medium ${
+                        className={`rounded-md px-4 py-2 transition-colors text-sm font-medium ${
                           isActivePage('/chat')
                             ? 'bg-accent text-accent-foreground'
                             : 'hover:bg-accent hover:text-accent-foreground'
@@ -96,7 +96,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                       <Button
                         variant="ghost"
                         onClick={() => navigateWithParams('/generate')}
-                        className={`rounded-full px-4 py-2 transition-colors text-sm font-medium ${
+                        className={`rounded-md px-4 py-2 transition-colors text-sm font-medium ${
                           isActivePage('/generate')
                             ? 'bg-accent text-accent-foreground'
                             : 'hover:bg-accent hover:text-accent-foreground'
