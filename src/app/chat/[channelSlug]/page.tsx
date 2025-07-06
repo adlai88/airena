@@ -68,7 +68,7 @@ const MessageContent = React.memo(({ content }: { content: string }) => {
   }
   
   return (
-    <div className="whitespace-pre-wrap break-all text-sm sm:text-base leading-relaxed">
+    <div className="whitespace-pre-wrap break-words text-sm sm:text-base leading-relaxed">
       {parts.map((part, index) => (
         <span key={index}>{part}</span>
       ))}
