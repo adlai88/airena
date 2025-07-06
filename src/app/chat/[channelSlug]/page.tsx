@@ -480,7 +480,7 @@ function ChatContent() {
                       </div>
                       {/* Block thumbnails for AI responses */}
                       {message.images && message.images.length > 0 && (
-                        <div className="space-y-2">
+                        <div className="space-y-2 mt-6">
                           <div className="text-xs text-muted-foreground/70 uppercase tracking-wide">
                             Referenced Blocks
                           </div>
