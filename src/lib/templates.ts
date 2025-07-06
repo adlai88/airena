@@ -216,39 +216,16 @@ Response:`;
   }
 
   /**
-   * Get semantically-engineered questions designed to showcase AI intelligence
+   * Get streamlined, universal questions optimized for good answers across all content types
    */
   static getSuggestedQuestions(channelTitle: string): string[] {
-    // Universal semantic patterns that work across any domain
-    // These are designed to succeed at vector search by using words that appear in real content
-    const universalQuestions = [
-      "What are the key insights or lessons here?",
-      "What are the main themes or concepts covered?", 
-      "What strategies or approaches are discussed?",
-      "What are the most actionable recommendations?",
-      "What important ideas emerge from this content?"
-    ];
-    
-    // Domain-aware question that uses semantic patterns likely to match content
-    const title = channelTitle.toLowerCase();
-    let domainQuestion = "What patterns do you see across these sources?"; // Safe default
-    
-    if (title.includes('recipe') || title.includes('cooking') || title.includes('food')) {
-      domainQuestion = "What cooking techniques and tips are shared?";
-    } else if (title.includes('startup') || title.includes('founder') || title.includes('business') || title.includes('vc')) {
-      domainQuestion = "What advice do successful founders share?";
-    } else if (title.includes('design') || title.includes('art') || title.includes('creative')) {
-      domainQuestion = "What design principles and methods are covered?";
-    } else if (title.includes('tech') || title.includes('programming') || title.includes('code')) {
-      domainQuestion = "What technical insights and best practices are discussed?";
-    } else if (title.includes('research') || title.includes('study') || title.includes('learning')) {
-      domainQuestion = "What key findings and methodologies are presented?";
-    }
-    
-    // Return mix of universal semantic patterns + domain-aware question
+    // Universal patterns that work for text, images, videos, and any content type
+    // Designed to succeed at vector search while being semantically rich
     return [
-      ...universalQuestions,
-      domainQuestion
+      "What are the main themes in this collection?",
+      "What's most interesting or notable here?", 
+      "What patterns do you notice across this content?",
+      "What can I learn or discover from this?"
     ];
   }
 
