@@ -371,7 +371,7 @@ function GenerateContent() {
         />
         <div className="flex flex-col items-center justify-center" style={{ minHeight: 'calc(100vh - 300px)' }}>
           <Badge variant="secondary" className="px-3 py-1 mb-8">
-            📊 Connected to: {channelSlug}
+            ⚡ Connected to: {channelSlug}
           </Badge>
           <div className="flex flex-col items-center text-center">
             <div className="mb-6"><Spinner size={48} /></div>
