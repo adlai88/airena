@@ -264,7 +264,7 @@ export default function SetupPage() {
     <Layout>
       <PageHeader 
         title="Channel Setup"
-        subtitle="Connect to an Are.na channel"
+        subtitle="Connect to any public Are.na channel"
         variant="standard"
       />
       <div className="max-w-lg sm:max-w-xl md:max-w-2xl mx-auto pb-8 sm:pb-12 px-4 sm:px-6">
