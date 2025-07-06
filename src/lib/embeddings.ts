@@ -178,10 +178,10 @@ export class EmbeddingService {
       const { error } = await supabase
         .from('blocks')
         .upsert({
-          arena_id: block.arenaId,
+          arena_id: 'arenaId' in block ? block.arenaId : block.id,
           channel_id: channelId,
           title: block.title,
-          description: block.description,
+          description: 'description' in block ? block.description : null,
           content: content,
           url: url,
           block_type: block.blockType,
@@ -195,9 +195,9 @@ export class EmbeddingService {
         throw new Error(`Database error: ${error.message}`);
       }
 
-      console.log(`✅ Stored block ${block.arenaId} in database`);
+      console.log(`✅ Stored block ${'arenaId' in block ? block.arenaId : block.id} in database`);
     } catch (error) {
-      console.error(`Failed to store block ${block.arenaId}:`, error);
+      console.error(`Failed to store block ${'arenaId' in block ? block.arenaId : block.id}:`, error);
       throw error;
     }
   }
