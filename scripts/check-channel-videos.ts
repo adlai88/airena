@@ -32,23 +32,50 @@ async function checkChannelVideos() {
       console.log('');
     });
     
-    // Get detailed blocks (this fetches source_url for Link/Image blocks)
+    // Get detailed blocks (this fetches source_url for Link/Image/Media blocks)
     console.log('\n🔍 Fetching detailed block information...');
     const detailedBlocks = await arenaClient.getDetailedProcessableBlocks(channel.contents);
-    console.log('Detailed blocks fetched - links:', detailedBlocks.linkBlocks.length, 'images:', detailedBlocks.imageBlocks.length);
+    console.log('Detailed blocks fetched - links:', detailedBlocks.linkBlocks.length, 'images:', detailedBlocks.imageBlocks.length, 'media:', detailedBlocks.mediaBlocks.length);
     
     // Use the detailed blocks
     const linkBlocks = detailedBlocks.linkBlocks;
     const imageBlocks = detailedBlocks.imageBlocks;
+    const mediaBlocks = detailedBlocks.mediaBlocks;
     
     console.log('Link blocks with URLs:', linkBlocks.length);
     console.log('Image blocks with URLs:', imageBlocks.length);
+    console.log('Media blocks with URLs:', mediaBlocks.length);
     
-    // Check Media blocks separately (videos might be stored as Media, not Link!)
-    const mediaBlocks = channel.contents.filter(block => block.class === 'Media');
-    console.log('Media blocks found:', mediaBlocks.length);
-    
+    // Test processing Media blocks with our new content extraction
     if (mediaBlocks.length > 0) {
+      console.log('\n🧪 Testing Media block processing with new extraction:');
+      
+      const { contentExtractor } = await import('../src/lib/extraction');
+      
+      for (const mediaBlock of mediaBlocks) {
+        console.log(`\nProcessing Media Block ID: ${mediaBlock.id}`);
+        try {
+          const processedBlock = await contentExtractor.processMediaBlock(mediaBlock);
+          if (processedBlock) {
+            console.log('✅ Successfully processed as video!');
+            console.log(`  Title: ${processedBlock.title}`);
+            console.log(`  Video ID: ${processedBlock.videoId}`);
+            console.log(`  Has transcript: ${processedBlock.hasTranscript}`);
+            console.log(`  Content preview: ${processedBlock.content.substring(0, 200)}...`);
+          } else {
+            console.log('❌ Failed to process Media block');
+          }
+        } catch (error) {
+          console.log('❌ Error processing Media block:', error);
+        }
+      }
+    }
+    
+    // Also check original Media blocks for reference
+    const originalMediaBlocks = channel.contents.filter(block => block.class === 'Media');
+    console.log('\n📺 Original Media blocks found:', originalMediaBlocks.length);
+    
+    if (originalMediaBlocks.length > 0) {
       console.log('\n📺 Checking Media blocks for videos:');
       for (const block of mediaBlocks) {
         console.log(`Media Block ID: ${block.id}`);
