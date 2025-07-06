@@ -238,8 +238,8 @@ export async function POST(req: Request) {
         }
         
         // After streaming is complete, extract mentioned blocks and get thumbnails
-        if (relevantBlocks.length > 0) {
-          const mentionedBlocks = extractMentionedBlocks(fullResponse, relevantBlocks);
+        if (enhancedContext.length > 0) {
+          const mentionedBlocks = extractMentionedBlocks(fullResponse, enhancedContext);
           
           // Get thumbnails only for mentioned blocks
           for (const block of mentionedBlocks.slice(0, 6)) { // Limit to 6 to prevent too many

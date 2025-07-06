@@ -153,11 +153,13 @@ LINK FORMATTING REQUIREMENTS:
 - CRITICAL: Every URL in your response must be clickable when rendered
 
 BLOCK REFERENCE REQUIREMENTS:
-- When referencing blocks, use the provided "Reference" links for each block
-- Instead of saying "Image 5" or "Block 3", use the clickable reference: [Block 3](https://www.are.na/block/ID)
-- This allows users to click directly to the Are.na block page
-- Example: "The landscape in [Block 2](https://www.are.na/block/12345) shows..." instead of "Image 2 shows..."
-- Always make block references clickable using the Reference field provided in context
+- CRITICAL: When referencing any block, you MUST use the exact "Reference" link provided in the context
+- Each block has a "Reference:" field with a pre-formatted clickable link - USE THAT EXACT LINK
+- NEVER create your own links - always copy the Reference field exactly
+- Example context shows: "Reference: [Block 2](https://www.are.na/block/12345)"
+- You must use: [Block 2](https://www.are.na/block/12345) in your response
+- DO NOT say "Image 2" or plain "Block 2" - always use the full clickable reference
+- This is mandatory for ALL block mentions
 
 HYBRID KNOWLEDGE APPROACH (when expanding beyond channel content):
 When the context provides partial information or the user asks broader questions:
