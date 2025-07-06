@@ -291,7 +291,7 @@ export default function SetupPage() {
             <form onSubmit={handleSync} className="space-y-6">
               <div>
                 <label htmlFor="channel" className="block text-sm font-medium text-foreground mb-2">
-                  Add New Channel or Refresh Any Channel
+                  Add or Refresh Channel
                 </label>
                 <Input
                   type="text"
