@@ -19,6 +19,7 @@ export interface SyncResult {
   totalBlocks: number;
   processedBlocks: number;
   skippedBlocks: number;
+  deletedBlocks: number; // blocks removed from Are.na
   errors: string[];
   duration: number; // milliseconds
 }
@@ -107,6 +108,54 @@ export class SyncService {
   }
 
   /**
+   * Delete blocks that are no longer in the Are.na channel
+   */
+  private async deleteOrphanedBlocks(channelId: number, currentArenaBlocks: Set<number>): Promise<number> {
+    try {
+      // Get all existing blocks for this channel
+      const { data: existingBlocks, error: fetchError } = await supabase
+        .from('blocks')
+        .select('arena_id, title')
+        .eq('channel_id', channelId) as { data: { arena_id: number; title: string }[] | null; error: unknown };
+
+      if (fetchError) {
+        throw new Error(`Failed to fetch existing blocks: ${String(fetchError)}`);
+      }
+
+      if (!existingBlocks || existingBlocks.length === 0) {
+        return 0;
+      }
+
+      // Find blocks that exist in database but not in current Are.na channel
+      const blocksToDelete = existingBlocks.filter(block => !currentArenaBlocks.has(block.arena_id));
+
+      if (blocksToDelete.length === 0) {
+        console.log('No orphaned blocks to delete');
+        return 0;
+      }
+
+      console.log(`Deleting ${blocksToDelete.length} orphaned blocks:`, blocksToDelete.map(b => `${b.arena_id} (${b.title})`));
+
+      // Delete orphaned blocks
+      const { error: deleteError } = await supabase
+        .from('blocks')
+        .delete()
+        .eq('channel_id', channelId)
+        .in('arena_id', blocksToDelete.map(b => b.arena_id));
+
+      if (deleteError) {
+        throw new Error(`Failed to delete orphaned blocks: ${deleteError.message}`);
+      }
+
+      console.log(`✅ Successfully deleted ${blocksToDelete.length} orphaned blocks`);
+      return blocksToDelete.length;
+    } catch (error) {
+      console.error('Error deleting orphaned blocks:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Sync a single channel by slug
    */
   async syncChannel(channelSlug: string): Promise<SyncResult> {
@@ -114,6 +163,7 @@ export class SyncService {
     const errors: string[] = [];
     let processedBlocks = 0;
     let skippedBlocks = 0;
+    let deletedBlocks = 0;
 
     try {
       // Stage 1: Fetch channel and contents
@@ -138,6 +188,18 @@ export class SyncService {
         totalBlocks: processableBlocks.length,
       });
 
+      // Stage 1.5: Delete orphaned blocks (blocks removed from Are.na)
+      const currentArenaBlockIds = new Set(processableBlocks.map(block => block.id));
+      deletedBlocks = await this.deleteOrphanedBlocks(channel.id, currentArenaBlockIds);
+      
+      if (deletedBlocks > 0) {
+        this.reportProgress({
+          stage: 'fetching',
+          message: `Removed ${deletedBlocks} blocks that were deleted from Are.na`,
+          progress: 25,
+        });
+      }
+
       if (processableBlocks.length === 0) {
         return {
           success: true,
@@ -145,6 +207,7 @@ export class SyncService {
           totalBlocks: allBlocks.length,
           processedBlocks: 0,
           skippedBlocks: allBlocks.length,
+          deletedBlocks,
           errors: ['No processable blocks found (no links or images with URLs)'],
           duration: Date.now() - startTime,
         };
@@ -171,6 +234,7 @@ export class SyncService {
           totalBlocks: linkBlocks.length,
           processedBlocks: 0,
           skippedBlocks: linkBlocks.length,
+          deletedBlocks,
           errors: ['All blocks already processed'],
           duration: Date.now() - startTime,
         };
@@ -179,7 +243,7 @@ export class SyncService {
       this.reportProgress({
         stage: 'extracting',
         message: `Processing ${newBlocks.length} new blocks...`,
-        progress: 30,
+        progress: 35,
         totalBlocks: newBlocks.length,
       });
 
@@ -201,7 +265,7 @@ export class SyncService {
           }
 
           // Report progress
-          const progress = 30 + (i + 1) / newBlocks.length * 40; // 30-70% for extraction
+          const progress = 35 + (i + 1) / newBlocks.length * 35; // 35-70% for extraction
           this.reportProgress({
             stage: 'extracting',
             message: `Processed ${i + 1}/${newBlocks.length} blocks`,
@@ -225,6 +289,7 @@ export class SyncService {
           totalBlocks: newBlocks.length,
           processedBlocks: 0,
           skippedBlocks: newBlocks.length,
+          deletedBlocks,
           errors: ['No blocks could be processed successfully'],
           duration: Date.now() - startTime,
         };
@@ -289,6 +354,7 @@ export class SyncService {
         totalBlocks: newBlocks.length,
         processedBlocks,
         skippedBlocks,
+        deletedBlocks,
         errors,
         duration: Date.now() - startTime,
       };
@@ -310,6 +376,7 @@ export class SyncService {
         totalBlocks: 0,
         processedBlocks,
         skippedBlocks,
+        deletedBlocks: 0,
         errors,
         duration: Date.now() - startTime,
       };

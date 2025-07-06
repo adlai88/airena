@@ -184,11 +184,12 @@ export class ContentExtractor {
       const rawContent = await VideoExtractor.extractVideo(block.source_url);
       const cleanedContent = this.cleanContent(rawContent);
 
-      // Create title from block title or extract from metadata
+      // Create title from metadata first, then fallback to block info
       const metadata = await VideoExtractor.getVideoMetadata(block.source_url);
-      const title = block.title || 
-                   block.description || 
-                   metadata.title;
+      const title = metadata.title ||
+                   block.title || 
+                   block.description ||
+                   'YouTube Video';
 
       return {
         arenaId: block.id,
@@ -223,11 +224,12 @@ export class ContentExtractor {
         const rawContent = await VideoExtractor.extractVideo(block.source_url);
         const cleanedContent = this.cleanContent(rawContent);
 
-        // Create title from block title or extract from metadata
+        // Create title from metadata first, then fallback to block info
         const metadata = await VideoExtractor.getVideoMetadata(block.source_url);
-        const title = block.title || 
-                     block.description || 
-                     metadata.title;
+        const title = metadata.title ||
+                     block.title || 
+                     block.description ||
+                     'YouTube Video';
 
         return {
           arenaId: block.id,
