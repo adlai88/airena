@@ -199,22 +199,60 @@ export class ArenaClient {
   }
 
   /**
-   * Get detailed blocks for both Link and Image types
+   * Filter blocks by type and get detailed info for Media blocks (videos)
+   */
+  async getDetailedMediaBlocks(blocks: ArenaBlock[]): Promise<ArenaBlock[]> {
+    const mediaBlocks = blocks.filter(block => block.class === 'Media');
+    const detailedBlocks: ArenaBlock[] = [];
+
+    console.log(`Fetching detailed info for ${mediaBlocks.length} media blocks...`);
+
+    for (const block of mediaBlocks) {
+      try {
+        const detailedBlock = await this.getBlock(block.id);
+        
+        // For Media blocks, the URL is typically in source.url, not source_url
+        const hasMediaUrl = detailedBlock.source_url || detailedBlock.source?.url;
+        
+        if (hasMediaUrl) {
+          // Normalize the source_url field for consistency
+          if (!detailedBlock.source_url && detailedBlock.source?.url) {
+            detailedBlock.source_url = detailedBlock.source.url;
+          }
+          detailedBlocks.push(detailedBlock);
+        }
+
+        // Rate limiting
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (error) {
+        console.warn(`Failed to get details for media block ${block.id}:`, error);
+      }
+    }
+
+    console.log(`Found ${detailedBlocks.length} media blocks with URLs`);
+    return detailedBlocks;
+  }
+
+  /**
+   * Get detailed blocks for Link, Image, and Media types
    */
   async getDetailedProcessableBlocks(blocks: ArenaBlock[]): Promise<{
     linkBlocks: ArenaBlock[];
     imageBlocks: ArenaBlock[];
+    mediaBlocks: ArenaBlock[];
     allBlocks: ArenaBlock[];
   }> {
-    const [linkBlocks, imageBlocks] = await Promise.all([
+    const [linkBlocks, imageBlocks, mediaBlocks] = await Promise.all([
       this.getDetailedLinkBlocks(blocks),
-      this.getDetailedImageBlocks(blocks)
+      this.getDetailedImageBlocks(blocks),
+      this.getDetailedMediaBlocks(blocks)
     ]);
 
     return {
       linkBlocks,
       imageBlocks,
-      allBlocks: [...linkBlocks, ...imageBlocks]
+      mediaBlocks,
+      allBlocks: [...linkBlocks, ...imageBlocks, ...mediaBlocks]
     };
   }
 

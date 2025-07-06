@@ -208,7 +208,51 @@ export class ContentExtractor {
   }
 
   /**
-   * Process any Are.na block (Link, Image, or Video)
+   * Process Media blocks (often contain videos from YouTube, Vimeo, etc.)
+   */
+  async processMediaBlock(block: ArenaBlock): Promise<ProcessedVideoBlock | null> {
+    if (block.class !== 'Media' || !block.source_url) {
+      return null;
+    }
+
+    // Check if this Media block contains a video URL
+    if (VideoExtractor.isVideoUrl(block.source_url)) {
+      try {
+        // Process as video using existing video processing logic
+        const validation = await VideoExtractor.validateVideoForProcessing(block.source_url);
+        const rawContent = await VideoExtractor.extractVideo(block.source_url);
+        const cleanedContent = this.cleanContent(rawContent);
+
+        // Create title from block title or extract from metadata
+        const metadata = await VideoExtractor.getVideoMetadata(block.source_url);
+        const title = block.title || 
+                     block.description || 
+                     metadata.title;
+
+        return {
+          arenaId: block.id,
+          title,
+          description: block.description,
+          content: cleanedContent,
+          url: block.source_url,
+          blockType: 'Video',
+          hasTranscript: validation.hasTranscript || false,
+          videoId: metadata.videoId,
+          originalBlock: block,
+        };
+      } catch (error) {
+        console.error(`Failed to process media block ${block.id} as video:`, error);
+        return null;
+      }
+    }
+
+    // For non-video Media blocks, skip processing for now
+    console.log(`Skipping Media block ${block.id}: not a video URL (${block.source_url})`);
+    return null;
+  }
+
+  /**
+   * Process any Are.na block (Link, Image, Media, or Video)
    */
   async processBlock(block: ArenaBlock): Promise<ProcessedAnyBlock | null> {
     if (block.class === 'Link') {
@@ -216,6 +260,9 @@ export class ContentExtractor {
       return this.processLinkBlock(block);
     } else if (block.class === 'Image') {
       return this.processImageBlock(block);
+    } else if (block.class === 'Media') {
+      // Media blocks often contain videos (like YouTube embeds)
+      return this.processMediaBlock(block);
     }
     
     // Skip other block types for now
@@ -255,16 +302,18 @@ export class ContentExtractor {
   async processBlocks(blocks: ArenaBlock[], onProgress?: (processed: number, total: number) => void): Promise<ProcessedAnyBlock[]> {
     const processedBlocks: ProcessedAnyBlock[] = [];
     const processableBlocks = blocks.filter(block => 
-      (block.class === 'Link' || block.class === 'Image') && block.source_url
+      (block.class === 'Link' || block.class === 'Image' || block.class === 'Media') && block.source_url
     );
 
     // Count different types of content
     const linkBlocks = blocks.filter(b => b.class === 'Link' && b.source_url);
     const imageBlocks = blocks.filter(b => b.class === 'Image' && b.source_url);
+    const mediaBlocks = blocks.filter(b => b.class === 'Media' && b.source_url);
     const videoBlocks = linkBlocks.filter(b => b.source_url && VideoExtractor.isVideoUrl(b.source_url));
+    const mediaVideoBlocks = mediaBlocks.filter(b => b.source_url && VideoExtractor.isVideoUrl(b.source_url));
     const websiteBlocks = linkBlocks.filter(b => b.source_url && !VideoExtractor.isVideoUrl(b.source_url));
 
-    console.log(`Processing ${processableBlocks.length} blocks (${websiteBlocks.length} websites, ${videoBlocks.length} videos, ${imageBlocks.length} images)...`);
+    console.log(`Processing ${processableBlocks.length} blocks (${websiteBlocks.length} websites, ${videoBlocks.length} link videos, ${mediaVideoBlocks.length} media videos, ${imageBlocks.length} images)...`);
 
     for (let i = 0; i < processableBlocks.length; i++) {
       const block = processableBlocks[i];

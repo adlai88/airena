@@ -128,12 +128,12 @@ export class SyncService {
 
       const allBlocks = await arenaClient.getAllChannelContents(channelSlug);
       
-      // Get detailed info for both link and image blocks
-      const { linkBlocks, imageBlocks, allBlocks: processableBlocks } = await arenaClient.getDetailedProcessableBlocks(allBlocks);
+      // Get detailed info for link, image, and media blocks
+      const { linkBlocks, imageBlocks, mediaBlocks, allBlocks: processableBlocks } = await arenaClient.getDetailedProcessableBlocks(allBlocks);
 
       this.reportProgress({
         stage: 'fetching',
-        message: `Found ${processableBlocks.length} processable blocks (${linkBlocks.length} links, ${imageBlocks.length} images) out of ${allBlocks.length} total blocks`,
+        message: `Found ${processableBlocks.length} processable blocks (${linkBlocks.length} links, ${imageBlocks.length} images, ${mediaBlocks.length} media) out of ${allBlocks.length} total blocks`,
         progress: 20,
         totalBlocks: processableBlocks.length,
       });
