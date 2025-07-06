@@ -184,12 +184,23 @@ export class ContentExtractor {
       const rawContent = await VideoExtractor.extractVideo(block.source_url);
       const cleanedContent = this.cleanContent(rawContent);
 
-      // Create title from metadata first, then fallback to block info
+      // Create title from metadata first, then smart fallbacks
       const metadata = await VideoExtractor.getVideoMetadata(block.source_url);
-      const title = metadata.title ||
-                   block.title || 
-                   block.description ||
-                   'YouTube Video';
+      let title = metadata.title;
+      
+      // If extraction failed, use description as title source (often has good info)
+      if (!title || title.includes('YouTube Video (')) {
+        if (block.description && block.description.length > 10) {
+          // Use first sentence of description as title
+          title = block.description.split('.')[0].trim();
+          // Limit length for readability
+          if (title.length > 80) {
+            title = title.substring(0, 77) + '...';
+          }
+        } else {
+          title = block.title || metadata.title || 'YouTube Video';
+        }
+      }
 
       return {
         arenaId: block.id,
@@ -224,12 +235,23 @@ export class ContentExtractor {
         const rawContent = await VideoExtractor.extractVideo(block.source_url);
         const cleanedContent = this.cleanContent(rawContent);
 
-        // Create title from metadata first, then fallback to block info
+        // Create title from metadata first, then smart fallbacks
         const metadata = await VideoExtractor.getVideoMetadata(block.source_url);
-        const title = metadata.title ||
-                     block.title || 
-                     block.description ||
-                     'YouTube Video';
+        let title = metadata.title;
+        
+        // If extraction failed, use description as title source (often has good info)
+        if (!title || title.includes('YouTube Video (')) {
+          if (block.description && block.description.length > 10) {
+            // Use first sentence of description as title
+            title = block.description.split('.')[0].trim();
+            // Limit length for readability
+            if (title.length > 80) {
+              title = title.substring(0, 77) + '...';
+            }
+          } else {
+            title = block.title || metadata.title || 'YouTube Video';
+          }
+        }
 
         return {
           arenaId: block.id,

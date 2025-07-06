@@ -37,17 +37,91 @@ export class VideoExtractor {
   }> {
     try {
       const videoId = this.extractVideoId(url);
-      return {
-        title: `YouTube Video (${videoId})`,
-        videoId,
-        url
-      };
+      
+      // Try to extract title from YouTube transcript metadata
+      try {
+        const transcript = await YoutubeTranscript.fetchTranscript(videoId);
+        // Note: youtube-transcript doesn't provide title, so we'll use a web scraping approach
+        const title = await this.extractTitleFromYouTube(url);
+        
+        return {
+          title: title || `YouTube Video (${videoId})`,
+          videoId,
+          url
+        };
+      } catch {
+        // Fallback: Try to extract title from page
+        const title = await this.extractTitleFromYouTube(url);
+        return {
+          title: title || `YouTube Video (${videoId})`,
+          videoId,
+          url
+        };
+      }
     } catch {
       return {
         title: 'Video',
         videoId: 'unknown',
         url
       };
+    }
+  }
+
+  static async extractTitleFromYouTube(url: string): Promise<string | null> {
+    try {
+      // Fetch with proper headers to avoid being blocked
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Accept-Encoding': 'gzip, deflate',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+        }
+      });
+      
+      if (!response.ok) {
+        console.warn(`HTTP ${response.status} when fetching ${url}`);
+        return null;
+      }
+      
+      const html = await response.text();
+      
+      // Extract title from various possible meta tags and JSON-LD
+      const titleMatches = [
+        // Primary meta tags
+        html.match(/<meta property="og:title" content="([^"]+)"/),
+        html.match(/<meta name="title" content="([^"]+)"/),
+        // JSON-LD structured data
+        html.match(/"name"\s*:\s*"([^"]+)"/),
+        // Fallback to page title
+        html.match(/<title>([^<]+)<\/title>/)
+      ];
+      
+      for (const match of titleMatches) {
+        if (match && match[1]) {
+          let title = match[1].trim();
+          // Clean up YouTube's title format
+          title = title.replace(/ - YouTube$/, '');
+          // Decode HTML entities
+          title = title.replace(/&quot;/g, '"')
+                      .replace(/&#39;/g, "'")
+                      .replace(/&amp;/g, '&')
+                      .replace(/&lt;/g, '<')
+                      .replace(/&gt;/g, '>');
+          
+          // Skip if it's just the generic title
+          if (!title.includes('YouTube') || title.length > 20) {
+            return title;
+          }
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.warn('Failed to extract title from YouTube:', error);
+      return null;
     }
   }
 
