@@ -41,23 +41,56 @@ export async function POST(req: Request) {
       const embeddingService = new EmbeddingService();
       const queryEmbedding = await embeddingService.createEmbedding(lastMessage.content);
 
-      // Search for similar blocks within the specific channel - include block_type for image identification
-      const { data: searchResults, error: searchError } = await supabase.rpc('search_blocks', {
-        query_embedding: queryEmbedding,
-        channel_filter: channel.arena_id,
-        similarity_threshold: 0.3,
-        match_count: 5
-      }) as { data: (ContextBlock & { block_type?: string })[] | null; error: unknown };
+      // Dynamic threshold search - start high, gradually lower until we get results
+      let searchResults = null;
+      let searchError = null;
+      const thresholds = [0.7, 0.5, 0.3, 0.1];
+      
+      for (const threshold of thresholds) {
+        const { data, error } = await supabase.rpc('search_blocks', {
+          query_embedding: queryEmbedding,
+          channel_filter: channel.arena_id,
+          similarity_threshold: threshold,
+          match_count: 5
+        }) as { data: (ContextBlock & { block_type?: string })[] | null; error: unknown };
+        
+        if (!error && data && data.length > 0) {
+          searchResults = data;
+          searchError = error;
+          break;
+        }
+      }
 
       if (searchError || !searchResults || searchResults.length === 0) {
-        // Optimized fallback query - include IDs and block_type for thumbnail fetching
-        const { data: fallbackBlocks } = await supabase
-          .from('blocks')
-          .select('id, arena_id, title, url, content, block_type')
-          .eq('channel_id', channel.arena_id)
-          .not('embedding', 'is', null)
-          .order('created_at', { ascending: false })
-          .limit(5);
+        // Smarter fallback: mix of recent + diverse content
+        const [recentData, diverseData] = await Promise.all([
+          // Get 3 most recent blocks
+          supabase
+            .from('blocks')
+            .select('id, arena_id, title, url, content, block_type')
+            .eq('channel_id', channel.arena_id)
+            .not('embedding', 'is', null)
+            .order('created_at', { ascending: false })
+            .limit(3),
+          // Get 3 diverse blocks (different content types, spread across time)
+          supabase
+            .from('blocks')
+            .select('id, arena_id, title, url, content, block_type')
+            .eq('channel_id', channel.arena_id)
+            .not('embedding', 'is', null)
+            .order('updated_at', { ascending: false })
+            .limit(10) // Get 10 to pick diverse ones from
+        ]);
+        
+        // Combine recent + diverse, removing duplicates
+        const recentBlocks = recentData.data || [];
+        const allDiverseBlocks = diverseData.data || [];
+        const recentIds = new Set(recentBlocks.map(b => b.id));
+        const diverseBlocks = allDiverseBlocks
+          .filter(b => !recentIds.has(b.id))
+          .slice(0, 2); // Take 2 diverse blocks
+        
+        const fallbackBlocks = [...recentBlocks, ...diverseBlocks];
         
         relevantBlocks = (fallbackBlocks || []).map(block => ({
           title: String(block.title || 'Untitled'),
@@ -77,24 +110,47 @@ export async function POST(req: Request) {
         }));
       }
     } catch {
-      // Simplified error fallback - include IDs and block_type for thumbnail fetching
-      const { data: fallbackBlocks } = await supabase
-        .from('blocks')
-        .select('id, arena_id, title, url, content, block_type')
-        .eq('channel_id', channel.arena_id)
-        .not('embedding', 'is', null)
-        .order('created_at', { ascending: false })
-        .limit(5);
-      
-      relevantBlocks = (fallbackBlocks || []).map(block => ({
-        title: String(block.title || 'Untitled'),
-        url: String(block.url || ''),
-        content: String(block.content || '').substring(0, 1000),
-        similarity: 0,
-        id: Number(block.id),
-        arena_id: Number(block.arena_id),
-        image_url: block.block_type === 'Image' ? String(block.url || '') : undefined
-      }));
+      // Use same smarter fallback strategy for errors
+      try {
+        const [recentData, diverseData] = await Promise.all([
+          supabase
+            .from('blocks')
+            .select('id, arena_id, title, url, content, block_type')
+            .eq('channel_id', channel.arena_id)
+            .not('embedding', 'is', null)
+            .order('created_at', { ascending: false })
+            .limit(3),
+          supabase
+            .from('blocks')
+            .select('id, arena_id, title, url, content, block_type')
+            .eq('channel_id', channel.arena_id)
+            .not('embedding', 'is', null)
+            .order('updated_at', { ascending: false })
+            .limit(10)
+        ]);
+        
+        const recentBlocks = recentData.data || [];
+        const allDiverseBlocks = diverseData.data || [];
+        const recentIds = new Set(recentBlocks.map(b => b.id));
+        const diverseBlocks = allDiverseBlocks
+          .filter(b => !recentIds.has(b.id))
+          .slice(0, 2);
+        
+        const fallbackBlocks = [...recentBlocks, ...diverseBlocks];
+        
+        relevantBlocks = fallbackBlocks.map(block => ({
+          title: String(block.title || 'Untitled'),
+          url: String(block.url || ''),
+          content: String(block.content || '').substring(0, 1000),
+          similarity: 0,
+          id: Number(block.id),
+          arena_id: Number(block.arena_id),
+          image_url: block.block_type === 'Image' ? String(block.url || '') : undefined
+        }));
+      } catch (fallbackError) {
+        console.error('Fallback strategy also failed:', fallbackError);
+        relevantBlocks = [];
+      }
     }
 
     // Prepare optimized context (limit conversation history for performance)
