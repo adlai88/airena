@@ -223,7 +223,7 @@ export async function POST(req: Request) {
     };
 
     // We'll determine mentioned blocks after getting the AI response
-    let contextImages: Array<{ title: string; url: string; image_url: string }> = [];
+    const contextImages: Array<{ title: string; url: string; image_url: string }> = [];
 
     // Create a streaming response that includes both text and image context
     const stream = new ReadableStream({
