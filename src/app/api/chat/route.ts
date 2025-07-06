@@ -58,11 +58,12 @@ export async function POST(req: Request) {
       const { data: searchResults, error: searchError } = await supabase.rpc('search_blocks', {
         query_embedding: queryEmbedding,
         channel_filter: channel.arena_id, // Filter by current channel
-        similarity_threshold: 0.4, // Higher threshold for more relevant results
+        similarity_threshold: 0.3, // Lower threshold for broader discovery queries
         match_count: 5
       }) as { data: ContextBlock[] | null; error: unknown };
 
       console.log('Query embedding length:', queryEmbedding.length);
+      console.log('User query:', lastMessage.content);
 
       if (searchError) {
         console.error('Vector search error:', searchError);
@@ -85,6 +86,8 @@ export async function POST(req: Request) {
       } else {
         console.log('Vector search results:', searchResults);
         relevantBlocks = searchResults || [];
+        console.log('Vector search found', relevantBlocks.length, 'blocks');
+        console.log('Retrieved blocks:', relevantBlocks.map(b => ({ title: b.title, similarity: b.similarity })));
       }
     } catch (error) {
       console.error('Search failed, using fallback:', error);
