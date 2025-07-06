@@ -176,13 +176,19 @@ export class ArenaClient {
       try {
         const detailedBlock = await this.getBlock(block.id);
         
-        // For Image blocks, we need the image URL which is typically in source_url
-        const hasImageUrl = detailedBlock.source_url || detailedBlock.source?.url;
+        // For Image blocks, check both external links (source_url) and uploaded images (image.original.url)
+        const externalImageUrl = detailedBlock.source_url || detailedBlock.source?.url;
+        const uploadedImageUrl = (detailedBlock as any).image?.original?.url;
+        const hasImageUrl = externalImageUrl || uploadedImageUrl;
         
         if (hasImageUrl) {
-          // Normalize the source_url field
-          if (!detailedBlock.source_url && detailedBlock.source?.url) {
-            detailedBlock.source_url = detailedBlock.source.url;
+          // Normalize the source_url field - prefer external URL, fallback to uploaded URL
+          if (!detailedBlock.source_url) {
+            if (detailedBlock.source?.url) {
+              detailedBlock.source_url = detailedBlock.source.url;
+            } else if (uploadedImageUrl) {
+              detailedBlock.source_url = uploadedImageUrl;
+            }
           }
           detailedBlocks.push(detailedBlock);
         }
