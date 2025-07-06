@@ -1,4 +1,5 @@
 import { YoutubeTranscript } from 'youtube-transcript';
+import { YouTubeOfficialAPI } from './youtube-api';
 
 export class VideoExtractor {
   
@@ -36,12 +37,21 @@ export class VideoExtractor {
     url: string;
   }> {
     try {
-      const videoId = this.extractVideoId(url);
+      // Use the reliable YouTube API first
+      const title = await YouTubeOfficialAPI.getTitle(url);
+      const videoId = YouTubeOfficialAPI.extractVideoId(url);
       
-      // Try to extract title from YouTube transcript metadata
+      return {
+        title,
+        videoId,
+        url
+      };
+    } catch (error) {
+      console.warn('YouTube API metadata failed, trying fallback:', error);
+      
+      // Fallback to old method if API fails
       try {
-        const transcript = await YoutubeTranscript.fetchTranscript(videoId);
-        // Note: youtube-transcript doesn't provide title, so we'll use a web scraping approach
+        const videoId = this.extractVideoId(url);
         const title = await this.extractTitleFromYouTube(url);
         
         return {
@@ -50,20 +60,12 @@ export class VideoExtractor {
           url
         };
       } catch {
-        // Fallback: Try to extract title from page
-        const title = await this.extractTitleFromYouTube(url);
         return {
-          title: title || `YouTube Video (${videoId})`,
-          videoId,
+          title: 'Video',
+          videoId: 'unknown',
           url
         };
       }
-    } catch {
-      return {
-        title: 'Video',
-        videoId: 'unknown',
-        url
-      };
     }
   }
 
@@ -131,16 +133,28 @@ export class VideoExtractor {
         return 'Video transcript unavailable (non-YouTube video)';
       }
 
+      // Use the robust YouTube API extraction first
+      try {
+        const content = await YouTubeOfficialAPI.extractVideoContent(url);
+        
+        // If API content looks good, use it
+        if (content && content.length > 100 && !content.includes('YouTube API extraction failed')) {
+          return content;
+        }
+      } catch (error) {
+        console.warn('YouTube API extraction failed, trying fallback:', error);
+      }
+
+      // Fallback: Original approach with description
       const videoId = this.extractVideoId(url);
       const metadata = await this.getVideoMetadata(url);
       
-      // Try to fetch transcript from YouTube captions
+      // Try to fetch transcript from old package (likely to fail but worth trying)
       let transcriptText = '';
       try {
         const transcript = await YoutubeTranscript.fetchTranscript(videoId);
         
         if (transcript && transcript.length > 0) {
-          // Convert transcript items to clean text
           transcriptText = transcript
             .map(item => item.text)
             .join(' ')
@@ -148,10 +162,10 @@ export class VideoExtractor {
             .trim();
         }
       } catch (error) {
-        console.warn(`Transcript extraction failed for ${videoId}:`, error);
+        console.warn(`Old transcript extraction failed for ${videoId}:`, error);
       }
       
-      // If no transcript, use description as content
+      // Build content with available information
       let contentText = '';
       if (transcriptText && transcriptText.length > 50) {
         contentText = `Transcript: ${transcriptText}`;
@@ -173,17 +187,17 @@ export class VideoExtractor {
       return content;
       
     } catch (error) {
-      console.warn('Video extraction failed:', error);
+      console.warn('Video extraction failed completely:', error);
       
-      // Fallback: return basic metadata with description if available
-      const metadata = await this.getVideoMetadata(url);
+      // Final fallback
+      const videoId = this.extractVideoId(url);
       const fallbackContent = description && description.length > 20 
         ? `Description: ${description}`
         : 'Content: Video information unavailable';
         
       return [
-        `Title: ${metadata.title}`,
-        `Video ID: ${metadata.videoId || 'unknown'}`,
+        `Title: YouTube Video (${videoId})`,
+        `Video ID: ${videoId}`,
         `Source: ${url}`,
         '',
         fallbackContent
