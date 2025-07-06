@@ -4,10 +4,11 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import {
-  Menubar,
-  MenubarMenu,
-  MenubarTrigger,
-} from '@/components/ui/menubar';
+  NavigationMenu,
+  NavigationMenuList,
+  NavigationMenuItem,
+  NavigationMenuLink,
+} from '@/components/ui/navigation-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 
@@ -58,44 +59,55 @@ export function Navigation({ homeNav = false }: NavigationProps) {
           {/* Center Navigation (only on app pages) */}
           {isAppPage && (
             <div className="flex justify-center flex-1 mx-2 sm:mx-4">
-              <Menubar className="border border-border bg-transparent h-8 p-1 gap-0 sm:gap-1">
-                <MenubarMenu>
-                  <MenubarTrigger 
-                    onClick={() => navigateWithParams('/setup')}
-                    className={`cursor-pointer transition-colors px-2 py-1.5 text-sm font-medium min-h-[44px] sm:min-h-auto rounded-sm ${
-                      isActivePage('/setup') 
-                        ? 'bg-accent text-accent-foreground' 
-                        : 'hover:bg-accent hover:text-accent-foreground'
-                    }`}
-                  >
-                    Setup
-                  </MenubarTrigger>
-                </MenubarMenu>
-                <MenubarMenu>
-                  <MenubarTrigger 
-                    onClick={() => navigateWithParams('/chat')}
-                    className={`cursor-pointer transition-colors px-2 py-1.5 text-sm font-medium min-h-[44px] sm:min-h-auto rounded-sm ${
-                      isActivePage('/chat') 
-                        ? 'bg-accent text-accent-foreground' 
-                        : 'hover:bg-accent hover:text-accent-foreground'
-                    }`}
-                  >
-                    Chat
-                  </MenubarTrigger>
-                </MenubarMenu>
-                <MenubarMenu>
-                  <MenubarTrigger 
-                    onClick={() => navigateWithParams('/generate')}
-                    className={`cursor-pointer transition-colors px-2 py-1.5 text-sm font-medium min-h-[44px] sm:min-h-auto rounded-sm ${
-                      isActivePage('/generate') 
-                        ? 'bg-accent text-accent-foreground' 
-                        : 'hover:bg-accent hover:text-accent-foreground'
-                    }`}
-                  >
-                    Generate
-                  </MenubarTrigger>
-                </MenubarMenu>
-              </Menubar>
+              <NavigationMenu>
+                <NavigationMenuList>
+                  <NavigationMenuItem>
+                    <NavigationMenuLink asChild>
+                      <Button
+                        variant="ghost"
+                        onClick={() => navigateWithParams('/setup')}
+                        className={`cursor-pointer transition-colors px-2 py-1.5 text-sm font-medium min-h-[44px] sm:min-h-auto rounded-sm ${
+                          isActivePage('/setup')
+                            ? 'bg-accent text-accent-foreground'
+                            : 'hover:bg-accent hover:text-accent-foreground'
+                        }`}
+                      >
+                        Setup
+                      </Button>
+                    </NavigationMenuLink>
+                  </NavigationMenuItem>
+                  <NavigationMenuItem>
+                    <NavigationMenuLink asChild>
+                      <Button
+                        variant="ghost"
+                        onClick={() => navigateWithParams('/chat')}
+                        className={`cursor-pointer transition-colors px-2 py-1.5 text-sm font-medium min-h-[44px] sm:min-h-auto rounded-sm ${
+                          isActivePage('/chat')
+                            ? 'bg-accent text-accent-foreground'
+                            : 'hover:bg-accent hover:text-accent-foreground'
+                        }`}
+                      >
+                        Chat
+                      </Button>
+                    </NavigationMenuLink>
+                  </NavigationMenuItem>
+                  <NavigationMenuItem>
+                    <NavigationMenuLink asChild>
+                      <Button
+                        variant="ghost"
+                        onClick={() => navigateWithParams('/generate')}
+                        className={`cursor-pointer transition-colors px-2 py-1.5 text-sm font-medium min-h-[44px] sm:min-h-auto rounded-sm ${
+                          isActivePage('/generate')
+                            ? 'bg-accent text-accent-foreground'
+                            : 'hover:bg-accent hover:text-accent-foreground'
+                        }`}
+                      >
+                        Generate
+                      </Button>
+                    </NavigationMenuLink>
+                  </NavigationMenuItem>
+                </NavigationMenuList>
+              </NavigationMenu>
             </div>
           )}
 
