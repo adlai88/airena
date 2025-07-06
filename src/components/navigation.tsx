@@ -3,7 +3,11 @@
 import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Menubar,
+  MenubarMenu,
+  MenubarTrigger,
+} from '@/components/ui/menubar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 
@@ -21,35 +25,19 @@ export function Navigation({ homeNav = false }: NavigationProps) {
   const isAppPage = !homeNav && pathname !== '/';
   
   // Determine active tab based on current route
-  const getActiveTab = () => {
-    if (pathname === '/setup' || pathname === '/options') return 'setup';
-    if (pathname === '/generate' || pathname.startsWith('/generate')) return 'generate';
-    if (pathname === '/chat' || pathname.startsWith('/chat')) return 'chat';
-    return 'setup';
-  };
-
-  const handleTabClick = (tabId: string) => {
-    // Preserve query parameters when switching tabs
+  const navigateWithParams = (path: string) => {
+    // Preserve query parameters when navigating
     const searchParams = new URLSearchParams(window.location.search);
     const queryString = searchParams.toString();
-    
-    let path = '';
-    switch (tabId) {
-      case 'setup':
-        path = '/setup';
-        break;
-      case 'generate':
-        path = '/generate';
-        break;
-      case 'chat':
-        path = '/chat';
-        break;
-      default:
-        return;
-    }
-    
     const fullPath = queryString ? `${path}?${queryString}` : path;
     router.push(fullPath);
+  };
+
+  const isActivePage = (path: string) => {
+    if (path === '/setup') return pathname === '/setup' || pathname === '/options';
+    if (path === '/generate') return pathname === '/generate' || pathname.startsWith('/generate');
+    if (path === '/chat') return pathname === '/chat' || pathname.startsWith('/chat');
+    return false;
   };
 
   return (
@@ -67,31 +55,47 @@ export function Navigation({ homeNav = false }: NavigationProps) {
             </Button>
           </div>
 
-          {/* Center Tabs (only on app pages) */}
+          {/* Center Navigation (only on app pages) */}
           {isAppPage && (
             <div className="flex justify-center flex-1 mx-2 sm:mx-4">
-              <Tabs value={getActiveTab()} onValueChange={handleTabClick}>
-                <TabsList className="grid w-full grid-cols-3 max-w-xs sm:max-w-md overflow-x-auto min-w-0 h-10 sm:h-12">
-                  <TabsTrigger 
-                    value="setup" 
-                    className="cursor-pointer hover:bg-muted transition text-xs sm:text-base min-h-[40px] sm:min-h-[44px] px-2 sm:px-4"
+              <Menubar className="border-0 bg-transparent h-8 p-0 gap-0 sm:gap-1">
+                <MenubarMenu>
+                  <MenubarTrigger 
+                    onClick={() => navigateWithParams('/setup')}
+                    className={`cursor-pointer transition-colors px-3 py-2 text-sm font-medium min-h-[44px] sm:min-h-auto ${
+                      isActivePage('/setup') 
+                        ? 'bg-accent text-accent-foreground' 
+                        : 'hover:bg-accent hover:text-accent-foreground'
+                    }`}
                   >
                     Setup
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="chat" 
-                    className="cursor-pointer hover:bg-muted transition text-xs sm:text-base min-h-[40px] sm:min-h-[44px] px-2 sm:px-4"
-                  >
-                    Chat
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="generate" 
-                    className="cursor-pointer hover:bg-muted transition text-xs sm:text-base min-h-[40px] sm:min-h-[44px] px-2 sm:px-4"
+                  </MenubarTrigger>
+                </MenubarMenu>
+                <MenubarMenu>
+                  <MenubarTrigger 
+                    onClick={() => navigateWithParams('/generate')}
+                    className={`cursor-pointer transition-colors px-3 py-2 text-sm font-medium min-h-[44px] sm:min-h-auto ${
+                      isActivePage('/generate') 
+                        ? 'bg-accent text-accent-foreground' 
+                        : 'hover:bg-accent hover:text-accent-foreground'
+                    }`}
                   >
                     Generate
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
+                  </MenubarTrigger>
+                </MenubarMenu>
+                <MenubarMenu>
+                  <MenubarTrigger 
+                    onClick={() => navigateWithParams('/chat')}
+                    className={`cursor-pointer transition-colors px-3 py-2 text-sm font-medium min-h-[44px] sm:min-h-auto ${
+                      isActivePage('/chat') 
+                        ? 'bg-accent text-accent-foreground' 
+                        : 'hover:bg-accent hover:text-accent-foreground'
+                    }`}
+                  >
+                    Chat
+                  </MenubarTrigger>
+                </MenubarMenu>
+              </Menubar>
             </div>
           )}
 
