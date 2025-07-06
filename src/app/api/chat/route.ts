@@ -34,12 +34,18 @@ export async function POST(req: Request) {
       return new Response('Channel not found', { status: 404 });
     }
 
+    // Check if this is a casual greeting or conversation that doesn't need content search
+    const casualPatterns = /^(yo|hey|hi|hello|sup|what's up|thanks|thx|bye|goodbye)$/i;
+    const isGreeting = casualPatterns.test(lastMessage.content.trim());
+
     // Perform optimized vector search
     let relevantBlocks: ContextBlock[] = [];
-    try {
-      // Create embedding for user query with caching potential
-      const embeddingService = new EmbeddingService();
-      const queryEmbedding = await embeddingService.createEmbedding(lastMessage.content);
+    
+    if (!isGreeting) {
+      try {
+        // Create embedding for user query with caching potential
+        const embeddingService = new EmbeddingService();
+        const queryEmbedding = await embeddingService.createEmbedding(lastMessage.content);
 
       // Dynamic threshold search - start high, gradually lower until we get results
       let searchResults = null;
@@ -151,6 +157,10 @@ export async function POST(req: Request) {
         console.error('Fallback strategy also failed:', fallbackError);
         relevantBlocks = [];
       }
+    }
+    } else {
+      // For greetings, skip vector search entirely
+      relevantBlocks = [];
     }
 
     // Prepare optimized context (limit conversation history for performance)
