@@ -194,13 +194,13 @@ Response:`;
    */
   private static getExploratoryInstructions(channelVibe: string): string {
     return `This is an exploratory query. Your approach:
-- If content exists: Lead with 1-2 immediately engaging items from the actual content
-- If content is limited/poor: Be honest about what's actually available
-- ONLY mention items that exist in the context blocks
-- Connect pieces when multiple quality items exist
-- If only 1-2 items exist, focus on what makes them noteworthy
+- ALWAYS start by stating what you actually have: "You have X items in this channel" or "This channel appears to be empty"
+- If content exists: Briefly describe the 1-2 most interesting items from the actual content
+- If content is limited/poor: Be honest and suggest adding more content or re-syncing
+- If channel is empty: Suggest what types of content they could add based on channel name
+- ONLY mention items that exist in the context blocks - never invent examples
 - Use a ${channelVibe} tone
-- For follow-ups, suggest what they could add to improve their channel`;
+- End with actionable next steps based on what they actually have`;
   }
 
   /**
@@ -222,50 +222,36 @@ Response:`;
     // Extract key terms from channel title for context-aware questions
     const title = channelTitle.toLowerCase();
     
-    // Core questions that work with any amount of content (even 1 item)
-    const safeExploratoryQuestions = [
-      "What's in this channel?",
-      "Show me what you have",
-      "What did I save here?",
-      "Tell me about this collection"
-    ];
-
-    // Content-safe analytical questions that work with limited content
-    const safeAnalyticalQuestions = [
-      "What stands out most?",
-      "Which item looks most interesting?",
-      "What should I explore first?"
+    // Bulletproof questions that work with ANY amount of content (0 to many)
+    const bulletproofQuestions = [
+      "What's in this channel?",           // Always answerable: "You have X items" or "This channel is empty"
+      "Show me what you have",             // Always answerable: Shows content or "no content yet"
+      "Tell me about this collection",     // Always answerable: Describes what's there or suggests adding content
+      "What should I know about this?",    // Always answerable: Context-aware but safe
+      "Help me explore this channel",      // Always answerable: Can guide next steps
+      "What type of content is this?"      // Always answerable: Can describe or say "no content to analyze"
     ];
     
-    // Dynamic contextual questions that work for any channel type
-    const contextualQuestions = [
-      "What type of content is this?",
-      "Describe this collection"
-    ];
+    // Add one context-aware question that's still bulletproof
+    let contextAwareQuestion = "What did I curate here?"; // Safe default
     
-    // Add one channel-aware question if we can detect the theme
     if (title.includes('recipe') || title.includes('cooking') || title.includes('food')) {
-      contextualQuestions.unshift("Tell me about these recipes");
+      contextAwareQuestion = "What's in my recipe collection?";
     } else if (title.includes('startup') || title.includes('founder') || title.includes('business') || title.includes('vc')) {
-      contextualQuestions.unshift("Show me the startup resources");
+      contextAwareQuestion = "What's in my startup collection?";
     } else if (title.includes('design') || title.includes('art') || title.includes('creative')) {
-      contextualQuestions.unshift("Show me the creative pieces");
+      contextAwareQuestion = "What's in my design collection?";
     } else if (title.includes('tech') || title.includes('programming') || title.includes('code')) {
-      contextualQuestions.unshift("Tell me about the technical content");
+      contextAwareQuestion = "What's in my tech collection?";
     } else if (title.includes('research') || title.includes('study') || title.includes('learning')) {
-      contextualQuestions.unshift("Show me the learning resources");
-    } else {
-      // For unknown themes, add more generic but useful questions
-      contextualQuestions.unshift("What did I curate here?");
+      contextAwareQuestion = "What's in my research collection?";
     }
     
-    // Combine 2 safe exploratory + 2 safe analytical + 2 contextual
-    const allQuestions = [
-      ...safeExploratoryQuestions.slice(0, 2),
-      ...safeAnalyticalQuestions.slice(0, 2), 
-      ...contextualQuestions.slice(0, 2)
+    // Return 6 bulletproof questions: 5 universal + 1 context-aware
+    return [
+      ...bulletproofQuestions.slice(0, 5),
+      contextAwareQuestion
     ];
-    return allQuestions.slice(0, 6);
   }
 
   /**
