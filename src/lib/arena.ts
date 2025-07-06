@@ -234,25 +234,63 @@ export class ArenaClient {
   }
 
   /**
-   * Get detailed blocks for Link, Image, and Media types
+   * Filter blocks by type and get detailed info for Attachment blocks (PDFs, documents)
+   */
+  async getDetailedAttachmentBlocks(blocks: ArenaBlock[]): Promise<ArenaBlock[]> {
+    const attachmentBlocks = blocks.filter(block => block.class === 'Attachment');
+    const detailedBlocks: ArenaBlock[] = [];
+
+    console.log(`Fetching detailed info for ${attachmentBlocks.length} attachment blocks...`);
+
+    for (const block of attachmentBlocks) {
+      try {
+        const detailedBlock = await this.getBlock(block.id);
+        
+        // For Attachment blocks, check both source_url and source.url
+        const hasAttachmentUrl = detailedBlock.source_url || detailedBlock.source?.url;
+        
+        if (hasAttachmentUrl) {
+          // Normalize the source_url field for consistency
+          if (!detailedBlock.source_url && detailedBlock.source?.url) {
+            detailedBlock.source_url = detailedBlock.source.url;
+          }
+          detailedBlocks.push(detailedBlock);
+        }
+
+        // Rate limiting
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (error) {
+        console.warn(`Failed to get details for attachment block ${block.id}:`, error);
+      }
+    }
+
+    console.log(`Found ${detailedBlocks.length} attachment blocks with URLs`);
+    return detailedBlocks;
+  }
+
+  /**
+   * Get detailed blocks for Link, Image, Media, and Attachment types
    */
   async getDetailedProcessableBlocks(blocks: ArenaBlock[]): Promise<{
     linkBlocks: ArenaBlock[];
     imageBlocks: ArenaBlock[];
     mediaBlocks: ArenaBlock[];
+    attachmentBlocks: ArenaBlock[];
     allBlocks: ArenaBlock[];
   }> {
-    const [linkBlocks, imageBlocks, mediaBlocks] = await Promise.all([
+    const [linkBlocks, imageBlocks, mediaBlocks, attachmentBlocks] = await Promise.all([
       this.getDetailedLinkBlocks(blocks),
       this.getDetailedImageBlocks(blocks),
-      this.getDetailedMediaBlocks(blocks)
+      this.getDetailedMediaBlocks(blocks),
+      this.getDetailedAttachmentBlocks(blocks)
     ]);
 
     return {
       linkBlocks,
       imageBlocks,
       mediaBlocks,
-      allBlocks: [...linkBlocks, ...imageBlocks, ...mediaBlocks]
+      attachmentBlocks,
+      allBlocks: [...linkBlocks, ...imageBlocks, ...mediaBlocks, ...attachmentBlocks]
     };
   }
 

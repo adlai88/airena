@@ -276,7 +276,55 @@ export class ContentExtractor {
   }
 
   /**
-   * Process any Are.na block (Link, Image, Media, or Video)
+   * Process Attachment blocks (often contain PDFs, documents)
+   */
+  async processAttachmentBlock(block: ArenaBlock): Promise<ProcessedBlock | null> {
+    if (block.class !== 'Attachment' || !block.source_url) {
+      return null;
+    }
+
+    // Check if this is a PDF or document URL
+    const isPdf = block.source_url.toLowerCase().includes('.pdf') || 
+                  block.source_url.toLowerCase().includes('pdf');
+    
+    try {
+      // Extract content using Jina AI (works well with PDFs)
+      const rawContent = await this.extractWebsite(block.source_url);
+      const cleanedContent = this.cleanContent(rawContent);
+
+      // Skip if no meaningful content extracted
+      if (!cleanedContent || cleanedContent.length < 100) {
+        console.warn(`Insufficient content extracted from attachment ${block.source_url}`);
+        return null;
+      }
+
+      // Create title from block title, description, or extract from URL
+      const title = block.title || 
+                   block.description || 
+                   this.extractTitleFromUrl(block.source_url);
+
+      // Enhance title to indicate it's a document/PDF
+      const enhancedTitle = isPdf && !title.toLowerCase().includes('pdf') 
+        ? `${title} (PDF)` 
+        : title;
+
+      return {
+        arenaId: block.id,
+        title: enhancedTitle,
+        description: block.description,
+        content: cleanedContent,
+        url: block.source_url,
+        blockType: 'Attachment',
+        originalBlock: block,
+      };
+    } catch (error) {
+      console.error(`Failed to process attachment block ${block.id}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Process any Are.na block (Link, Image, Media, Attachment, or Video)
    */
   async processBlock(block: ArenaBlock): Promise<ProcessedAnyBlock | null> {
     if (block.class === 'Link') {
@@ -287,6 +335,9 @@ export class ContentExtractor {
     } else if (block.class === 'Media') {
       // Media blocks often contain videos (like YouTube embeds)
       return this.processMediaBlock(block);
+    } else if (block.class === 'Attachment') {
+      // Attachment blocks often contain PDFs and documents
+      return this.processAttachmentBlock(block);
     }
     
     // Skip other block types for now
@@ -326,18 +377,19 @@ export class ContentExtractor {
   async processBlocks(blocks: ArenaBlock[], onProgress?: (processed: number, total: number) => void): Promise<ProcessedAnyBlock[]> {
     const processedBlocks: ProcessedAnyBlock[] = [];
     const processableBlocks = blocks.filter(block => 
-      (block.class === 'Link' || block.class === 'Image' || block.class === 'Media') && block.source_url
+      (block.class === 'Link' || block.class === 'Image' || block.class === 'Media' || block.class === 'Attachment') && block.source_url
     );
 
     // Count different types of content
     const linkBlocks = blocks.filter(b => b.class === 'Link' && b.source_url);
     const imageBlocks = blocks.filter(b => b.class === 'Image' && b.source_url);
     const mediaBlocks = blocks.filter(b => b.class === 'Media' && b.source_url);
+    const attachmentBlocks = blocks.filter(b => b.class === 'Attachment' && b.source_url);
     const videoBlocks = linkBlocks.filter(b => b.source_url && VideoExtractor.isVideoUrl(b.source_url));
     const mediaVideoBlocks = mediaBlocks.filter(b => b.source_url && VideoExtractor.isVideoUrl(b.source_url));
     const websiteBlocks = linkBlocks.filter(b => b.source_url && !VideoExtractor.isVideoUrl(b.source_url));
 
-    console.log(`Processing ${processableBlocks.length} blocks (${websiteBlocks.length} websites, ${videoBlocks.length} link videos, ${mediaVideoBlocks.length} media videos, ${imageBlocks.length} images)...`);
+    console.log(`Processing ${processableBlocks.length} blocks (${websiteBlocks.length} websites, ${videoBlocks.length} link videos, ${mediaVideoBlocks.length} media videos, ${imageBlocks.length} images, ${attachmentBlocks.length} attachments)...`);
 
     for (let i = 0; i < processableBlocks.length; i++) {
       const block = processableBlocks[i];
@@ -347,15 +399,18 @@ export class ContentExtractor {
         if (processedBlock) {
           processedBlocks.push(processedBlock);
           const blockType = processedBlock.blockType === 'Video' ? 'video' : 
-                           processedBlock.blockType === 'Image' ? 'image' : 'website';
+                           processedBlock.blockType === 'Image' ? 'image' : 
+                           processedBlock.blockType === 'Attachment' ? 'attachment' : 'website';
           console.log(`✅ Processed ${blockType}: ${processedBlock.title}`);
         } else {
           const blockType = block.class === 'Image' ? 'image' : 
+                           block.class === 'Attachment' ? 'attachment' :
                            (block.source_url && VideoExtractor.isVideoUrl(block.source_url)) ? 'video' : 'website';
           console.log(`⚠️  Skipped ${blockType}: ${block.source_url}`);
         }
       } catch (error) {
         const blockType = block.class === 'Image' ? 'image' : 
+                         block.class === 'Attachment' ? 'attachment' :
                          (block.source_url && VideoExtractor.isVideoUrl(block.source_url)) ? 'video' : 'website';
         console.error(`❌ Failed to process ${blockType} block ${block.id}:`, error);
       }
@@ -377,8 +432,9 @@ export class ContentExtractor {
     const websiteCount = processedBlocks.filter(b => b.blockType === 'Link').length;
     const videoCount = processedBlocks.filter(b => b.blockType === 'Video').length;
     const imageCount = processedBlocks.filter(b => b.blockType === 'Image').length;
+    const attachmentCount = processedBlocks.filter(b => b.blockType === 'Attachment').length;
     
-    console.log(`\n📊 Processing complete: ${processedBlocks.length}/${processableBlocks.length} blocks processed successfully (${websiteCount} websites, ${videoCount} videos, ${imageCount} images)`);
+    console.log(`\n📊 Processing complete: ${processedBlocks.length}/${processableBlocks.length} blocks processed successfully (${websiteCount} websites, ${videoCount} videos, ${imageCount} images, ${attachmentCount} attachments)`);
     return processedBlocks;
   }
 }

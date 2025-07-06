@@ -28,6 +28,7 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 ✅ **Successfully deployed to Vercel**  
 ✅ **Phase 9: Mobile Experience Finesse** (COMPLETED - MVP-focused mobile optimization)
 ✅ **Phase 9.5: Video Intelligence** (COMPLETED - YouTube API integration)
+✅ **Phase 9.6: PDF Processing** (COMPLETED - Document intelligence added)
 🔄 **Phase 10: Open Source Strategy + Monetization** (READY - Community-driven growth)
 
 **Live Application**: https://airena-mu.vercel.app/
@@ -35,9 +36,10 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 ## Where We Are
 
 **Complete multimodal intelligence platform with all content types:**
-- **Are.na Integration**: Full channel sync with Link + Image + Media block processing
+- **Are.na Integration**: Full channel sync with Link + Image + Media + Attachment block processing
 - **AI Pipeline**: OpenAI embeddings + GPT-4 generation + GPT-4V vision analysis + YouTube Data API v3
 - **Video Intelligence**: Official YouTube API with rich metadata, descriptions, chapters, and tags
+- **Document Intelligence**: PDF processing with Jina AI extraction (59K+ chars extracted from academic papers)
 - **Bidirectional Sync**: Deletion sync ensures perfect synchronization between Are.na and Airena
 - **User Experience**: Professional shadcn/ui design with mobile-responsive foundation
 - **Intelligence Layer**: Smart curation companion that never shuts down users
