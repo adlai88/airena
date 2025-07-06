@@ -269,20 +269,49 @@ export class ArenaClient {
   }
 
   /**
-   * Get detailed blocks for Link, Image, Media, and Attachment types
+   * Get detailed text blocks
+   */
+  async getDetailedTextBlocks(blocks: ArenaBlock[]): Promise<ArenaBlock[]> {
+    const textBlocks = blocks.filter(block => block.class === 'Text');
+    console.log(`Processing ${textBlocks.length} text blocks`);
+    
+    const detailedBlocks: ArenaBlock[] = [];
+    
+    for (const block of textBlocks) {
+      try {
+        // Text blocks already have content, just need to ensure they have the data we need
+        if (block.content) {
+          detailedBlocks.push(block);
+        }
+        
+        // Rate limiting
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (error) {
+        console.warn(`Failed to process text block ${block.id}:`, error);
+      }
+    }
+
+    console.log(`Found ${detailedBlocks.length} text blocks with content`);
+    return detailedBlocks;
+  }
+
+  /**
+   * Get detailed blocks for Link, Image, Media, Attachment, and Text types
    */
   async getDetailedProcessableBlocks(blocks: ArenaBlock[]): Promise<{
     linkBlocks: ArenaBlock[];
     imageBlocks: ArenaBlock[];
     mediaBlocks: ArenaBlock[];
     attachmentBlocks: ArenaBlock[];
+    textBlocks: ArenaBlock[];
     allBlocks: ArenaBlock[];
   }> {
-    const [linkBlocks, imageBlocks, mediaBlocks, attachmentBlocks] = await Promise.all([
+    const [linkBlocks, imageBlocks, mediaBlocks, attachmentBlocks, textBlocks] = await Promise.all([
       this.getDetailedLinkBlocks(blocks),
       this.getDetailedImageBlocks(blocks),
       this.getDetailedMediaBlocks(blocks),
-      this.getDetailedAttachmentBlocks(blocks)
+      this.getDetailedAttachmentBlocks(blocks),
+      this.getDetailedTextBlocks(blocks)
     ]);
 
     return {
@@ -290,7 +319,8 @@ export class ArenaClient {
       imageBlocks,
       mediaBlocks,
       attachmentBlocks,
-      allBlocks: [...linkBlocks, ...imageBlocks, ...mediaBlocks, ...attachmentBlocks]
+      textBlocks,
+      allBlocks: [...linkBlocks, ...imageBlocks, ...mediaBlocks, ...attachmentBlocks, ...textBlocks]
     };
   }
 

@@ -20,8 +20,17 @@ export interface ProcessedVideoBlock extends ProcessedBlock {
   videoId?: string;
 }
 
+export interface ProcessedTextBlock {
+  id: number;
+  title: string;
+  content: string;
+  url: string;
+  blockType: 'Text';
+  source: string;
+}
+
 // Union type for all processed block types
-export type ProcessedAnyBlock = ProcessedBlock | ProcessedImageBlock | ProcessedVideoBlock;
+export type ProcessedAnyBlock = ProcessedBlock | ProcessedImageBlock | ProcessedVideoBlock | ProcessedTextBlock;
 
 export class ContentExtractor {
   private jinaApiKey: string;
@@ -324,7 +333,37 @@ export class ContentExtractor {
   }
 
   /**
-   * Process any Are.na block (Link, Image, Media, Attachment, or Video)
+   * Process Text block
+   */
+  async processTextBlock(block: ArenaBlock): Promise<ProcessedTextBlock | null> {
+    try {
+      console.log(`Processing text block: ${block.id}`);
+      
+      // Text blocks already have content available
+      const content = block.content || '';
+      const title = block.title || 'Untitled Text';
+      
+      if (!content.trim()) {
+        console.log(`Skipping text block ${block.id} - no content`);
+        return null;
+      }
+
+      return {
+        id: block.id,
+        title,
+        content,
+        url: `https://www.are.na/block/${block.id}`, // Are.na block URL
+        blockType: 'Text',
+        source: 'arena-text'
+      };
+    } catch (error) {
+      console.error(`Failed to process text block ${block.id}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Process any Are.na block (Link, Image, Media, Attachment, Text, or Video)
    */
   async processBlock(block: ArenaBlock): Promise<ProcessedAnyBlock | null> {
     if (block.class === 'Link') {
@@ -338,6 +377,9 @@ export class ContentExtractor {
     } else if (block.class === 'Attachment') {
       // Attachment blocks often contain PDFs and documents
       return this.processAttachmentBlock(block);
+    } else if (block.class === 'Text') {
+      // Text blocks contain user-written content
+      return this.processTextBlock(block);
     }
     
     // Skip other block types for now
@@ -377,7 +419,8 @@ export class ContentExtractor {
   async processBlocks(blocks: ArenaBlock[], onProgress?: (processed: number, total: number) => void): Promise<ProcessedAnyBlock[]> {
     const processedBlocks: ProcessedAnyBlock[] = [];
     const processableBlocks = blocks.filter(block => 
-      (block.class === 'Link' || block.class === 'Image' || block.class === 'Media' || block.class === 'Attachment') && block.source_url
+      (block.class === 'Link' || block.class === 'Image' || block.class === 'Media' || block.class === 'Attachment') && block.source_url ||
+      block.class === 'Text'
     );
 
     // Count different types of content
@@ -385,11 +428,12 @@ export class ContentExtractor {
     const imageBlocks = blocks.filter(b => b.class === 'Image' && b.source_url);
     const mediaBlocks = blocks.filter(b => b.class === 'Media' && b.source_url);
     const attachmentBlocks = blocks.filter(b => b.class === 'Attachment' && b.source_url);
+    const textBlocks = blocks.filter(b => b.class === 'Text');
     const videoBlocks = linkBlocks.filter(b => b.source_url && VideoExtractor.isVideoUrl(b.source_url));
     const mediaVideoBlocks = mediaBlocks.filter(b => b.source_url && VideoExtractor.isVideoUrl(b.source_url));
     const websiteBlocks = linkBlocks.filter(b => b.source_url && !VideoExtractor.isVideoUrl(b.source_url));
 
-    console.log(`Processing ${processableBlocks.length} blocks (${websiteBlocks.length} websites, ${videoBlocks.length} link videos, ${mediaVideoBlocks.length} media videos, ${imageBlocks.length} images, ${attachmentBlocks.length} attachments)...`);
+    console.log(`Processing ${processableBlocks.length} blocks (${websiteBlocks.length} websites, ${videoBlocks.length} link videos, ${mediaVideoBlocks.length} media videos, ${imageBlocks.length} images, ${attachmentBlocks.length} attachments, ${textBlocks.length} text)...`);
 
     for (let i = 0; i < processableBlocks.length; i++) {
       const block = processableBlocks[i];
