@@ -2,7 +2,7 @@
 export interface NewsletterOptions {
   tone?: 'professional' | 'casual' | 'analytical' | 'personal';
   length?: 'brief' | 'standard' | 'detailed';
-  focus?: 'insights' | 'resources' | 'trends' | 'actionable';
+  focus?: 'insights' | 'resources' | 'connections' | 'actionable';
 }
 
 export interface ContextBlock {
@@ -43,7 +43,7 @@ export class PromptTemplates {
     const focusMap = {
       insights: 'extracting key insights and patterns',
       resources: 'highlighting valuable tools and resources',
-      trends: 'identifying emerging trends and developments',
+      connections: 'finding relationships and connections between ideas',
       actionable: 'providing practical takeaways and next steps'
     };
 
@@ -59,7 +59,7 @@ ${contextText}
 TASK: Create a newsletter focusing on ${focusMap[focus]}. Write in a ${toneMap[tone]} tone. ${lengthMap[length]}.
 
 STRUCTURE:
-1. **Executive Summary** (2-3 sentences capturing the main themes)
+1. **Overview** (2-3 sentences capturing the main themes)
 
 2. **Key Insights** (${length === 'brief' ? '2-3' : length === 'standard' ? '4-5' : '6-8'} bullet points)
    - Each insight should synthesize information across sources
@@ -71,7 +71,7 @@ STRUCTURE:
    - Explain why each resource is worth attention
    - Include the source URL
 
-4. **Looking Forward** (1-2 sentences)
+4. **What's Next** (1-2 sentences)
    - One actionable takeaway or question to consider
    - Future implications or areas to watch
 
