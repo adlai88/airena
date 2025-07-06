@@ -9,6 +9,7 @@ import { PromptTemplates } from '@/lib/templates';
 import { useParams } from 'next/navigation';
 import { AutoTextarea } from '@/components/ui/auto-textarea';
 import { ArrowUpIcon } from 'lucide-react';
+import Image from 'next/image';
 
 // Optimized component to render text with clickable links
 const MessageContent = React.memo(({ content }: { content: string }) => {
@@ -87,6 +88,11 @@ function ChatContent() {
     id: string;
     role: 'user' | 'assistant';
     content: string;
+    images?: Array<{
+      title: string;
+      url: string;
+      image_url: string;
+    }>;
   }>>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -235,7 +241,7 @@ function ChatContent() {
 
       setMessages(prev => [...prev, assistantMessage]);
 
-      // Handle streaming response
+      // Handle streaming response with JSON format
       const reader = response.body?.getReader();
       if (!reader) {
         throw new Error('No response body');
@@ -243,19 +249,45 @@ function ChatContent() {
 
       const decoder = new TextDecoder();
       let assistantContent = '';
+      let assistantImages: Array<{ title: string; url: string; image_url: string }> = [];
+      let buffer = '';
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
         const chunk = decoder.decode(value, { stream: true });
-        assistantContent += chunk;
+        buffer += chunk;
+
+        // Process complete lines (JSON objects)
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+        for (const line of lines) {
+          if (line.trim()) {
+            try {
+              const data = JSON.parse(line);
+              if (data.type === 'text') {
+                assistantContent += data.content;
+              } else if (data.type === 'images') {
+                assistantImages = data.content;
+              }
+            } catch {
+              // If JSON parsing fails, treat as plain text (fallback for compatibility)
+              assistantContent += line;
+            }
+          }
+        }
         
         // Update the assistant message in real-time
         setMessages(prev => 
           prev.map(msg => 
             msg.id === assistantMessage.id 
-              ? { ...msg, content: assistantContent }
+              ? { 
+                  ...msg, 
+                  content: assistantContent,
+                  images: assistantImages.length > 0 ? assistantImages : undefined
+                }
               : msg
           )
         );
@@ -442,8 +474,44 @@ function ChatContent() {
                       <MessageContent content={message.content} />
                     </div>
                   ) : (
-                    <div className="text-muted-foreground">
-                      <MessageContent content={message.content} />
+                    <div className="space-y-3">
+                      <div className="text-muted-foreground">
+                        <MessageContent content={message.content} />
+                      </div>
+                      {/* Image thumbnails for AI responses */}
+                      {message.images && message.images.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="text-xs text-muted-foreground/70 uppercase tracking-wide">
+                            Referenced Images
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {message.images.map((image, index) => (
+                              <div
+                                key={index}
+                                className="group relative cursor-pointer"
+                                onClick={() => {
+                                  // TODO: Implement modal view
+                                  window.open(image.url, '_blank');
+                                }}
+                              >
+                                <Image
+                                  src={image.image_url}
+                                  alt={image.title}
+                                  width={80}
+                                  height={80}
+                                  className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg border border-border hover:border-primary/50 transition-all duration-200 hover:scale-105"
+                                  unoptimized
+                                />
+                                <div className="absolute inset-0 rounded-lg bg-black/0 group-hover:bg-black/10 transition-colors" />
+                                {/* Tooltip with title */}
+                                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-popover text-popover-foreground text-xs px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-nowrap max-w-32 truncate">
+                                  {image.title}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

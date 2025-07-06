@@ -10,6 +10,7 @@ export interface ContextBlock {
   url: string;
   content: string;
   similarity?: number;
+  image_url?: string;
 }
 
 export class PromptTemplates {

@@ -41,19 +41,19 @@ export async function POST(req: Request) {
       const embeddingService = new EmbeddingService();
       const queryEmbedding = await embeddingService.createEmbedding(lastMessage.content);
 
-      // Search for similar blocks within the specific channel
+      // Search for similar blocks within the specific channel - include image_url for thumbnails
       const { data: searchResults, error: searchError } = await supabase.rpc('search_blocks', {
         query_embedding: queryEmbedding,
         channel_filter: channel.arena_id,
         similarity_threshold: 0.3,
         match_count: 5
-      }) as { data: ContextBlock[] | null; error: unknown };
+      }) as { data: (ContextBlock & { image_url?: string })[] | null; error: unknown };
 
       if (searchError || !searchResults || searchResults.length === 0) {
-        // Optimized fallback query
+        // Optimized fallback query - include block_type to identify images
         const { data: fallbackBlocks } = await supabase
           .from('blocks')
-          .select('title, url, content')
+          .select('title, url, content, block_type')
           .eq('channel_id', channel.arena_id)
           .not('embedding', 'is', null)
           .order('created_at', { ascending: false })
@@ -63,19 +63,21 @@ export async function POST(req: Request) {
           title: String(block.title || 'Untitled'),
           url: String(block.url || ''),
           content: String(block.content || '').substring(0, 1000), // Truncate for performance
-          similarity: 0
+          similarity: 0,
+          image_url: block.block_type === 'Image' ? String(block.url || '') : undefined
         }));
       } else {
         relevantBlocks = (searchResults || []).map(block => ({
           ...block,
-          content: block.content.substring(0, 1000) // Truncate long content
+          content: block.content.substring(0, 1000), // Truncate long content
+          image_url: block.image_url || undefined
         }));
       }
     } catch {
-      // Simplified error fallback
+      // Simplified error fallback - include block_type to identify images
       const { data: fallbackBlocks } = await supabase
         .from('blocks')
-        .select('title, url, content')
+        .select('title, url, content, block_type')
         .eq('channel_id', channel.arena_id)
         .not('embedding', 'is', null)
         .order('created_at', { ascending: false })
@@ -85,7 +87,8 @@ export async function POST(req: Request) {
         title: String(block.title || 'Untitled'),
         url: String(block.url || ''),
         content: String(block.content || '').substring(0, 1000),
-        similarity: 0
+        similarity: 0,
+        image_url: block.block_type === 'Image' ? String(block.url || '') : undefined
       }));
     }
 
@@ -120,19 +123,38 @@ export async function POST(req: Request) {
       maxTokens: 800, // Reduced for faster responses
     });
 
-    // Create a simple text stream
+    // Filter images from context (only include images that have image_url)
+    const contextImages = relevantBlocks
+      .filter(block => block.image_url)
+      .map(block => ({
+        title: block.title,
+        url: block.url,
+        image_url: block.image_url
+      }))
+      .slice(0, 4); // Limit to 4 images max
+
+    // Create a streaming response that includes both text and image context
     const stream = new ReadableStream({
       async start(controller) {
+        // Stream text chunks
         for await (const chunk of result.textStream) {
-          controller.enqueue(new TextEncoder().encode(chunk));
+          const data = JSON.stringify({ type: 'text', content: chunk });
+          controller.enqueue(new TextEncoder().encode(data + '\n'));
         }
+        
+        // Send image context at the end if we have images
+        if (contextImages.length > 0) {
+          const imageData = JSON.stringify({ type: 'images', content: contextImages });
+          controller.enqueue(new TextEncoder().encode(imageData + '\n'));
+        }
+        
         controller.close();
       },
     });
 
     return new Response(stream, {
       headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
+        'Content-Type': 'application/json',
         'Transfer-Encoding': 'chunked',
       },
     });
