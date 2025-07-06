@@ -478,11 +478,11 @@ function ChatContent() {
                       <div className="text-muted-foreground">
                         <MessageContent content={message.content} />
                       </div>
-                      {/* Image thumbnails for AI responses */}
+                      {/* Block thumbnails for AI responses */}
                       {message.images && message.images.length > 0 && (
                         <div className="space-y-2">
                           <div className="text-xs text-muted-foreground/70 uppercase tracking-wide">
-                            Referenced Images
+                            Referenced Blocks
                           </div>
                           <div className="flex flex-wrap gap-2">
                             {message.images.map((image, index) => (
@@ -490,7 +490,7 @@ function ChatContent() {
                                 key={index}
                                 className="group relative cursor-pointer"
                                 onClick={() => {
-                                  // TODO: Implement modal view
+                                  // Open Are.na block page
                                   window.open(image.url, '_blank');
                                 }}
                               >

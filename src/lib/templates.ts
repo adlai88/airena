@@ -11,6 +11,8 @@ export interface ContextBlock {
   content: string;
   similarity?: number;
   image_url?: string;
+  id?: number;
+  arena_id?: number;
 }
 
 export class PromptTemplates {

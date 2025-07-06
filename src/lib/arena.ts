@@ -17,6 +17,15 @@ export interface ArenaBlock {
     };
   };
   image?: {
+    thumb?: {
+      url: string;
+    };
+    square?: {
+      url: string;
+    };
+    display?: {
+      url: string;
+    };
     original?: {
       url: string;
     };

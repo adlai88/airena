@@ -50,10 +50,10 @@ export async function POST(req: Request) {
       }) as { data: (ContextBlock & { block_type?: string })[] | null; error: unknown };
 
       if (searchError || !searchResults || searchResults.length === 0) {
-        // Optimized fallback query - include block_type to identify images
+        // Optimized fallback query - include IDs and block_type for thumbnail fetching
         const { data: fallbackBlocks } = await supabase
           .from('blocks')
-          .select('title, url, content, block_type')
+          .select('id, arena_id, title, url, content, block_type')
           .eq('channel_id', channel.arena_id)
           .not('embedding', 'is', null)
           .order('created_at', { ascending: false })
@@ -64,6 +64,9 @@ export async function POST(req: Request) {
           url: String(block.url || ''),
           content: String(block.content || '').substring(0, 1000), // Truncate for performance
           similarity: 0,
+          id: Number(block.id),
+          arena_id: Number(block.arena_id),
+          // For Image blocks, use the stored URL; for others, we'll need to get image data from Are.na API
           image_url: block.block_type === 'Image' ? String(block.url || '') : undefined
         }));
       } else {
@@ -74,10 +77,10 @@ export async function POST(req: Request) {
         }));
       }
     } catch {
-      // Simplified error fallback - include block_type to identify images
+      // Simplified error fallback - include IDs and block_type for thumbnail fetching
       const { data: fallbackBlocks } = await supabase
         .from('blocks')
-        .select('title, url, content, block_type')
+        .select('id, arena_id, title, url, content, block_type')
         .eq('channel_id', channel.arena_id)
         .not('embedding', 'is', null)
         .order('created_at', { ascending: false })
@@ -88,6 +91,8 @@ export async function POST(req: Request) {
         url: String(block.url || ''),
         content: String(block.content || '').substring(0, 1000),
         similarity: 0,
+        id: Number(block.id),
+        arena_id: Number(block.arena_id),
         image_url: block.block_type === 'Image' ? String(block.url || '') : undefined
       }));
     }
@@ -123,15 +128,36 @@ export async function POST(req: Request) {
       maxTokens: 800, // Reduced for faster responses
     });
 
-    // Filter images from context (only include images that have image_url)
-    const contextImages = relevantBlocks
-      .filter(block => block.image_url)
-      .map(block => ({
-        title: block.title,
-        url: block.url,
-        image_url: block.image_url
-      }))
-      .slice(0, 4); // Limit to 4 images max
+    // Get detailed block info from Are.na to fetch thumbnail URLs for all block types
+    const contextBlocksWithThumbnails = [];
+    
+    for (const block of relevantBlocks.slice(0, 6)) { // Check more blocks since some may not have images
+      try {
+        // Get detailed block info from Are.na API
+        const response = await fetch(`https://api.are.na/v2/blocks/${block.arena_id || block.id}`);
+        if (response.ok) {
+          const detailedBlock = await response.json();
+          const thumbnailUrl = detailedBlock.image?.thumb?.url || 
+                               detailedBlock.image?.square?.url ||
+                               (detailedBlock.class === 'Image' ? block.image_url : undefined);
+          
+          if (thumbnailUrl) {
+            contextBlocksWithThumbnails.push({
+              title: block.title,
+              url: `https://www.are.na/block/${detailedBlock.id}`, // Link to Are.na block page
+              image_url: thumbnailUrl
+            });
+          }
+        }
+      } catch (error) {
+        console.warn(`Failed to fetch thumbnail for block ${block.arena_id || block.id}:`, error);
+      }
+      
+      // Stop if we have enough thumbnails
+      if (contextBlocksWithThumbnails.length >= 4) break;
+    }
+    
+    const contextImages = contextBlocksWithThumbnails;
 
     // Create a streaming response that includes both text and image context
     const stream = new ReadableStream({
