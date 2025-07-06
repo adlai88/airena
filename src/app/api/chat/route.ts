@@ -49,7 +49,7 @@ export async function POST(req: Request) {
         match_count: 5
       }) as { data: ContextBlock[] | null; error: unknown };
 
-      if (searchError) {
+      if (searchError || !searchResults || searchResults.length === 0) {
         // Optimized fallback query
         const { data: fallbackBlocks } = await supabase
           .from('blocks')
