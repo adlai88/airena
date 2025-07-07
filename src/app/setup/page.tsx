@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/ui/badge'
+import { HoverBorderGradient } from '@/components/ui/border-trail';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Layout } from '@/components/layout';
 import { PageHeader } from '@/components/page-header';
@@ -272,17 +273,19 @@ export default function SetupPage() {
         {/* Show current channel if connected */}
         {connectedChannel && (
           <div className="flex justify-center mb-6">
-            <Badge variant="secondary" className="px-3 py-1">
-              🔗 {isDefaultChannel ? 'Default channel' : 'Connected to'}: <a 
-                href={connectedUsername ? `https://are.na/${connectedUsername}/${connectedChannel}` : `https://are.na/${connectedChannel}`} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="underline hover:no-underline transition-all"
-              >
-                {connectedChannel}
-              </a>
-              {isDefaultChannel && <span className="ml-1 text-xs">(curated)</span>}
-            </Badge>
+            <HoverBorderGradient duration={3}>
+              <Badge variant="secondary" className="px-3 py-1">
+                🔗 {isDefaultChannel ? 'Default channel' : 'Connected to'}: <a 
+                  href={connectedUsername ? `https://are.na/${connectedUsername}/${connectedChannel}` : `https://are.na/${connectedChannel}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="underline hover:no-underline transition-all"
+                >
+                  {connectedChannel}
+                </a>
+                {isDefaultChannel && <span className="ml-1 text-xs">(curated)</span>}
+              </Badge>
+            </HoverBorderGradient>
           </div>
         )}
         

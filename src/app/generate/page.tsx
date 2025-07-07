@@ -10,6 +10,7 @@ import { Layout } from '@/components/layout';
 import { PageHeader } from '@/components/page-header';
 import { useChannel } from '@/hooks/useChannel';
 import { Badge } from '@/components/ui/badge';
+import { HoverBorderGradient } from '@/components/ui/border-trail';
 import { Spinner } from '@/components/ui/spinner';
 
 type GenerationStage = 'template-selection' | 'customization' | 'generation' | 'result';
@@ -225,16 +226,18 @@ function GenerateContent() {
         <div className="max-w-4xl mx-auto pb-8 sm:pb-16 px-4 sm:px-6">
           {/* Connected Channel Badge */}
           <div className="flex justify-center mb-8">
-            <Badge variant="secondary" className="px-3 py-1">
-              🔗 Connected to: <a 
-                href={username ? `https://www.are.na/${username.toLowerCase().replace(/[^a-z0-9]/g, '')}/${channelSlug}` : `https://www.are.na/${channelSlug}`} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="underline hover:no-underline transition-all"
-              >
-                {channelSlug}
-              </a>
-            </Badge>
+            <HoverBorderGradient duration={3}>
+              <Badge variant="secondary" className="px-3 py-1">
+                🔗 Connected to: <a 
+                  href={username ? `https://www.are.na/${username.toLowerCase().replace(/[^a-z0-9]/g, '')}/${channelSlug}` : `https://www.are.na/${channelSlug}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="underline hover:no-underline transition-all"
+                >
+                  {channelSlug}
+                </a>
+              </Badge>
+            </HoverBorderGradient>
           </div>
 
           <div className="space-y-6">
@@ -276,16 +279,18 @@ function GenerateContent() {
         <div className="max-w-4xl mx-auto pb-8 sm:pb-16 px-4 sm:px-6">
           {/* Connected Channel Badge */}
           <div className="flex justify-center mb-8">
-            <Badge variant="secondary" className="px-3 py-1">
-              🔗 Connected to: <a 
-                href={username ? `https://www.are.na/${username.toLowerCase().replace(/[^a-z0-9]/g, '')}/${channelSlug}` : `https://www.are.na/${channelSlug}`} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="underline hover:no-underline transition-all"
-              >
-                {channelSlug}
-              </a>
-            </Badge>
+            <HoverBorderGradient duration={3}>
+              <Badge variant="secondary" className="px-3 py-1">
+                🔗 Connected to: <a 
+                  href={username ? `https://www.are.na/${username.toLowerCase().replace(/[^a-z0-9]/g, '')}/${channelSlug}` : `https://www.are.na/${channelSlug}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="underline hover:no-underline transition-all"
+                >
+                  {channelSlug}
+                </a>
+              </Badge>
+            </HoverBorderGradient>
           </div>
 
           <Card className="mb-8">
@@ -394,9 +399,11 @@ function GenerateContent() {
       <div className="max-w-4xl mx-auto pb-8 sm:pb-16 px-4 sm:px-6">
         {/* Connected Channel Badge */}
         <div className="flex justify-center mb-8">
-          <Badge variant="secondary" className="px-3 py-1">
-            📊 Generated from: {channelSlug}
-          </Badge>
+          <HoverBorderGradient duration={3}>
+            <Badge variant="secondary" className="px-3 py-1">
+              📊 Generated from: {channelSlug}
+            </Badge>
+          </HoverBorderGradient>
         </div>
 
         <Card className="mb-8">
