@@ -430,7 +430,7 @@ function ChatContent() {
 
             {/* Suggestions */}
             <div className="flex flex-wrap gap-2 justify-center sm:justify-start mt-4">
-              {suggestedQuestions.map((question, index) => (
+              {suggestedQuestions.slice(0, isMobile ? 3 : 4).map((question, index) => (
                 <Badge
                   key={index}
                   variant="secondary"

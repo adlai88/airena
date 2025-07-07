@@ -33,10 +33,22 @@ export function HamburgerMenu({ homeNav = false }: HamburgerMenuProps) {
 
   // Navigate with query params preserved
   const navigateWithParams = async (path: string) => {
+    // Close menu immediately to prevent mobile freezing
+    setOpen(false);
+    
     if (path === '/chat') {
       // For chat, we need to get the current channel and use path-based routing
       try {
-        const response = await fetch('/api/channel-info');
+        // Add timeout to prevent hanging on mobile
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        
+        const response = await fetch('/api/channel-info', {
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
         if (response.ok) {
           const data = await response.json();
           router.push(`/chat/${data.channelSlug}`);
@@ -53,7 +65,6 @@ export function HamburgerMenu({ homeNav = false }: HamburgerMenuProps) {
       const fullPath = queryString ? `${path}?${queryString}` : path;
       router.push(fullPath);
     }
-    setOpen(false);
   };
 
   return (

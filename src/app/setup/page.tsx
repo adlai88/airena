@@ -412,28 +412,29 @@ export default function SetupPage() {
                       onBlur={() => setHoveredChannel(null)}
                       tabIndex={0}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between min-w-0">
+                        <div className="flex-1 min-w-0 pr-2">
                           <div className="font-medium text-sm truncate">
                             {channel.title || channel.slug}
                           </div>
-                          <div className="text-xs text-muted-foreground">
+                          <div className="text-xs text-muted-foreground truncate">
                             {channel.blockCount} blocks • Last synced {new Date(channel.lastSync).toLocaleDateString()}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 ml-2">
+                        <div className="flex items-center gap-1 flex-shrink-0">
                           {connectedChannel === channel.slug ? (
-                            <Badge variant="secondary" className="text-xs">
+                            <Badge variant="secondary" className="text-xs px-2 py-1">
                               Active
                             </Badge>
                           ) : switchingToChannel === channel.slug ? (
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="text-xs px-2 py-1">
                               <div className="mr-1"><Spinner size={8} /></div>
-                              Connecting...
+                              <span className="hidden sm:inline">Connecting...</span>
+                              <span className="sm:hidden">•••</span>
                             </Badge>
                           ) : (
                             hoveredChannel === channel.slug && (
-                              <Badge variant="outline" className="text-xs">
+                              <Badge variant="outline" className="text-xs px-2 py-1">
                                 Switch
                               </Badge>
                             )

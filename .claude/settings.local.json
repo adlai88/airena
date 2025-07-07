@@ -6,7 +6,8 @@
       "Bash(grep:*)",
       "Bash(npm run type-check:*)",
       "Bash(npx tsx:*)",
-      "Bash(npm run lint)"
+      "Bash(npm run lint)",
+      "Bash(rg:*)"
     ],
     "deny": []
   },

@@ -31,7 +31,16 @@ export function Navigation({ homeNav = false }: NavigationProps) {
     if (path === '/chat') {
       // For chat, we need to get the current channel and use path-based routing
       try {
-        const response = await fetch('/api/channel-info');
+        // Add timeout to prevent hanging on mobile
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        
+        const response = await fetch('/api/channel-info', {
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
         if (response.ok) {
           const data = await response.json();
           router.push(`/chat/${data.channelSlug}`);
