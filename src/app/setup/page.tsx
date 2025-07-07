@@ -400,7 +400,7 @@ export default function SetupPage() {
                 <h3 className="text-sm font-medium text-foreground mb-2">Available Channels</h3>
                 <p className="text-xs text-muted-foreground mb-3">Click any channel to switch instantly</p>
                 <div className="grid gap-2">
-                  {recentChannels.slice(0, 5).map((channel) => (
+                  {recentChannels.slice(0, 10).map((channel) => (
                     <div
                       key={channel.slug}
                       className={`p-3 rounded-lg border transition-all cursor-pointer ${
