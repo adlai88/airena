@@ -265,7 +265,7 @@ export default function SetupPage() {
     <Layout>
       <PageHeader 
         title="Channel Setup"
-        subtitle="Connect to any public Are.na channel"
+        subtitle={<span>Connect to any public <a href="https://www.are.na/" target="_blank" rel="noopener noreferrer" className="text-orange-500 dark:text-orange-400 hover:text-orange-600 dark:hover:text-orange-300 no-underline hover:no-underline transition-colors">Are.na</a> channel</span>}
         variant="standard"
       />
       <div className="max-w-lg sm:max-w-xl md:max-w-2xl mx-auto pb-8 sm:pb-12 px-4 sm:px-6">
