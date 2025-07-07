@@ -242,8 +242,8 @@ Response:`;
     return [
       "What are the main themes in this collection?",
       "What's most interesting or notable here?", 
-      "What patterns do you notice across this content?",
-      "What can I learn or discover from this?"
+      "What can I learn or discover from this?",
+      "What patterns do you notice across this content?"
     ];
   }
 
