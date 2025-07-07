@@ -56,7 +56,7 @@ export default function HomePage() {
             </ol>
 
             <p className="mt-8 text-foreground">
-              People describe Airena as <span className="font-bold">&ldquo;your personal research assistant&rdquo;</span> or an <span className="font-bold">&ldquo;intelligence amplifier&rdquo;</span>.
+              People describe Airena as <span className="font-bold">&ldquo;your personal research assistant&rdquo;</span> or an <span className="font-bold">&ldquo;intelligence amplifier.&rdquo;</span>
             </p>
           </div>
         </div>
