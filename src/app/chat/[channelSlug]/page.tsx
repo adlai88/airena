@@ -391,9 +391,9 @@ function ChatContent() {
                     ref={inputRef}
                     value={input}
                     onChange={e => setInput(e.target.value)}
-                    placeholder="Ask about this channel... (e.g., 'What are the key insights?')"
+                    placeholder="Ask about this channel... (e.g., 'Tell me about ____')"
                     disabled={isLoading}
-                    className="pr-10 min-h-[44px] text-base"
+                    className="pr-10 min-h-[52px] sm:min-h-[44px] text-base"
                     maxRows={isMobile ? 4 : 6}
                     autoComplete="off"
                     autoCapitalize="sentences"
