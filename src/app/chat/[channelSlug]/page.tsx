@@ -393,7 +393,7 @@ function ChatContent() {
                     onChange={e => setInput(e.target.value)}
                     placeholder="Ask about this channel... (e.g., 'Tell me about ____')"
                     disabled={isLoading}
-                    className="pr-10 min-h-[52px] sm:min-h-[44px] py-3 sm:py-2 text-base"
+                    className="pr-10 min-h-[60px] sm:min-h-[44px] text-base"
                     maxRows={isMobile ? 4 : 6}
                     autoComplete="off"
                     autoCapitalize="sentences"
