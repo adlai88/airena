@@ -52,7 +52,7 @@ export default function HomePage() {
             <p className="text-foreground">Airena is:</p>
             <ol className="list-decimal pl-6 space-y-2 mt-4 text-foreground">
               <li>software 3.0 for transforming your curated content into AI insights</li>
-              <li>a toolkit for generating new knowledge from the scraps of the old</li>
+              <li>a toolkit for generating new knowledge from the scraps of your Are.na world</li>
             </ol>
 
             <p className="mt-8 text-foreground">
