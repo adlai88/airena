@@ -10,7 +10,16 @@ export default function HomePage() {
       <div className="py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-4xl font-bold mb-6 text-foreground">
-            Turn your are.na channels into a personal intelligence agent
+            Turn your{' '}
+            <Link
+              href="https://www.are.na/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-orange-500 dark:text-orange-400 hover:text-orange-600 dark:hover:text-orange-300 no-underline hover:no-underline transition-colors"
+            >
+              Are.na
+            </Link>{' '}
+            channels into a personal intelligence agent
           </h1>
           <p className="text-xl mb-12 text-foreground">
             Airena transforms your curated inspiration into actionable insights, answers, and creative content—powered by your unique taste.
