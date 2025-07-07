@@ -22,7 +22,7 @@ export default function HomePage() {
             channels into a personal intelligence agent
           </h1>
           <p className="text-xl mb-12 text-foreground">
-            Airena transforms your curated inspiration into actionable insights, answers, and creative content—powered by your unique taste.
+            Airena transforms your curated inspiration into actionable insights, answers, and content—powered by your unique taste.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 mb-16">
