@@ -43,41 +43,24 @@ AS $$
     b.created_at,
     b.updated_at,
     GREATEST(
-      CASE 
-        WHEN lower(b.title) LIKE '%' || lower(query_text) || '%' THEN 0.9
-        WHEN lower(query_text) LIKE '%' || lower(b.title) || '%' THEN 0.8
-        ELSE 0.0
-      END,
+      similarity(lower(b.title), lower(query_text)),
       (1 - (b.embedding <=> query_embedding))
     ) AS similarity,
-    CASE 
-      WHEN lower(b.title) LIKE '%' || lower(query_text) || '%' THEN 0.9
-      WHEN lower(query_text) LIKE '%' || lower(b.title) || '%' THEN 0.8
-      ELSE 0.0
-    END AS title_similarity,
+    similarity(lower(b.title), lower(query_text)) AS title_similarity,
     (1 - (b.embedding <=> query_embedding)) AS semantic_similarity,
     GREATEST(
-      CASE 
-        WHEN lower(b.title) LIKE '%' || lower(query_text) || '%' THEN 0.9 * 3.0
-        WHEN lower(query_text) LIKE '%' || lower(b.title) || '%' THEN 0.8 * 3.0
-        ELSE 0.0
-      END,
+      similarity(lower(b.title), lower(query_text)) * 3.0,
       (1 - (b.embedding <=> query_embedding)) * 1.0
     ) AS hybrid_score
   FROM blocks b
   WHERE b.embedding IS NOT NULL
     AND (channel_filter IS NULL OR b.channel_id = channel_filter)
     AND (
-      lower(b.title) LIKE '%' || lower(query_text) || '%'
-      OR lower(query_text) LIKE '%' || lower(b.title) || '%'
+      similarity(lower(b.title), lower(query_text)) > 0.1
       OR (1 - (b.embedding <=> query_embedding)) > similarity_threshold
     )
   ORDER BY GREATEST(
-    CASE 
-      WHEN lower(b.title) LIKE '%' || lower(query_text) || '%' THEN 0.9 * 3.0
-      WHEN lower(query_text) LIKE '%' || lower(b.title) || '%' THEN 0.8 * 3.0
-      ELSE 0.0
-    END,
+    similarity(lower(b.title), lower(query_text)) * 3.0,
     (1 - (b.embedding <=> query_embedding)) * 1.0
   ) DESC
   LIMIT match_count;
