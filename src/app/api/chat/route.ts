@@ -47,23 +47,38 @@ export async function POST(req: Request) {
         const embeddingService = new EmbeddingService();
         const queryEmbedding = await embeddingService.createEmbedding(lastMessage.content);
 
-      // Dynamic threshold search - start high, gradually lower until we get results
+      // Hybrid search - combines title similarity with semantic similarity
       let searchResults = null;
       let searchError = null;
       const thresholds = [0.7, 0.5, 0.3, 0.1];
       
-      for (const threshold of thresholds) {
-        const { data, error } = await supabase.rpc('search_blocks', {
-          query_embedding: queryEmbedding,
-          channel_filter: channel.arena_id,
-          similarity_threshold: threshold,
-          match_count: 10
-        }) as { data: (ContextBlock & { block_type?: string })[] | null; error: unknown };
-        
-        if (!error && data && data.length > 0) {
-          searchResults = data;
-          searchError = error;
-          break;
+      // Try hybrid search first
+      const { data: hybridData, error: hybridError } = await supabase.rpc('search_blocks_hybrid', {
+        query_text: lastMessage.content,
+        query_embedding: queryEmbedding,
+        channel_filter: channel.arena_id,
+        similarity_threshold: 0.3,
+        match_count: 10
+      }) as { data: (ContextBlock & { block_type?: string, title_similarity?: number, semantic_similarity?: number, hybrid_score?: number })[] | null; error: unknown };
+      
+      if (!hybridError && hybridData && hybridData.length > 0) {
+        searchResults = hybridData;
+        searchError = hybridError;
+      } else {
+        // Fallback to original vector search with dynamic thresholds
+        for (const threshold of thresholds) {
+          const { data, error } = await supabase.rpc('search_blocks', {
+            query_embedding: queryEmbedding,
+            channel_filter: channel.arena_id,
+            similarity_threshold: threshold,
+            match_count: 10
+          }) as { data: (ContextBlock & { block_type?: string })[] | null; error: unknown };
+          
+          if (!error && data && data.length > 0) {
+            searchResults = data;
+            searchError = error;
+            break;
+          }
         }
       }
 
