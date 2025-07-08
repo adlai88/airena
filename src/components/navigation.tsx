@@ -97,7 +97,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                             : 'hover:bg-accent hover:text-accent-foreground'
                         }`}
                       >
-                        Setup
+                        Channel
                       </Button>
                     </NavigationMenuLink>
                   </NavigationMenuItem>

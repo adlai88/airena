@@ -108,7 +108,7 @@ export function HamburgerMenu({ homeNav = false }: HamburgerMenuProps) {
               className={isActivePage('/setup') ? 'bg-accent text-accent-foreground' : ''}
             >
               <Cog className="mr-2 h-4 w-4" />
-              Setup
+              Channel
             </DropdownMenuItem>
             <DropdownMenuItem 
               onClick={() => navigateWithParams('/chat')}
