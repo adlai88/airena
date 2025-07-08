@@ -1,47 +1,9 @@
--- Enable trigram similarity extension for text matching
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
+-- Migration: Add hybrid search combining title matching + semantic similarity
+-- Date: 2025-07-08
+-- Description: Creates search_blocks_hybrid function that prioritizes title matches while maintaining semantic search capabilities
 
--- Vector similarity search function (legacy)
-CREATE OR REPLACE FUNCTION search_blocks (
-  query_embedding vector(1536),
-  channel_filter int DEFAULT NULL,
-  similarity_threshold float DEFAULT 0.7,
-  match_count int DEFAULT 5
-)
-RETURNS TABLE (
-  id int,
-  arena_id int,
-  channel_id int,
-  title text,
-  description text,
-  content text,
-  url text,
-  block_type text,
-  created_at timestamp,
-  updated_at timestamp,
-  similarity float
-)
-LANGUAGE sql STABLE
-AS $$
-  SELECT
-    b.id,
-    b.arena_id,
-    b.channel_id,
-    b.title,
-    b.description,
-    b.content,
-    b.url,
-    b.block_type,
-    b.created_at,
-    b.updated_at,
-    1 - (b.embedding <=> query_embedding) AS similarity
-  FROM blocks b
-  WHERE b.embedding IS NOT NULL
-    AND (channel_filter IS NULL OR b.channel_id = channel_filter)
-    AND 1 - (b.embedding <=> query_embedding) > similarity_threshold
-  ORDER BY b.embedding <=> query_embedding
-  LIMIT match_count;
-$$;
+-- Enable trigram similarity extension for text matching (optional, fallback to LIKE if not available)
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 -- Hybrid search function combining title similarity + semantic similarity
 CREATE OR REPLACE FUNCTION search_blocks_hybrid (
