@@ -4,7 +4,7 @@ import React from "react";
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { HoverBorderGradient } from '@/components/ui/border-trail';
+import { ChannelBadge } from '@/components/ui/channel-badge';
 import { Layout } from '@/components/layout';
 import { PromptTemplates } from '@/lib/templates';
 import { useParams } from 'next/navigation';
@@ -309,7 +309,7 @@ function ChatContent() {
   // Dynamic suggested questions based on channel content
   const suggestedQuestions = PromptTemplates.getSuggestedQuestions();
 
-  const [suggestionsCollapsed, setSuggestionsCollapsed] = useState(false);
+  const [suggestionsCollapsed, setSuggestionsCollapsed] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
   // Fetch channel information based on URL parameter
@@ -368,18 +368,11 @@ function ChatContent() {
                 Ask me anything about this Are.na content
               </p>
               <div className="flex justify-center mb-4">
-                <HoverBorderGradient duration={3}>
-                  <Badge variant="secondary" className="px-3 py-1">
-                    🔗 Connected to: <a 
-                      href={username ? `https://www.are.na/${username.toLowerCase().replace(/[^a-z0-9]/g, '')}/${channelSlug}` : `https://www.are.na/${channelSlug}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="underline hover:no-underline transition-all"
-                    >
-                      {channelSlug}
-                    </a>
-                  </Badge>
-                </HoverBorderGradient>
+                <ChannelBadge 
+                  variant="connected" 
+                  channelSlug={channelSlug} 
+                  username={username} 
+                />
               </div>
             </div>
 
@@ -457,25 +450,20 @@ function ChatContent() {
 
   // After first user message: Full chat view
   return (
-    <Layout>
-      {/* Messages Area - with bottom padding for fixed input */}
-      <div className="w-full py-6 pb-32">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Connected Channel Badge */}
-          <div className="flex justify-center mb-6">
-            <HoverBorderGradient duration={3}>
-              <Badge variant="secondary" className="px-3 py-1">
-                🔗 Connected to: <a 
-                  href={username ? `https://www.are.na/${username.toLowerCase().replace(/[^a-z0-9]/g, '')}/${channelSlug}` : `https://www.are.na/${channelSlug}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="underline hover:no-underline transition-all"
-                >
-                  {channelSlug}
-                </a>
-              </Badge>
-            </HoverBorderGradient>
-          </div>
+    <React.Fragment>
+      {/* Fixed Channel Badge */}
+      <div className="fixed top-24 left-0 right-0 z-30 flex justify-center">
+        <ChannelBadge 
+          variant="connected" 
+          channelSlug={channelSlug} 
+          username={username} 
+        />
+      </div>
+      
+      <Layout>
+        {/* Messages Area - with top padding for nav + fixed badge and bottom padding for fixed input */}
+        <div className="w-full pt-32 pb-32">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="space-y-6">
             {messages.map((message) => (
               <div
@@ -673,6 +661,7 @@ function ChatContent() {
         </div>
       </div>
     </Layout>
+    </React.Fragment>
   );
 }
 

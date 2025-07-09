@@ -35,16 +35,16 @@ export function HoverBorderGradient({
   }, [clockwise]);
 
   const movingMap: Record<Direction, string> = {
-    TOP: "radial-gradient(20.7% 50% at 50% 0%, hsl(0, 0%, 100%) 0%, rgba(255, 255, 255, 0) 100%)",
-    LEFT: "radial-gradient(16.6% 43.1% at 0% 50%, hsl(0, 0%, 100%) 0%, rgba(255, 255, 255, 0) 100%)",
+    TOP: "radial-gradient(20.7% 50% at 50% 0%, hsla(0, 0%, 100%, 0.3) 0%, rgba(255, 255, 255, 0) 100%)",
+    LEFT: "radial-gradient(16.6% 43.1% at 0% 50%, hsla(0, 0%, 100%, 0.3) 0%, rgba(255, 255, 255, 0) 100%)",
     BOTTOM:
-      "radial-gradient(20.7% 50% at 50% 100%, hsl(0, 0%, 100%) 0%, rgba(255, 255, 255, 0) 100%)",
+      "radial-gradient(20.7% 50% at 50% 100%, hsla(0, 0%, 100%, 0.3) 0%, rgba(255, 255, 255, 0) 100%)",
     RIGHT:
-      "radial-gradient(16.2% 41.199999999999996% at 100% 50%, hsl(0, 0%, 100%) 0%, rgba(255, 255, 255, 0) 100%)",
+      "radial-gradient(16.2% 41.199999999999996% at 100% 50%, hsla(0, 0%, 100%, 0.3) 0%, rgba(255, 255, 255, 0) 100%)",
   };
 
   const highlight =
-    "radial-gradient(75% 181.15942028985506% at 50% 50%, #3275F8 0%, rgba(255, 255, 255, 0) 100%)";
+    "radial-gradient(75% 181.15942028985506% at 50% 50%, rgba(50, 117, 248, 0.4) 0%, rgba(255, 255, 255, 0) 100%)";
 
   useEffect(() => {
     if (!hovered) {
@@ -62,7 +62,7 @@ export function HoverBorderGradient({
       }}
       onMouseLeave={() => setHovered(false)}
       className={cn(
-        "relative flex rounded-lg border content-center bg-black/20 hover:bg-black/10 transition duration-500 dark:bg-white/20 items-center flex-col flex-nowrap gap-10 h-min justify-center overflow-visible p-px decoration-clone w-fit",
+        "relative flex rounded-full border content-center bg-black/20 hover:bg-black/10 transition duration-500 dark:bg-white/20 items-center flex-col flex-nowrap gap-10 h-min justify-center overflow-visible p-px decoration-clone w-fit",
         containerClassName
       )}
       {...props}

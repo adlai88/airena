@@ -10,7 +10,14 @@ import {
   NavigationMenuItem,
   NavigationMenuLink,
 } from '@/components/ui/navigation-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ChevronDown, Cog, MessageSquare, Wand2 } from 'lucide-react';
 import Link from 'next/link';
 
 interface NavigationProps {
@@ -66,10 +73,20 @@ export function Navigation({ homeNav = false }: NavigationProps) {
     return false;
   };
 
+  // Get current active page name for mobile dropdown
+  const getActivePage = () => {
+    if (isActivePage('/setup')) return { name: 'Channel', icon: Cog };
+    if (isActivePage('/chat')) return { name: 'Chat', icon: MessageSquare };
+    if (isActivePage('/generate')) return { name: 'Generate', icon: Wand2 };
+    return { name: 'Channel', icon: Cog }; // default
+  };
+
+  const activePage = getActivePage();
+
   return (
     <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-3 sm:py-4">
-        <div className="flex items-center justify-between">
+        <div className="relative flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
             <Button 
@@ -81,10 +98,48 @@ export function Navigation({ homeNav = false }: NavigationProps) {
             </Button>
           </div>
 
-          {/* Center Navigation (only on app pages, hidden on mobile) */}
+          {/* Center Navigation - Absolutely centered */}
           {isAppPage && (
-            <div className="hidden sm:flex justify-center flex-1 mx-2 sm:mx-4">
-              <NavigationMenu className="p-1 rounded-lg border border-border bg-background">
+            <div className="absolute left-1/2 transform -translate-x-1/2">
+              {/* Mobile: Active page dropdown */}
+              <div className="sm:hidden">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center gap-2 px-3 py-2 text-sm font-medium">
+                      <activePage.icon className="h-4 w-4" />
+                      {activePage.name}
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="center" className="w-48">
+                    <DropdownMenuItem 
+                      onClick={() => navigateWithParams('/setup')}
+                      className={isActivePage('/setup') ? 'bg-accent text-accent-foreground' : ''}
+                    >
+                      <Cog className="mr-2 h-4 w-4" />
+                      Channel
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => navigateWithParams('/chat')}
+                      className={isActivePage('/chat') ? 'bg-accent text-accent-foreground' : ''}
+                    >
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      Chat
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => navigateWithParams('/generate')}
+                      className={isActivePage('/generate') ? 'bg-accent text-accent-foreground' : ''}
+                    >
+                      <Wand2 className="mr-2 h-4 w-4" />
+                      Generate
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              
+              {/* Desktop: Tab navigation */}
+              <div className="hidden sm:block">
+                <NavigationMenu className="p-1 rounded-lg border border-border bg-background">
                 <NavigationMenuList className="gap-1">
                   <NavigationMenuItem>
                     <NavigationMenuLink asChild>
@@ -132,7 +187,8 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                     </NavigationMenuLink>
                   </NavigationMenuItem>
                 </NavigationMenuList>
-              </NavigationMenu>
+                </NavigationMenu>
+              </div>
             </div>
           )}
 
