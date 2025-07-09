@@ -452,7 +452,7 @@ function ChatContent() {
   return (
     <React.Fragment>
       {/* Fixed Channel Badge */}
-      <div className="fixed top-24 left-0 right-0 z-30 flex justify-center">
+      <div className="fixed top-20 left-0 right-0 z-30 flex justify-center">
         <ChannelBadge 
           variant="connected" 
           channelSlug={channelSlug} 
@@ -462,7 +462,7 @@ function ChatContent() {
       
       <Layout>
         {/* Messages Area - with top padding for nav + fixed badge and bottom padding for fixed input */}
-        <div className="w-full pt-32 pb-32">
+        <div className="w-full pt-28 pb-32">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="space-y-6">
             {messages.map((message) => (
