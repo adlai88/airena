@@ -52,7 +52,6 @@ export function ChannelBadge({
         >
           {channelSlug}
         </a>
-        {isDefault && showText && <span className="ml-1 text-xs">(curated)</span>}
       </Badge>
     </HoverBorderGradient>
   );
