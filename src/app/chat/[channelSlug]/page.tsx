@@ -484,13 +484,13 @@ function ChatContent() {
               >
                 {message.role === 'assistant' && (
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center mr-3 mt-1 overflow-hidden border border-border">
-                    <Image
-                      src="/favicon.png"
+                    <img
+                      src="/favicon.svg"
                       alt="AI"
                       width={32}
                       height={32}
                       className="object-cover w-8 h-8"
-                      priority
+                      draggable={false}
                     />
                   </div>
                 )}
@@ -546,13 +546,13 @@ function ChatContent() {
             {isLoading && (
               <div className="flex justify-start items-start">
                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center mr-3 mt-1 overflow-hidden border border-border">
-                  <Image
-                    src="/favicon.png"
+                  <img
+                    src="/favicon.svg"
                     alt="AI"
                     width={32}
                     height={32}
-                    className="object-cover w-8 h-8"
-                    priority
+                    className="object-cover w-8 h-8 animate-pulse"
+                    draggable={false}
                   />
                 </div>
                 <div className="text-muted-foreground">
