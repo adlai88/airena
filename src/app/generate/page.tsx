@@ -9,7 +9,6 @@ import { PromptTemplates, type NewsletterOptions } from '@/lib/templates';
 import { Layout } from '@/components/layout';
 import { PageHeader } from '@/components/page-header';
 import { useChannel } from '@/hooks/useChannel';
-import { Badge } from '@/components/ui/badge';
 import { ChannelBadge } from '@/components/ui/channel-badge';
 import { Spinner } from '@/components/ui/spinner';
 
