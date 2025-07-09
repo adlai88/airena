@@ -457,6 +457,7 @@ function ChatContent() {
           variant="connected" 
           channelSlug={channelSlug} 
           username={username} 
+          showText={false}
         />
       </div>
       

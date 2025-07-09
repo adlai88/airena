@@ -7,6 +7,7 @@ interface ChannelBadgeProps {
   username?: string;
   isDefault?: boolean;
   className?: string;
+  showText?: boolean;
 }
 
 const variantConfig = {
@@ -30,6 +31,7 @@ export function ChannelBadge({
   username,
   isDefault = false,
   className = "",
+  showText = true,
 }: ChannelBadgeProps) {
   const config = variantConfig[variant];
   
@@ -40,7 +42,9 @@ export function ChannelBadge({
   return (
     <HoverBorderGradient duration={3}>
       <Badge variant="secondary" className={`px-3 py-1 ${className}`}>
-        {config.icon} {isDefault ? 'Default channel' : `${config.text}`}: <a 
+        {showText && config.icon} {showText && (isDefault ? 'Default channel' : `${config.text}`)}
+        {showText && ': '}
+        <a 
           href={channelUrl}
           target="_blank" 
           rel="noopener noreferrer"
@@ -48,7 +52,7 @@ export function ChannelBadge({
         >
           {channelSlug}
         </a>
-        {isDefault && <span className="ml-1 text-xs">(curated)</span>}
+        {isDefault && showText && <span className="ml-1 text-xs">(curated)</span>}
       </Badge>
     </HoverBorderGradient>
   );
