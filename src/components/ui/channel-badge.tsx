@@ -12,15 +12,15 @@ interface ChannelBadgeProps {
 
 const variantConfig = {
   connected: {
-    icon: "🔗",
+    icon: "",
     text: "Connected to",
   },
   processing: {
-    icon: "⚡",
+    icon: "",
     text: "Connected to",
   },
   generated: {
-    icon: "📊",
+    icon: "",
     text: "Generated from",
   },
 };
@@ -42,7 +42,7 @@ export function ChannelBadge({
   return (
     <HoverBorderGradient duration={3}>
       <Badge variant="secondary" className={`px-3 py-1 ${className}`}>
-        {showText && config.icon} {showText && (isDefault ? 'Default channel' : `${config.text}`)}
+        {showText && (isDefault ? 'Default channel' : `${config.text}`)}
         {showText && ': '}
         <a 
           href={channelUrl}
