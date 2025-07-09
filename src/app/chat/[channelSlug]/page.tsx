@@ -483,8 +483,15 @@ function ChatContent() {
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start items-start'}`}
               >
                 {message.role === 'assistant' && (
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center mr-3 mt-1">
-                    <span className="text-primary-foreground text-xs font-medium">AI</span>
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center mr-3 mt-1 overflow-hidden">
+                    <Image
+                      src="/favicon.png"
+                      alt="AI"
+                      width={32}
+                      height={32}
+                      className="object-cover w-8 h-8"
+                      priority
+                    />
                   </div>
                 )}
                 <div className={`max-w-[85%] sm:max-w-3xl ${message.role === 'user' ? '' : 'space-y-2'}`}>
@@ -538,8 +545,15 @@ function ChatContent() {
             ))}
             {isLoading && (
               <div className="flex justify-start items-start">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center mr-3 mt-1">
-                  <span className="text-primary-foreground text-xs font-medium">AI</span>
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center mr-3 mt-1 overflow-hidden">
+                  <Image
+                    src="/favicon.png"
+                    alt="AI"
+                    width={32}
+                    height={32}
+                    className="object-cover w-8 h-8"
+                    priority
+                  />
                 </div>
                 <div className="text-muted-foreground">
                   <div className="flex items-center">
