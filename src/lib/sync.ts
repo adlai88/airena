@@ -512,12 +512,12 @@ export class SyncService {
               ]);
 
               console.log(`✅ Successfully embedded and stored block ${blockId}`);
-              return { success: true, blockId };
+              return { success: true as const, blockId };
             } else {
               const errorMsg = `No embedding chunks created for block ${blockId}`;
               console.error(`❌ ${errorMsg}`);
               return { 
-                success: false, 
+                success: false as const, 
                 blockId, 
                 error: 'No embedding chunks created',
                 stage: 'embedding' as const
@@ -527,7 +527,7 @@ export class SyncService {
             const errorMsg = `Error creating embedding for block ${blockId}: ${error}`;
             console.error(`❌ ${errorMsg}`);
             return { 
-              success: false, 
+              success: false as const, 
               blockId, 
               error: String(error),
               stage: 'embedding' as const
@@ -553,7 +553,7 @@ export class SyncService {
               errors.push(errorMsg);
               detailedErrors.push({
                 blockId: Number(embeddingResult.blockId),
-                stage: embeddingResult.stage,
+                stage: embeddingResult.stage || 'embedding',
                 error: embeddingResult.error
               });
             }
