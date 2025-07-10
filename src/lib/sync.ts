@@ -359,12 +359,12 @@ export class SyncService {
 
             if (processedBlock) {
               console.log(`✅ Successfully processed block ${block.id}`);
-              return { success: true, block, processedBlock };
+              return { success: true as const, block, processedBlock };
             } else {
               const errorMsg = `Failed to extract content from block ${block.id}: ${block.source_url}`;
               console.error(`❌ ${errorMsg}`);
               return { 
-                success: false, 
+                success: false as const, 
                 block, 
                 error: 'Content extraction returned null',
                 stage: 'extraction' as const
@@ -374,7 +374,7 @@ export class SyncService {
             const errorMsg = `Error processing block ${block.id}: ${error}`;
             console.error(`❌ ${errorMsg}`);
             return { 
-              success: false, 
+              success: false as const, 
               block, 
               error: String(error),
               stage: 'extraction' as const
@@ -392,7 +392,7 @@ export class SyncService {
           if (result.status === 'fulfilled') {
             const blockResult = result.value;
             
-            if (blockResult.success) {
+            if (blockResult.success && 'processedBlock' in blockResult) {
               processedBlocksList.push(blockResult.processedBlock);
               processedBlocks++;
             } else {
