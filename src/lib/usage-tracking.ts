@@ -78,11 +78,24 @@ export class UsageTracker {
 
       if (!existingUsage) {
         // First time processing this channel
+        if (blocksToProcess && blocksToProcess > this.FREE_TIER_LIMIT) {
+          // Limit first-time processing to the free tier limit
+          return {
+            canProcess: true,
+            blocksProcessed: 0,
+            blocksRemaining: this.FREE_TIER_LIMIT,
+            isFirstTime: true,
+            blocksToProcess: this.FREE_TIER_LIMIT,
+            message: `Processing limited to ${this.FREE_TIER_LIMIT} blocks (free tier limit). Upgrade for unlimited processing.`
+          };
+        }
+        
         return {
           canProcess: true,
           blocksProcessed: 0,
           blocksRemaining: this.FREE_TIER_LIMIT,
-          isFirstTime: true
+          isFirstTime: true,
+          blocksToProcess: blocksToProcess
         };
       }
 
