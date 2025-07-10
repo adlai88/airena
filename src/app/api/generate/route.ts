@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       .from('channels')
       .select('*')
       .eq('slug', channelSlug)
-      .single() as { data: { arena_id: number; title: string } | null; error: unknown };
+      .single() as { data: { id: number; arena_id: number; title: string } | null; error: unknown };
 
     if (channelError || !channel) {
       return new Response('Channel not found', { status: 404 });
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     const { data: blocks, error: blocksError } = await supabase
       .from('blocks')
       .select('title, url, content, description')
-      .eq('channel_id', channel.arena_id)
+      .eq('channel_id', channel.id)
       .not('embedding', 'is', null)
       .order('created_at', { ascending: false })
       .limit(10) as { data: { title: string; url: string; content: string; description: string }[] | null; error: unknown }; // Use most recent blocks for newsletter
