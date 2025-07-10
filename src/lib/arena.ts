@@ -143,148 +143,252 @@ export class ArenaClient {
   }
 
   /**
-   * Filter blocks by type and get detailed info for Link blocks
+   * Filter blocks by type and get detailed info for Link blocks (optimized with batch processing)
    */
   async getDetailedLinkBlocks(blocks: ArenaBlock[]): Promise<ArenaBlock[]> {
     const linkBlocks = blocks.filter(block => block.class === 'Link');
     const detailedBlocks: ArenaBlock[] = [];
+    const BATCH_SIZE = 5;
+    const BATCH_DELAY = 800; // 800ms between batches
+    const INTRA_BATCH_DELAY = 150; // 150ms stagger within batch
 
-    console.log(`Fetching detailed info for ${linkBlocks.length} link blocks...`);
+    console.log(`Fetching detailed info for ${linkBlocks.length} link blocks in batches of ${BATCH_SIZE}...`);
 
-    for (const block of linkBlocks) {
-      try {
-        const detailedBlock = await this.getBlock(block.id);
+    for (let i = 0; i < linkBlocks.length; i += BATCH_SIZE) {
+      const batch = linkBlocks.slice(i, i + BATCH_SIZE);
+      console.log(`Processing link batch ${Math.floor(i / BATCH_SIZE) + 1}: blocks ${i + 1}-${Math.min(i + BATCH_SIZE, linkBlocks.length)}`);
+      
+      // Process batch in parallel with staggered delays
+      const batchPromises = batch.map(async (block, batchIndex) => {
+        // Stagger requests within batch to avoid exact simultaneity
+        await new Promise(resolve => setTimeout(resolve, batchIndex * INTRA_BATCH_DELAY));
         
-        // Check if block has a source URL (either in source_url or source.url)
-        const hasUrl = detailedBlock.source_url || detailedBlock.source?.url;
-        
-        if (hasUrl) {
-          // Normalize the source_url field
-          if (!detailedBlock.source_url && detailedBlock.source?.url) {
-            detailedBlock.source_url = detailedBlock.source.url;
+        try {
+          const detailedBlock = await this.getBlock(block.id);
+          
+          // Check if block has a source URL (either in source_url or source.url)
+          const hasUrl = detailedBlock.source_url || detailedBlock.source?.url;
+          
+          if (hasUrl) {
+            // Normalize the source_url field
+            if (!detailedBlock.source_url && detailedBlock.source?.url) {
+              detailedBlock.source_url = detailedBlock.source.url;
+            }
+            return detailedBlock;
           }
-          detailedBlocks.push(detailedBlock);
+          return null;
+        } catch (error) {
+          console.warn(`Failed to get details for block ${block.id}:`, error);
+          return null;
         }
-
-        // Rate limiting
-        await new Promise(resolve => setTimeout(resolve, 100));
-      } catch (error) {
-        console.warn(`Failed to get details for block ${block.id}:`, error);
+      });
+      
+      const batchResults = await Promise.allSettled(batchPromises);
+      
+      // Collect successful results
+      batchResults.forEach((result) => {
+        if (result.status === 'fulfilled' && result.value) {
+          detailedBlocks.push(result.value);
+        }
+      });
+      
+      // Delay between batches
+      if (i + BATCH_SIZE < linkBlocks.length) {
+        console.log(`Link batch complete. Waiting ${BATCH_DELAY}ms before next batch...`);
+        await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
       }
     }
 
-    console.log(`Found ${detailedBlocks.length} link blocks with URLs`);
+    console.log(`✅ Found ${detailedBlocks.length}/${linkBlocks.length} link blocks with URLs`);
     return detailedBlocks;
   }
 
   /**
-   * Filter blocks by type and get detailed info for Image blocks
+   * Filter blocks by type and get detailed info for Image blocks (optimized with batch processing)
    */
   async getDetailedImageBlocks(blocks: ArenaBlock[]): Promise<ArenaBlock[]> {
     const imageBlocks = blocks.filter(block => block.class === 'Image');
     const detailedBlocks: ArenaBlock[] = [];
+    const BATCH_SIZE = 5;
+    const BATCH_DELAY = 800; // 800ms between batches
+    const INTRA_BATCH_DELAY = 150; // 150ms stagger within batch
 
-    console.log(`Fetching detailed info for ${imageBlocks.length} image blocks...`);
+    console.log(`Fetching detailed info for ${imageBlocks.length} image blocks in batches of ${BATCH_SIZE}...`);
 
-    for (const block of imageBlocks) {
-      try {
-        const detailedBlock = await this.getBlock(block.id);
+    for (let i = 0; i < imageBlocks.length; i += BATCH_SIZE) {
+      const batch = imageBlocks.slice(i, i + BATCH_SIZE);
+      console.log(`Processing image batch ${Math.floor(i / BATCH_SIZE) + 1}: blocks ${i + 1}-${Math.min(i + BATCH_SIZE, imageBlocks.length)}`);
+      
+      // Process batch in parallel with staggered delays
+      const batchPromises = batch.map(async (block, batchIndex) => {
+        // Stagger requests within batch to avoid exact simultaneity
+        await new Promise(resolve => setTimeout(resolve, batchIndex * INTRA_BATCH_DELAY));
         
-        // For Image blocks, check both external links (source_url) and uploaded images (image.original.url)
-        const externalImageUrl = detailedBlock.source_url || detailedBlock.source?.url;
-        const uploadedImageUrl = detailedBlock.image?.original?.url;
-        const hasImageUrl = externalImageUrl || uploadedImageUrl;
-        
-        if (hasImageUrl) {
-          // Normalize the source_url field - prefer external URL, fallback to uploaded URL
-          if (!detailedBlock.source_url) {
-            if (detailedBlock.source?.url) {
-              detailedBlock.source_url = detailedBlock.source.url;
-            } else if (uploadedImageUrl) {
-              detailedBlock.source_url = uploadedImageUrl;
+        try {
+          const detailedBlock = await this.getBlock(block.id);
+          
+          // For Image blocks, check both external links (source_url) and uploaded images (image.original.url)
+          const externalImageUrl = detailedBlock.source_url || detailedBlock.source?.url;
+          const uploadedImageUrl = detailedBlock.image?.original?.url;
+          const hasImageUrl = externalImageUrl || uploadedImageUrl;
+          
+          if (hasImageUrl) {
+            // Normalize the source_url field - prefer external URL, fallback to uploaded URL
+            if (!detailedBlock.source_url) {
+              if (detailedBlock.source?.url) {
+                detailedBlock.source_url = detailedBlock.source.url;
+              } else if (uploadedImageUrl) {
+                detailedBlock.source_url = uploadedImageUrl;
+              }
             }
+            return detailedBlock;
           }
-          detailedBlocks.push(detailedBlock);
+          return null;
+        } catch (error) {
+          console.warn(`Failed to get details for image block ${block.id}:`, error);
+          return null;
         }
-
-        // Rate limiting
-        await new Promise(resolve => setTimeout(resolve, 100));
-      } catch (error) {
-        console.warn(`Failed to get details for image block ${block.id}:`, error);
+      });
+      
+      const batchResults = await Promise.allSettled(batchPromises);
+      
+      // Collect successful results
+      batchResults.forEach((result) => {
+        if (result.status === 'fulfilled' && result.value) {
+          detailedBlocks.push(result.value);
+        }
+      });
+      
+      // Delay between batches
+      if (i + BATCH_SIZE < imageBlocks.length) {
+        console.log(`Image batch complete. Waiting ${BATCH_DELAY}ms before next batch...`);
+        await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
       }
     }
 
-    console.log(`Found ${detailedBlocks.length} image blocks with URLs`);
+    console.log(`✅ Found ${detailedBlocks.length}/${imageBlocks.length} image blocks with URLs`);
     return detailedBlocks;
   }
 
   /**
-   * Filter blocks by type and get detailed info for Media blocks (videos)
+   * Filter blocks by type and get detailed info for Media blocks (videos) (optimized with batch processing)
    */
   async getDetailedMediaBlocks(blocks: ArenaBlock[]): Promise<ArenaBlock[]> {
     const mediaBlocks = blocks.filter(block => block.class === 'Media');
     const detailedBlocks: ArenaBlock[] = [];
+    const BATCH_SIZE = 5;
+    const BATCH_DELAY = 800; // 800ms between batches
+    const INTRA_BATCH_DELAY = 150; // 150ms stagger within batch
 
-    console.log(`Fetching detailed info for ${mediaBlocks.length} media blocks...`);
+    console.log(`Fetching detailed info for ${mediaBlocks.length} media blocks in batches of ${BATCH_SIZE}...`);
 
-    for (const block of mediaBlocks) {
-      try {
-        const detailedBlock = await this.getBlock(block.id);
+    for (let i = 0; i < mediaBlocks.length; i += BATCH_SIZE) {
+      const batch = mediaBlocks.slice(i, i + BATCH_SIZE);
+      console.log(`Processing media batch ${Math.floor(i / BATCH_SIZE) + 1}: blocks ${i + 1}-${Math.min(i + BATCH_SIZE, mediaBlocks.length)}`);
+      
+      // Process batch in parallel with staggered delays
+      const batchPromises = batch.map(async (block, batchIndex) => {
+        // Stagger requests within batch to avoid exact simultaneity
+        await new Promise(resolve => setTimeout(resolve, batchIndex * INTRA_BATCH_DELAY));
         
-        // For Media blocks, the URL is typically in source.url, not source_url
-        const hasMediaUrl = detailedBlock.source_url || detailedBlock.source?.url;
-        
-        if (hasMediaUrl) {
-          // Normalize the source_url field for consistency
-          if (!detailedBlock.source_url && detailedBlock.source?.url) {
-            detailedBlock.source_url = detailedBlock.source.url;
+        try {
+          const detailedBlock = await this.getBlock(block.id);
+          
+          // For Media blocks, the URL is typically in source.url, not source_url
+          const hasMediaUrl = detailedBlock.source_url || detailedBlock.source?.url;
+          
+          if (hasMediaUrl) {
+            // Normalize the source_url field for consistency
+            if (!detailedBlock.source_url && detailedBlock.source?.url) {
+              detailedBlock.source_url = detailedBlock.source.url;
+            }
+            return detailedBlock;
           }
-          detailedBlocks.push(detailedBlock);
+          return null;
+        } catch (error) {
+          console.warn(`Failed to get details for media block ${block.id}:`, error);
+          return null;
         }
-
-        // Rate limiting
-        await new Promise(resolve => setTimeout(resolve, 100));
-      } catch (error) {
-        console.warn(`Failed to get details for media block ${block.id}:`, error);
+      });
+      
+      const batchResults = await Promise.allSettled(batchPromises);
+      
+      // Collect successful results
+      batchResults.forEach((result) => {
+        if (result.status === 'fulfilled' && result.value) {
+          detailedBlocks.push(result.value);
+        }
+      });
+      
+      // Delay between batches
+      if (i + BATCH_SIZE < mediaBlocks.length) {
+        console.log(`Media batch complete. Waiting ${BATCH_DELAY}ms before next batch...`);
+        await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
       }
     }
 
-    console.log(`Found ${detailedBlocks.length} media blocks with URLs`);
+    console.log(`✅ Found ${detailedBlocks.length}/${mediaBlocks.length} media blocks with URLs`);
     return detailedBlocks;
   }
 
   /**
-   * Filter blocks by type and get detailed info for Attachment blocks (PDFs, documents)
+   * Filter blocks by type and get detailed info for Attachment blocks (PDFs, documents) (optimized with batch processing)
    */
   async getDetailedAttachmentBlocks(blocks: ArenaBlock[]): Promise<ArenaBlock[]> {
     const attachmentBlocks = blocks.filter(block => block.class === 'Attachment');
     const detailedBlocks: ArenaBlock[] = [];
+    const BATCH_SIZE = 5;
+    const BATCH_DELAY = 800; // 800ms between batches
+    const INTRA_BATCH_DELAY = 150; // 150ms stagger within batch
 
-    console.log(`Fetching detailed info for ${attachmentBlocks.length} attachment blocks...`);
+    console.log(`Fetching detailed info for ${attachmentBlocks.length} attachment blocks in batches of ${BATCH_SIZE}...`);
 
-    for (const block of attachmentBlocks) {
-      try {
-        const detailedBlock = await this.getBlock(block.id);
+    for (let i = 0; i < attachmentBlocks.length; i += BATCH_SIZE) {
+      const batch = attachmentBlocks.slice(i, i + BATCH_SIZE);
+      console.log(`Processing attachment batch ${Math.floor(i / BATCH_SIZE) + 1}: blocks ${i + 1}-${Math.min(i + BATCH_SIZE, attachmentBlocks.length)}`);
+      
+      // Process batch in parallel with staggered delays
+      const batchPromises = batch.map(async (block, batchIndex) => {
+        // Stagger requests within batch to avoid exact simultaneity
+        await new Promise(resolve => setTimeout(resolve, batchIndex * INTRA_BATCH_DELAY));
         
-        // For Attachment blocks, check both source_url and source.url
-        const hasAttachmentUrl = detailedBlock.source_url || detailedBlock.source?.url;
-        
-        if (hasAttachmentUrl) {
-          // Normalize the source_url field for consistency
-          if (!detailedBlock.source_url && detailedBlock.source?.url) {
-            detailedBlock.source_url = detailedBlock.source.url;
+        try {
+          const detailedBlock = await this.getBlock(block.id);
+          
+          // For Attachment blocks, check both source_url and source.url
+          const hasAttachmentUrl = detailedBlock.source_url || detailedBlock.source?.url;
+          
+          if (hasAttachmentUrl) {
+            // Normalize the source_url field for consistency
+            if (!detailedBlock.source_url && detailedBlock.source?.url) {
+              detailedBlock.source_url = detailedBlock.source.url;
+            }
+            return detailedBlock;
           }
-          detailedBlocks.push(detailedBlock);
+          return null;
+        } catch (error) {
+          console.warn(`Failed to get details for attachment block ${block.id}:`, error);
+          return null;
         }
-
-        // Rate limiting
-        await new Promise(resolve => setTimeout(resolve, 100));
-      } catch (error) {
-        console.warn(`Failed to get details for attachment block ${block.id}:`, error);
+      });
+      
+      const batchResults = await Promise.allSettled(batchPromises);
+      
+      // Collect successful results
+      batchResults.forEach((result) => {
+        if (result.status === 'fulfilled' && result.value) {
+          detailedBlocks.push(result.value);
+        }
+      });
+      
+      // Delay between batches
+      if (i + BATCH_SIZE < attachmentBlocks.length) {
+        console.log(`Attachment batch complete. Waiting ${BATCH_DELAY}ms before next batch...`);
+        await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
       }
     }
 
-    console.log(`Found ${detailedBlocks.length} attachment blocks with URLs`);
+    console.log(`✅ Found ${detailedBlocks.length}/${attachmentBlocks.length} attachment blocks with URLs`);
     return detailedBlocks;
   }
 
