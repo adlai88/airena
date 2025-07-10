@@ -51,10 +51,10 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 - **Monetization Ready**: Database schema and limits infrastructure ready for billing integration
 - **Deployment**: Live on Vercel with Supabase backend
 
-**What's Next**: Ready for Phase 10 Launch:
-1. **Phase 10.1 (Week 1)**: Quick monetization implementation with Polar.sh + basic tiers  
-2. **Phase 10.2 (Week 2)**: Open source preparation and repository cleanup
-3. **Phase 10.3 (Week 3)**: Launch with "Complete multimodal intelligence for ALL Are.na content" positioning
+**What's Next**: Ready for Phase 10.1 Launch:
+1. **Phase 10.1 (Week 1)**: Premium + Pro monetization with Polar.sh integration
+2. **Phase 10.2 (Week 2)**: Open source preparation and repository cleanup  
+3. **Phase 10.3 (Week 3)**: Coordinated launch with "2x your Are.na Premium, get Claude Desktop integration" positioning
 
 **Launch-Ready Features:**
 - ✅ Complete multimodal intelligence (ALL 5 Are.na block types)
@@ -544,10 +544,12 @@ CREATE TABLE channel_usage (
 #### Phase 10.1: Quick Monetization Implementation (Week 1)
 **Goal**: Basic but functional monetization ready for launch
 - [ ] **Polar.sh integration** - Open source billing platform setup
-- [ ] **Basic tier management** - Starter ($9), Pro ($19), Enterprise ($99)
-- [x] **Usage tracking** - 50-block lifetime limits with session management ✅ **COMPLETED**
-- [ ] **User dashboard** - Basic usage monitoring and billing
-- [ ] **Pricing page** - Clear value proposition for each tier
+- [ ] **Premium + Pro tier implementation** - $5 Premium, $14 Pro (Enterprise deferred)
+- [x] **Usage tracking** - 50-block limits + chat/generation limits ✅ **COMPLETED**
+- [ ] **Monthly usage reset** - Convert from lifetime to monthly limits for Premium
+- [ ] **Private channel access** - Premium tier feature
+- [ ] **Multi-channel support** - Up to 3 channels for Premium
+- [ ] **Pricing page** - Are.na Premium price anchoring strategy
 
 #### Phase 10.2: Open Source Preparation (Week 2)
 **Goal**: Clean, professional open source release
@@ -575,13 +577,17 @@ CREATE TABLE channel_usage (
 
 ### Monetization Strategy
 
-**Tier Structure:**
-- **Open Source (Free)**: Self-hosted, unlimited usage, community support
-- **Starter ($9/month)**: 25 blocks/month, 1 channel, hosted convenience
-- **Pro ($19/month)**: 100 blocks/month, 3 channels, premium templates
-- **Enterprise ($99/month)**: Unlimited usage, white-label, SLA support
+**Refined Tier Structure (Are.na Price Anchoring):**
+- **Free**: Public channels only, 50 blocks per channel, 5 chat messages + 1 generation per channel, no signup required
+- **Premium ($5/month)**: Private channels, 200 blocks/month, unlimited chat & generations, up to 3 channels, advanced templates
+- **Pro ($14/month)**: Everything in Premium + MCP server generation, API access, webhook support, developer tools
+- **Enterprise ($99/month)**: Everything in Pro + team collaboration, white-label, SSO, SLA support (future)
 
-**Usage-Based Add-On**: $0.20 per additional block over limit with transparent tracking
+**Key Positioning**: "2x your Are.na Premium, get Claude Desktop integration"
+
+**Usage-Based Add-On**: $0.15 per additional block over monthly limits (96% margin)
+
+**Launch Strategy**: Start with Premium + Pro only, add Enterprise later based on demand
 
 ### What's Open Source vs Proprietary
 
