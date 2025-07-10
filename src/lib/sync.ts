@@ -328,10 +328,10 @@ export class SyncService {
       const processedBlocksList: ProcessedAnyBlock[] = [];
       const detailedErrors: Array<{blockId: number, stage: string, error: string, url?: string}> = [];
 
-      // Parallel processing configuration (conservative for rate limits)
-      const BATCH_SIZE = 3; // Process 3 blocks simultaneously (reduced from 5)
-      const BLOCK_TIMEOUT = 45000; // 45 seconds per block (increased)
-      const BATCH_DELAY = 2000; // 2 seconds between batches (increased)
+      // Parallel processing configuration (very conservative for rate limits)
+      const BATCH_SIZE = 2; // Process 2 blocks simultaneously (reduced from 3)
+      const BLOCK_TIMEOUT = 60000; // 60 seconds per block (increased)
+      const BATCH_DELAY = 3000; // 3 seconds between batches (increased)
 
       console.log(`Starting parallel processing: ${newBlocks.length} blocks in batches of ${BATCH_SIZE}`);
 
@@ -342,8 +342,8 @@ export class SyncService {
 
         // Create promises for parallel processing with individual timeouts and rate limit handling
         const batchPromises = batch.map(async (block, blockIndex) => {
-          // Add progressive jitter to spread out requests (0-3000ms)
-          const jitter = Math.random() * 3000 + (blockIndex * 1000);
+          // Add much larger progressive jitter to spread out requests (0-5000ms)
+          const jitter = Math.random() * 5000 + (blockIndex * 2000);
           await new Promise(resolve => setTimeout(resolve, jitter));
 
           try {
@@ -463,7 +463,7 @@ export class SyncService {
         // Progressive pause between batches to avoid overwhelming APIs (increases over time)
         if (batchStart + BATCH_SIZE < newBlocks.length) {
           const batchNumber = Math.floor(batchStart / BATCH_SIZE) + 1;
-          const progressiveDelay = BATCH_DELAY + (batchNumber * 500); // Add 500ms per batch
+          const progressiveDelay = BATCH_DELAY + (batchNumber * 1000); // Add 1000ms per batch
           console.log(`Batch ${batchNumber} complete. Waiting ${progressiveDelay}ms before next batch (progressive rate limiting)...`);
           await new Promise(resolve => setTimeout(resolve, progressiveDelay));
         }
@@ -472,6 +472,18 @@ export class SyncService {
       console.log(`Parallel processing complete: ${processedBlocks} successful, ${skippedBlocks} failed out of ${newBlocks.length} total`);
 
       if (processedBlocksList.length === 0) {
+        // Check if most errors are rate limit related
+        const rateLimitErrors = errors.filter(error => 
+          error.includes('429') || 
+          error.includes('rate limit') || 
+          error.includes('Too Many Requests')
+        );
+
+        let errorMessage = 'No blocks could be processed successfully';
+        if (rateLimitErrors.length > errors.length * 0.5) {
+          errorMessage = `Rate limit exceeded. Please wait 5-10 minutes before retrying. Are.na allows limited requests per hour for large channels.`;
+        }
+
         return {
           success: false,
           channelId: dbChannelId,
@@ -479,7 +491,7 @@ export class SyncService {
           processedBlocks: 0,
           skippedBlocks: newBlocks.length,
           deletedBlocks,
-          errors: ['No blocks could be processed successfully'],
+          errors: [errorMessage],
           duration: Date.now() - startTime,
         };
       }
