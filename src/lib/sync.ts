@@ -347,7 +347,7 @@ export class SyncService {
               blockId: block.id,
               stage: 'extraction',
               error: 'Content extraction returned null',
-              url: block.source_url
+              url: block.source_url || undefined
             });
             console.error(`❌ ${errorMsg}`);
           }
@@ -370,7 +370,7 @@ export class SyncService {
             blockId: block.id,
             stage: 'extraction',
             error: String(error),
-            url: block.source_url
+            url: block.source_url || undefined
           });
           console.error(`❌ ${errorMsg}`);
         }
