@@ -430,7 +430,7 @@ function ChatContent() {
                 <Badge
                   key={index}
                   variant="secondary"
-                  className="cursor-pointer hover:bg-primary/10 transition px-3 py-1"
+                  className="cursor-pointer hover:bg-primary/10 transition px-3 py-1 !rounded-none"
                   onClick={() => {
                     setInput(question);
                     // Auto-submit the question
@@ -603,7 +603,7 @@ function ChatContent() {
                     <Badge
                       key={index}
                       variant="secondary"
-                      className="cursor-pointer hover:bg-primary/10 transition text-xs px-2 py-1"
+                      className="cursor-pointer hover:bg-primary/10 transition text-xs px-2 py-1 !rounded-none"
                       onClick={() => {
                         setInput(question);
                         setTimeout(() => {
