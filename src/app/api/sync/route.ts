@@ -1,14 +1,22 @@
 // API route for channel synchronization with streaming progress
 import { NextRequest } from 'next/server';
 import { SyncService, SyncProgress } from '@/lib/sync';
+import { UsageTracker } from '@/lib/usage-tracking';
 
 export async function POST(req: NextRequest) {
   try {
-    const { channelSlug } = await req.json();
+    const { channelSlug, sessionId } = await req.json();
 
     if (!channelSlug) {
       return Response.json({ error: 'Channel slug is required' }, { status: 400 });
     }
+
+    // Get or generate session ID for usage tracking
+    const userSessionId = sessionId || UsageTracker.generateSessionId();
+    const ipAddress = UsageTracker.getIpAddress(req);
+    
+    // TODO: Get userId from authentication when implemented
+    const userId = undefined;
 
     // Create a readable stream for Server-Sent Events
     const stream = new ReadableStream({
@@ -25,13 +33,19 @@ export async function POST(req: NextRequest) {
           // Create sync service instance with progress callback
           const syncService = new SyncService(sendProgress);
 
-          // Start sync process
-          const result = await syncService.syncChannel(channelSlug);
+          // Start sync process with usage tracking
+          const result = await syncService.syncChannel(
+            channelSlug,
+            userSessionId,
+            ipAddress,
+            userId
+          );
 
-          // Send final result
+          // Send final result with session ID
           const finalData = `data: ${JSON.stringify({ 
             type: 'complete', 
-            result 
+            result,
+            sessionId: userSessionId
           })}\n\n`;
           controller.enqueue(encoder.encode(finalData));
           

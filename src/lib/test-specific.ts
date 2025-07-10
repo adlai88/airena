@@ -31,7 +31,7 @@ async function testSpecificChannel(channelSlug: string) {
     }
 
     console.log('\n2. Starting sync...');
-    const result = await syncServiceWithProgress.syncChannel(channelSlug);
+    const result = await syncServiceWithProgress.syncChannel(channelSlug, 'test_session', '127.0.0.1');
     
     console.log('\n📋 Sync Results:');
     console.log(`   ✅ Success: ${result.success}`);

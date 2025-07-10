@@ -3,6 +3,7 @@ import { supabase } from './supabase';
 import { arenaClient, ArenaChannel } from './arena';
 import { contentExtractor, ProcessedAnyBlock } from './extraction';
 import { embeddingService } from './embeddings';
+import { UsageTracker, UsageCheckResult } from './usage-tracking';
 
 export interface SyncProgress {
   stage: 'fetching' | 'extracting' | 'embedding' | 'storing' | 'complete' | 'error';
@@ -22,6 +23,7 @@ export interface SyncResult {
   deletedBlocks: number; // blocks removed from Are.na
   errors: string[];
   duration: number; // milliseconds
+  usageInfo?: UsageCheckResult;
 }
 
 export class SyncService {
@@ -172,7 +174,12 @@ export class SyncService {
   /**
    * Sync a single channel by slug
    */
-  async syncChannel(channelSlug: string): Promise<SyncResult> {
+  async syncChannel(
+    channelSlug: string,
+    sessionId: string,
+    ipAddress: string,
+    userId?: string
+  ): Promise<SyncResult> {
     const startTime = Date.now();
     const errors: string[] = [];
     let processedBlocks = 0;
@@ -189,6 +196,28 @@ export class SyncService {
 
       const channel = await arenaClient.getChannel(channelSlug);
       await this.upsertChannel(channel);
+
+      // Check usage limits before processing
+      const usageInfo = await UsageTracker.checkUsageLimit(
+        channel.id,
+        sessionId,
+        ipAddress,
+        userId
+      );
+
+      if (!usageInfo.canProcess) {
+        return {
+          success: false,
+          channelId: channel.id,
+          totalBlocks: 0,
+          processedBlocks: 0,
+          skippedBlocks: 0,
+          deletedBlocks: 0,
+          errors: [usageInfo.message || 'Usage limit exceeded'],
+          duration: Date.now() - startTime,
+          usageInfo
+        };
+      }
 
       const allBlocks = await arenaClient.getAllChannelContents(channelSlug);
       
@@ -388,6 +417,17 @@ export class SyncService {
         errors: errors.length > 0 ? errors : undefined,
       });
 
+      // Record usage after successful processing
+      if (processedBlocks > 0) {
+        await UsageTracker.recordUsage(
+          channel.id,
+          processedBlocks,
+          sessionId,
+          ipAddress,
+          userId
+        );
+      }
+
       return {
         success: true,
         channelId: channel.id,
@@ -397,6 +437,7 @@ export class SyncService {
         deletedBlocks,
         errors,
         duration: Date.now() - startTime,
+        usageInfo
       };
 
     } catch (error) {

@@ -15,7 +15,7 @@ async function testSyncWithPDFs() {
   
   try {
     console.log('🚀 Starting sync for r-startups-founder-mode...');
-    const result = await syncService.syncChannel('r-startups-founder-mode');
+    const result = await syncService.syncChannel('r-startups-founder-mode', "test_session", "127.0.0.1");
     
     console.log('\n📊 Sync Results:');
     console.log(`✅ Success: ${result.success}`);

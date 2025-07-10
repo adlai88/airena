@@ -51,7 +51,7 @@ async function testFullPipeline() {
   const syncServiceWithProgress = new SyncService(progressCallback as any);
 
   try {
-    const result = await syncServiceWithProgress.syncChannel(testChannel);
+    const result = await syncServiceWithProgress.syncChannel(testChannel, 'test_session', '127.0.0.1');
     
     console.log('\n📋 Sync Results:');
     console.log(`   ✅ Success: ${result.success}`);
@@ -139,7 +139,7 @@ export async function testSpecificChannel(channelSlug: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const syncServiceWithProgress = new SyncService(progressCallback as any);
 
-  const result = await syncServiceWithProgress.syncChannel(channelSlug);
+  const result = await syncServiceWithProgress.syncChannel(channelSlug, 'test_session', '127.0.0.1');
   
   console.log('\n📋 Results:', result);
   return result;

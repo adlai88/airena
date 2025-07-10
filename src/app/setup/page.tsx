@@ -28,6 +28,22 @@ export default function SetupPage() {
     processedBlocks?: number;
     switchedToChannel?: string;
   }>({});
+  
+  // Session management for usage tracking
+  const [sessionId, setSessionId] = useState<string>('');
+  
+  // Initialize session ID on component mount
+  useEffect(() => {
+    let storedSessionId = typeof window !== 'undefined' ? localStorage.getItem('airena_session_id') : null;
+    if (!storedSessionId) {
+      storedSessionId = `anon_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('airena_session_id', storedSessionId);
+      }
+    }
+    setSessionId(storedSessionId);
+  }, []);
+  
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [recentChannels, setRecentChannels] = useState<{
     slug: string;
@@ -71,7 +87,10 @@ export default function SetupPage() {
       const response = await fetch('/api/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ channelSlug: channelSlug.trim() })
+        body: JSON.stringify({ 
+          channelSlug: channelSlug.trim(),
+          sessionId: sessionId
+        })
       });
 
       if (!response.ok) {
@@ -102,6 +121,14 @@ export default function SetupPage() {
               if (data.type === 'complete' && data.result) {
                 // Handle completion
                 const result = data.result;
+                
+                // Check if sync failed due to usage limits
+                if (!result.success && result.usageInfo && !result.usageInfo.canProcess) {
+                  setError(result.errors?.[0] || 'Channel already processed. Upgrade to re-sync channels.');
+                  setIsLoading(false);
+                  return;
+                }
+                
                 setProgress(100);
                 setSyncDetails({
                   channelTitle: result.channelTitle,
@@ -110,6 +137,14 @@ export default function SetupPage() {
                   switchedToChannel: channelSlug
                 });
                 setStatus(`Success! Processed ${result.processedBlocks} blocks from "${result.channelTitle || channelSlug}".`);
+                
+                // Update session ID if provided
+                if (data.sessionId) {
+                  setSessionId(data.sessionId);
+                  if (typeof window !== 'undefined') {
+                    localStorage.setItem('airena_session_id', data.sessionId);
+                  }
+                }
                 
                 // Refresh the hook to get updated channel info
                 refreshChannel();

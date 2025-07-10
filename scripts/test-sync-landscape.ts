@@ -18,7 +18,7 @@ async function testSyncLandscape() {
   });
 
   try {
-    const result = await syncService.syncChannel('obj-landscape-nature');
+    const result = await syncService.syncChannel('obj-landscape-nature', 'test_session', '127.0.0.1');
     
     console.log('\n📊 Sync Results:');
     console.log(`✅ Success: ${result.success}`);
