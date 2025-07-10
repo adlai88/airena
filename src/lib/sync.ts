@@ -326,26 +326,37 @@ export class SyncService {
 
       // Stage 2: Extract content from new blocks
       const processedBlocksList: ProcessedAnyBlock[] = [];
+      const detailedErrors: Array<{blockId: number, stage: string, error: string, url?: string}> = [];
 
       for (let i = 0; i < newBlocks.length; i++) {
         const block = newBlocks[i];
         
         try {
+          console.log(`Processing block ${block.id} (${block.class}): ${block.source_url}`);
           const processedBlock = await contentExtractor.processBlock(block);
           
           if (processedBlock) {
             processedBlocksList.push(processedBlock);
             processedBlocks++;
+            console.log(`✅ Successfully processed block ${block.id}`);
           } else {
             skippedBlocks++;
-            errors.push(`Failed to extract content from block ${block.id}: ${block.source_url}`);
+            const errorMsg = `Failed to extract content from block ${block.id}: ${block.source_url}`;
+            errors.push(errorMsg);
+            detailedErrors.push({
+              blockId: block.id,
+              stage: 'extraction',
+              error: 'Content extraction returned null',
+              url: block.source_url
+            });
+            console.error(`❌ ${errorMsg}`);
           }
 
-          // Report progress
+          // Report progress with detailed info
           const progress = 35 + (i + 1) / newBlocks.length * 35; // 35-70% for extraction
           this.reportProgress({
             stage: 'extracting',
-            message: `Processed ${i + 1}/${newBlocks.length} blocks`,
+            message: `Processed ${i + 1}/${newBlocks.length} blocks (${processedBlocks} successful, ${skippedBlocks} failed)`,
             progress,
             totalBlocks: newBlocks.length,
             processedBlocks: processedBlocks,
@@ -355,7 +366,13 @@ export class SyncService {
           skippedBlocks++;
           const errorMsg = `Error processing block ${block.id}: ${error}`;
           errors.push(errorMsg);
-          console.error(errorMsg);
+          detailedErrors.push({
+            blockId: block.id,
+            stage: 'extraction',
+            error: String(error),
+            url: block.source_url
+          });
+          console.error(`❌ ${errorMsg}`);
         }
       }
 
@@ -380,56 +397,127 @@ export class SyncService {
         totalBlocks: processedBlocksList.length,
       });
 
+      let embeddedBlocks = 0;
+      let embeddingErrors = 0;
+
       for (let i = 0; i < processedBlocksList.length; i++) {
         const processedBlock = processedBlocksList[i];
+        const blockId = 'arenaId' in processedBlock ? processedBlock.arenaId : processedBlock.id;
 
         try {
+          console.log(`Creating embedding for block ${blockId}...`);
+          
           // Create embedding (using first chunk for simplicity in MVP)
           const embeddingChunks = await embeddingService.createBlockEmbedding(processedBlock);
           
           if (embeddingChunks.length > 0) {
+            console.log(`Storing block ${blockId} in database...`);
             // Use the first chunk's embedding for the block
             await embeddingService.storeBlock(
               processedBlock,
               dbChannelId,
               embeddingChunks[0].embedding
             );
+            embeddedBlocks++;
+            console.log(`✅ Successfully embedded and stored block ${blockId}`);
+          } else {
+            embeddingErrors++;
+            const errorMsg = `No embedding chunks created for block ${blockId}`;
+            errors.push(errorMsg);
+            detailedErrors.push({
+              blockId: Number(blockId),
+              stage: 'embedding',
+              error: 'No embedding chunks created'
+            });
+            console.error(`❌ ${errorMsg}`);
           }
 
-          // Report progress
+          // Report progress with detailed status
           const progress = 70 + (i + 1) / processedBlocksList.length * 25; // 70-95% for embedding
           this.reportProgress({
             stage: 'embedding',
-            message: `Embedded ${i + 1}/${processedBlocksList.length} blocks`,
+            message: `Embedded ${i + 1}/${processedBlocksList.length} blocks (${embeddedBlocks} stored, ${embeddingErrors} failed)`,
             progress,
             totalBlocks: processedBlocksList.length,
-            processedBlocks: i + 1,
+            processedBlocks: embeddedBlocks,
           });
 
         } catch (error) {
-          const errorMsg = `Error creating embedding for block ${'arenaId' in processedBlock ? processedBlock.arenaId : processedBlock.id}: ${error}`;
+          embeddingErrors++;
+          const errorMsg = `Error creating embedding for block ${blockId}: ${error}`;
           errors.push(errorMsg);
-          console.error(errorMsg);
+          detailedErrors.push({
+            blockId: Number(blockId),
+            stage: 'embedding',
+            error: String(error)
+          });
+          console.error(`❌ ${errorMsg}`);
         }
       }
 
       // Update channel sync timestamp
       await this.upsertChannel(channel);
 
+      // Verify blocks were actually stored in database
+      const { count: actualStoredCount, error: countError } = await supabase
+        .from('blocks')
+        .select('*', { count: 'exact', head: true })
+        .eq('channel_id', dbChannelId);
+
+      if (countError) {
+        console.error('Error verifying stored blocks:', countError);
+      }
+
+      const actuallyStoredBlocks = actualStoredCount || 0;
+      console.log(`Verification: ${actuallyStoredBlocks} blocks actually stored in database (expected: ${embeddedBlocks})`);
+
+      // Check for discrepancy between expected and actual
+      if (embeddedBlocks > 0 && actuallyStoredBlocks !== embeddedBlocks) {
+        const discrepancyError = `Storage verification failed: Expected ${embeddedBlocks} blocks, but database contains ${actuallyStoredBlocks}`;
+        errors.push(discrepancyError);
+        console.error(discrepancyError);
+      }
+      
+      // Report detailed completion status
+      if (actuallyStoredBlocks === 0 && processedBlocksList.length > 0) {
+        // All blocks failed during embedding/storage phase
+        this.reportProgress({
+          stage: 'error',
+          message: `Sync failed! All ${processedBlocksList.length} blocks failed during embedding/storage`,
+          progress: 0,
+          totalBlocks: newBlocks.length,
+          processedBlocks: 0,
+          errors: errors.length > 0 ? errors.slice(0, 5) : ['Unknown embedding/storage failure'], // Limit error list
+        });
+
+        return {
+          success: false,
+          channelId: dbChannelId,
+          channelTitle: channel.title,
+          totalBlocks: newBlocks.length,
+          processedBlocks: 0,
+          skippedBlocks: newBlocks.length,
+          deletedBlocks,
+          errors: errors.length > 0 ? errors : ['All blocks failed during embedding/storage'],
+          duration: Date.now() - startTime,
+          usageInfo
+        };
+      }
+
       this.reportProgress({
         stage: 'complete',
-        message: `Sync complete! Processed ${processedBlocks}/${newBlocks.length} blocks`,
+        message: `Sync complete! Successfully stored ${actuallyStoredBlocks}/${newBlocks.length} blocks`,
         progress: 100,
         totalBlocks: newBlocks.length,
-        processedBlocks: processedBlocks,
-        errors: errors.length > 0 ? errors : undefined,
+        processedBlocks: actuallyStoredBlocks,
+        errors: errors.length > 0 ? errors.slice(0, 5) : undefined, // Limit error list for UI
       });
 
-      // Record usage after successful processing
-      if (processedBlocks > 0) {
+      // Record usage after successful processing (use actually stored blocks)
+      if (actuallyStoredBlocks > 0) {
         await UsageTracker.recordUsage(
           dbChannelId,
-          processedBlocks,
+          actuallyStoredBlocks,
           sessionId,
           ipAddress,
           userId
@@ -437,12 +525,12 @@ export class SyncService {
       }
 
       return {
-        success: true,
+        success: actuallyStoredBlocks > 0,
         channelId: dbChannelId,
         channelTitle: channel.title,
         totalBlocks: newBlocks.length,
-        processedBlocks,
-        skippedBlocks,
+        processedBlocks: actuallyStoredBlocks,
+        skippedBlocks: newBlocks.length - actuallyStoredBlocks,
         deletedBlocks,
         errors,
         duration: Date.now() - startTime,

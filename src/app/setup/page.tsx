@@ -82,16 +82,30 @@ export default function SetupPage() {
     setProgress(0);
     setSyncDetails({});
 
+    // Set up timeout for sync process (10 minutes)
+    const syncTimeout = setTimeout(() => {
+      setError('Sync timed out. The process took too long. Please check the channel and try again.');
+      setIsLoading(false);
+    }, 10 * 60 * 1000);
+
+    let hasCompleted = false;
+
     try {
       // Use EventSource for Server-Sent Events
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10 * 60 * 1000);
+
       const response = await fetch('/api/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           channelSlug: channelSlug.trim(),
           sessionId: sessionId
-        })
+        }),
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -105,11 +119,24 @@ export default function SetupPage() {
       }
 
       const decoder = new TextDecoder();
+      let lastActivityTime = Date.now();
+      
+      // Monitor for stuck connections
+      const activityTimeout = setInterval(() => {
+        if (Date.now() - lastActivityTime > 2 * 60 * 1000) { // 2 minutes without activity
+          clearInterval(activityTimeout);
+          if (!hasCompleted) {
+            setError('Connection timed out. The sync process may still be running in the background.');
+            setIsLoading(false);
+          }
+        }
+      }, 30000); // Check every 30 seconds
       
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
+        lastActivityTime = Date.now(); // Update activity timestamp
         const chunk = decoder.decode(value, { stream: true });
         const lines = chunk.split('\n');
         
@@ -120,11 +147,22 @@ export default function SetupPage() {
               
               if (data.type === 'complete' && data.result) {
                 // Handle completion
+                hasCompleted = true;
+                clearTimeout(syncTimeout);
+                clearInterval(activityTimeout);
+                
                 const result = data.result;
                 
                 // Check if sync failed due to usage limits
                 if (!result.success && result.usageInfo && !result.usageInfo.canProcess) {
                   setError(result.errors?.[0] || 'Channel already processed. Upgrade to re-sync channels.');
+                  setIsLoading(false);
+                  return;
+                }
+                
+                // Check if sync failed for other reasons
+                if (!result.success) {
+                  setError(result.errors?.[0] || 'Sync failed for unknown reason.');
                   setIsLoading(false);
                   return;
                 }
@@ -170,6 +208,9 @@ export default function SetupPage() {
                 
               } else if (data.type === 'error') {
                 // Handle error
+                hasCompleted = true;
+                clearTimeout(syncTimeout);
+                clearInterval(activityTimeout);
                 throw new Error(data.error || 'Sync failed');
                 
               } else if (data.stage) {
@@ -186,14 +227,24 @@ export default function SetupPage() {
                 }
               }
             } catch (parseError) {
-              console.log('Failed to parse SSE data:', parseError);
+              console.error('Failed to parse SSE data:', parseError, 'Raw line:', line);
             }
           }
         }
       }
+
+      // If we get here without completion, something went wrong
+      if (!hasCompleted) {
+        throw new Error('Sync completed without sending completion signal');
+      }
       
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Sync failed');
+      clearTimeout(syncTimeout);
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError('Sync was cancelled due to timeout');
+      } else {
+        setError(err instanceof Error ? err.message : 'Sync failed');
+      }
     } finally {
       setIsLoading(false);
     }
