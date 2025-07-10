@@ -9,7 +9,7 @@ config({ path: '.env.local' });
 async function testUsageLimits() {
   console.log('🧪 Testing usage limit enforcement...\n');
 
-  const testChannelId = 12345; // Use a test database channel ID
+  // const testChannelId = 12345; // Use a test database channel ID (unused)
   const sessionId = 'test_limits_' + Date.now();
   const ipAddress = '127.0.0.1';
 
@@ -28,6 +28,8 @@ async function testUsageLimits() {
       .select('id')
       .single();
 
+    let dbChannelId: number;
+
     if (insertError) {
       console.log('⚠️ Could not create test channel (might already exist):', insertError.message);
       // Try to get existing record
@@ -42,10 +44,10 @@ async function testUsageLimits() {
         return false;
       }
       console.log('✅ Using existing test channel ID:', existingChannel.id);
-      var dbChannelId = existingChannel.id;
+      dbChannelId = existingChannel.id as number;
     } else {
       console.log('✅ Created test channel ID:', insertedChannel.id);
-      var dbChannelId = insertedChannel.id;
+      dbChannelId = insertedChannel.id as number;
     }
 
     // Test 1: First-time processing (should allow)

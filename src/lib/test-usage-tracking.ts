@@ -51,7 +51,7 @@ async function testUsageTracking() {
         session_id: usageRecord.session_id
       });
     } catch (recordError) {
-      console.log('⚠️ Usage recording failed (expected due to FK constraint):', recordError.message);
+      console.log('⚠️ Usage recording failed (expected due to FK constraint):', (recordError as Error).message);
       console.log('   This is expected since channel ID 999999 doesn\'t exist');
     }
 

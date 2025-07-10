@@ -84,7 +84,7 @@ export class SyncService {
         throw new Error(`Failed to update channel: ${error.message}`);
       }
       console.log(`Successfully updated channel ${channel.slug} with username: ${channel.user.username}`);
-      return existingChannel.id;
+      return existingChannel.id as number;
     } else {
       // Insert new channel
       console.log(`Inserting new channel ${channel.slug} with username: ${channel.user.username}`);
@@ -107,7 +107,7 @@ export class SyncService {
         throw new Error(`Failed to insert channel: ${error.message}`);
       }
       console.log(`Successfully inserted new channel ${channel.slug} with username: ${channel.user.username}`);
-      return insertedChannel.id;
+      return insertedChannel.id as number;
     }
   }
 

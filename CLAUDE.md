@@ -17,7 +17,7 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 - **Content**: Are.na API + Jina AI extraction + vision analysis
 - **UI**: shadcn/ui design system with mobile-responsive foundation
 
-## 📈 Current Status: Complete Multimodal Intelligence + Phase 10 Ready
+## 📈 Current Status: Complete Multimodal Intelligence + Usage Tracking + Phase 10.1 Ready
 
 ✅ **MVP Features Complete**  
 ✅ **Professional UI with shadcn/ui**  
@@ -31,13 +31,14 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 ✅ **Phase 9.6: PDF Processing** (COMPLETED - Production tested with real PDFs)
 ✅ **Phase 9.7: Complete Block Type Coverage** (COMPLETED - All 5 Are.na block types supported)
 ✅ **Phase 9.8: Intelligence Enhancement** (COMPLETED - Hybrid knowledge mode + UI polish)
-🚀 **Phase 10: Open Source Strategy + Monetization** (READY - Community-driven growth)
+✅ **Phase 9.9: Usage Tracking & Limits** (COMPLETED - 50-block lifetime limits + monetization ready)
+🚀 **Phase 10.1: Quick Monetization Implementation** (READY - Polar.sh integration pending)
 
 **Live Application**: https://airena-e6f38mhub-adlai88s-projects.vercel.app/
 
 ## Where We Are
 
-**Complete multimodal intelligence platform with ALL content types:**
+**Complete multimodal intelligence platform with ALL content types + Usage Controls:**
 - **Complete Are.na Coverage**: ALL 5 block types supported (Link + Image + Media + Attachment + Text)
 - **Enhanced AI Intelligence**: Hybrid knowledge mode - prioritizes curated content but provides general knowledge when helpful
 - **Multimodal Processing**: OpenAI embeddings + GPT-4 generation + GPT-4V vision + YouTube Data API v3 + Jina AI extraction
@@ -46,6 +47,8 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 - **Bidirectional Sync**: Perfect synchronization with deletion detection between Are.na and Airena
 - **Polished UX**: Mobile-optimized design with neutral language, improved chat styling, and intuitive interactions
 - **Intelligence Layer**: Smart curation companion that never shuts down users
+- **Usage Tracking**: 50-block lifetime limits per channel with session management for cost control
+- **Monetization Ready**: Database schema and limits infrastructure ready for billing integration
 - **Deployment**: Live on Vercel with Supabase backend
 
 **What's Next**: Ready for Phase 10 Launch:
@@ -241,7 +244,76 @@ const processableBlocks = blocks.filter(block =>
 
 **Result**: Both PDF upload methods working in production (direct upload → Attachment blocks, bookmarked URLs → Link blocks).
 
-## 📋 Phase 9.9: Production Polish & Visual Intelligence ✅ **COMPLETED**
+## 📋 Phase 9.9: Usage Tracking & Monetization Infrastructure ✅ **COMPLETED**
+
+### **🎯 Achievement: Production-Ready Usage Limits + Cost Control**
+
+**Problem Solved**: Users could re-process the same channel unlimited times, causing cost bleeding from expensive content extraction APIs and preventing proper monetization controls for Phase 10.1 launch.
+
+**Solution Implemented**: Comprehensive usage tracking system with 50-block lifetime limits per channel for free tier users.
+
+#### **Key Features Delivered:**
+
+✅ **Usage Tracking Database** - Complete schema with foreign keys and constraints
+- Created `channel_usage` table with proper relationships to `channels` table
+- Session-based tracking for anonymous users with IP address logging
+- Future-ready for authenticated user tracking
+- Automatic timestamp management with triggers
+
+✅ **Smart Limit Enforcement** - Intelligent block processing limits
+- 50-block lifetime limit per channel for free tier users
+- Cumulative tracking across multiple sync sessions
+- Smart limiting when approaching limits (processes remaining blocks only)
+- Complete denial when limit reached with upgrade messaging
+
+✅ **Production Database Architecture** - Proper ID management
+- Fixed foreign key constraint issues by using database `id` vs Are.na `arena_id`
+- Updated `upsertChannel()` to return database ID for usage tracking
+- All usage tracking now uses correct database primary keys
+
+✅ **Session Management** - Anonymous user tracking for pre-authentication
+- Generates unique session IDs for anonymous users
+- IP address tracking for additional verification
+- Ready for future user authentication integration
+- Prevents usage limit circumvention
+
+#### **Technical Implementation:**
+
+**Database Schema:**
+```sql
+CREATE TABLE channel_usage (
+  id SERIAL PRIMARY KEY,
+  channel_id INTEGER REFERENCES channels(id),
+  session_id TEXT,
+  ip_address INET,
+  total_blocks_processed INTEGER DEFAULT 0,
+  is_free_tier BOOLEAN DEFAULT true
+);
+```
+
+**Usage Flow:**
+1. Check current usage against 50-block limit
+2. Process blocks up to remaining limit
+3. Record new blocks processed (cumulative)
+4. Display clear messaging when limits approached/reached
+
+**User Experience:**
+- **0-40 blocks**: Normal processing, no warnings
+- **40-49 blocks**: "Processing limited to X blocks (Y/50 lifetime limit). Upgrade for unlimited processing."
+- **50+ blocks**: "Free tier limit reached (50/50 blocks processed). Upgrade to process more content."
+
+#### **Production Validation:**
+```
+✅ First-time processing: Allows 50 blocks (0/50 used)
+✅ Partial processing: Tracks usage (10/50 used, 40 remaining)  
+✅ Near-limit processing: Limits to remaining blocks (40/50 used, only 10 more allowed)
+✅ At-limit processing: Denies further processing (50/50 used, 0 remaining)
+✅ Database integrity: No foreign key violations, proper ID relationships
+```
+
+**Production Impact**: Cost control implemented, monetization infrastructure ready for Phase 10.1 billing integration. Users receive clear upgrade prompts when hitting limits.
+
+## 📋 Phase 9.10: Production Polish & Visual Intelligence ✅ **COMPLETED**
 
 ### **🎯 Achievement: Visual Context + Image Processing Fixes**
 
@@ -473,7 +545,7 @@ const processableBlocks = blocks.filter(block =>
 **Goal**: Basic but functional monetization ready for launch
 - [ ] **Polar.sh integration** - Open source billing platform setup
 - [ ] **Basic tier management** - Starter ($9), Pro ($19), Enterprise ($99)
-- [ ] **Usage tracking** - Simple block consumption counting
+- [x] **Usage tracking** - 50-block lifetime limits with session management ✅ **COMPLETED**
 - [ ] **User dashboard** - Basic usage monitoring and billing
 - [ ] **Pricing page** - Clear value proposition for each tier
 

@@ -74,7 +74,7 @@ export class UsageTracker {
         throw new Error(`Failed to check usage: ${error.message}`);
       }
 
-      const isFirstTime = !existingUsage;
+      // const isFirstTime = !existingUsage; // unused variable
 
       if (!existingUsage) {
         // First time processing this channel
@@ -87,7 +87,7 @@ export class UsageTracker {
       }
 
       // Type assertion for database response
-      const usage = existingUsage as any;
+      const usage = existingUsage as unknown as UsageRecord;
       const blocksProcessed = Number(usage.total_blocks_processed) || 0;
       
       // For free tier users, check if they've exceeded the lifetime limit
@@ -165,7 +165,7 @@ export class UsageTracker {
         throw new Error(`Failed to get existing usage: ${selectError.message}`);
       }
 
-      const currentTotal = existingUsage ? Number((existingUsage as any).total_blocks_processed) || 0 : 0;
+      const currentTotal = existingUsage ? Number((existingUsage as unknown as UsageRecord).total_blocks_processed) || 0 : 0;
       const newTotal = currentTotal + blocksProcessed;
 
       if (existingUsage) {
