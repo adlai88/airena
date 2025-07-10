@@ -57,7 +57,7 @@ export class SyncService {
   /**
    * Store or update channel in database
    */
-  private async upsertChannel(channel: ArenaChannel): Promise<void> {
+  private async upsertChannel(channel: ArenaChannel): Promise<number> {
     // First try to update existing record
     const { data: existingChannel } = await supabase
       .from('channels')
@@ -84,10 +84,11 @@ export class SyncService {
         throw new Error(`Failed to update channel: ${error.message}`);
       }
       console.log(`Successfully updated channel ${channel.slug} with username: ${channel.user.username}`);
+      return existingChannel.id;
     } else {
       // Insert new channel
       console.log(`Inserting new channel ${channel.slug} with username: ${channel.user.username}`);
-      const { error } = await supabase
+      const { data: insertedChannel, error } = await supabase
         .from('channels')
         .insert({
           arena_id: channel.id,
@@ -97,13 +98,16 @@ export class SyncService {
           user_id: null,
           last_sync: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        });
+        })
+        .select('id')
+        .single();
 
       if (error) {
         console.error(`Failed to insert channel ${channel.slug}:`, error);
         throw new Error(`Failed to insert channel: ${error.message}`);
       }
       console.log(`Successfully inserted new channel ${channel.slug} with username: ${channel.user.username}`);
+      return insertedChannel.id;
     }
   }
 
@@ -195,29 +199,7 @@ export class SyncService {
       });
 
       const channel = await arenaClient.getChannel(channelSlug);
-      await this.upsertChannel(channel);
-
-      // Check usage limits before processing
-      const usageInfo = await UsageTracker.checkUsageLimit(
-        channel.id,
-        sessionId,
-        ipAddress,
-        userId
-      );
-
-      if (!usageInfo.canProcess) {
-        return {
-          success: false,
-          channelId: channel.id,
-          totalBlocks: 0,
-          processedBlocks: 0,
-          skippedBlocks: 0,
-          deletedBlocks: 0,
-          errors: [usageInfo.message || 'Usage limit exceeded'],
-          duration: Date.now() - startTime,
-          usageInfo
-        };
-      }
+      const dbChannelId = await this.upsertChannel(channel);
 
       const allBlocks = await arenaClient.getAllChannelContents(channelSlug);
       
@@ -243,7 +225,7 @@ export class SyncService {
 
       // Stage 1.5: Delete orphaned blocks (blocks removed from Are.na)
       const currentArenaBlockIds = new Set(processableBlocks.map(block => block.id));
-      deletedBlocks = await this.deleteOrphanedBlocks(channel.id, currentArenaBlockIds);
+      deletedBlocks = await this.deleteOrphanedBlocks(dbChannelId, currentArenaBlockIds);
       
       if (deletedBlocks > 0) {
         this.reportProgress({
@@ -256,7 +238,7 @@ export class SyncService {
       if (processableBlocks.length === 0) {
         return {
           success: true,
-          channelId: channel.id,
+          channelId: dbChannelId,
           totalBlocks: allBlocks.length,
           processedBlocks: 0,
           skippedBlocks: allBlocks.length,
@@ -267,26 +249,51 @@ export class SyncService {
       }
 
       // Get existing blocks to avoid re-processing
-      const existingBlocks = await this.getExistingBlocks(channel.id);
+      const existingBlocks = await this.getExistingBlocks(dbChannelId);
       console.log(`Found ${existingBlocks.size} existing blocks in database:`, Array.from(existingBlocks));
       console.log(`Arena channel has ${processableBlocks.length} processable blocks:`, processableBlocks.map(b => b.id));
       let newBlocks = processableBlocks.filter(block => !existingBlocks.has(block.id));
       console.log(`Filtered to ${newBlocks.length} new blocks:`, newBlocks.map(b => b.id));
 
-      // Enforce a 50-block processing limit for all users (feature gate for future premium users)
-      const BLOCK_LIMIT = 50;
-      if (newBlocks.length > BLOCK_LIMIT) {
-        newBlocks = newBlocks.slice(0, BLOCK_LIMIT);
-        errors.push(`Block limit reached: Only the first ${BLOCK_LIMIT} blocks will be processed.`);
+      // Check usage limits now that we know how many blocks will be processed
+      const usageInfo = await UsageTracker.checkUsageLimit(
+        dbChannelId,
+        sessionId,
+        ipAddress,
+        userId,
+        newBlocks.length
+      );
+
+      if (!usageInfo.canProcess) {
+        return {
+          success: false,
+          channelId: dbChannelId,
+          totalBlocks: processableBlocks.length,
+          processedBlocks: 0,
+          skippedBlocks: processableBlocks.length,
+          deletedBlocks,
+          errors: [usageInfo.message || 'Usage limit exceeded'],
+          duration: Date.now() - startTime,
+          usageInfo
+        };
       }
+
+      // If usage info suggests limiting blocks, apply that limit
+      if (usageInfo.blocksToProcess && usageInfo.blocksToProcess < newBlocks.length) {
+        newBlocks = newBlocks.slice(0, usageInfo.blocksToProcess);
+        if (usageInfo.message) {
+          errors.push(usageInfo.message);
+        }
+      }
+
 
       if (newBlocks.length === 0) {
         return {
           success: true,
-          channelId: channel.id,
-          totalBlocks: linkBlocks.length,
+          channelId: dbChannelId,
+          totalBlocks: processableBlocks.length,
           processedBlocks: 0,
-          skippedBlocks: linkBlocks.length,
+          skippedBlocks: processableBlocks.length,
           deletedBlocks,
           errors: ['All blocks already processed'],
           duration: Date.now() - startTime,
@@ -354,7 +361,7 @@ export class SyncService {
       if (processedBlocksList.length === 0) {
         return {
           success: false,
-          channelId: channel.id,
+          channelId: dbChannelId,
           totalBlocks: newBlocks.length,
           processedBlocks: 0,
           skippedBlocks: newBlocks.length,
@@ -383,7 +390,7 @@ export class SyncService {
             // Use the first chunk's embedding for the block
             await embeddingService.storeBlock(
               processedBlock,
-              channel.id,
+              dbChannelId,
               embeddingChunks[0].embedding
             );
           }
@@ -420,7 +427,7 @@ export class SyncService {
       // Record usage after successful processing
       if (processedBlocks > 0) {
         await UsageTracker.recordUsage(
-          channel.id,
+          dbChannelId,
           processedBlocks,
           sessionId,
           ipAddress,
@@ -430,7 +437,7 @@ export class SyncService {
 
       return {
         success: true,
-        channelId: channel.id,
+        channelId: dbChannelId,
         totalBlocks: newBlocks.length,
         processedBlocks,
         skippedBlocks,

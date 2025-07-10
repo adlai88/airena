@@ -19,6 +19,7 @@ export interface UsageCheckResult {
   blocksProcessed: number;
   blocksRemaining: number;
   isFirstTime: boolean;
+  blocksToProcess?: number; // How many blocks will be processed this time
   message?: string;
 }
 
@@ -50,7 +51,8 @@ export class UsageTracker {
     channelId: number,
     sessionId: string,
     ipAddress: string,
-    userId?: string
+    userId?: string,
+    blocksToProcess?: number
   ): Promise<UsageCheckResult> {
     try {
       // Query for existing usage record
@@ -88,15 +90,32 @@ export class UsageTracker {
       const usage = existingUsage as any;
       const blocksProcessed = Number(usage.total_blocks_processed) || 0;
       
-      // For free tier users, check if they've already processed this channel
-      if (usage.is_free_tier && blocksProcessed > 0) {
-        return {
-          canProcess: false,
-          blocksProcessed: blocksProcessed,
-          blocksRemaining: 0,
-          isFirstTime: false,
-          message: `Channel already processed (${blocksProcessed} blocks). Upgrade to re-sync channels.`
-        };
+      // For free tier users, check if they've exceeded the lifetime limit
+      if (usage.is_free_tier) {
+        const blocksRemaining = Math.max(0, this.FREE_TIER_LIMIT - blocksProcessed);
+        
+        // If they want to process more blocks than remaining, deny or limit
+        if (blocksToProcess && blocksToProcess > blocksRemaining) {
+          if (blocksRemaining === 0) {
+            return {
+              canProcess: false,
+              blocksProcessed: blocksProcessed,
+              blocksRemaining: 0,
+              isFirstTime: false,
+              blocksToProcess: blocksToProcess,
+              message: `Free tier limit reached (${blocksProcessed}/${this.FREE_TIER_LIMIT} blocks processed). Upgrade to process more content.`
+            };
+          } else {
+            return {
+              canProcess: true,
+              blocksProcessed: blocksProcessed,
+              blocksRemaining: blocksRemaining,
+              isFirstTime: false,
+              blocksToProcess: blocksRemaining,
+              message: `Processing limited to ${blocksRemaining} blocks (${blocksProcessed}/${this.FREE_TIER_LIMIT} lifetime limit). Upgrade for unlimited processing.`
+            };
+          }
+        }
       }
 
       // For paid users (future implementation)
@@ -106,7 +125,8 @@ export class UsageTracker {
         canProcess: true,
         blocksProcessed: blocksProcessed,
         blocksRemaining: this.FREE_TIER_LIMIT - blocksProcessed,
-        isFirstTime: false
+        isFirstTime: false,
+        blocksToProcess: blocksToProcess
       };
 
     } catch (error) {
@@ -126,52 +146,79 @@ export class UsageTracker {
     userId?: string
   ): Promise<UsageRecord> {
     try {
-      // Try to update existing record first
-      const updateQuery = supabase
+      // First, get the existing usage to calculate new total
+      const query = supabase
         .from('channel_usage')
-        .update({
-          total_blocks_processed: blocksProcessed,
-          last_processed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
+        .select('*')
         .eq('channel_id', channelId);
 
       if (userId) {
-        updateQuery.eq('user_id', userId);
+        query.eq('user_id', userId);
       } else {
-        updateQuery.eq('session_id', sessionId).is('user_id', null);
+        query.eq('session_id', sessionId).is('user_id', null);
       }
 
-      const { data: updateData, error: updateError } = await updateQuery.select().single();
+      const { data: existingUsage, error: selectError } = await query.single();
 
-      if (!updateError && updateData) {
+      if (selectError && selectError.code !== 'PGRST116') { // PGRST116 = no rows found
+        console.error('Error getting existing usage:', selectError);
+        throw new Error(`Failed to get existing usage: ${selectError.message}`);
+      }
+
+      const currentTotal = existingUsage ? Number((existingUsage as any).total_blocks_processed) || 0 : 0;
+      const newTotal = currentTotal + blocksProcessed;
+
+      if (existingUsage) {
+        // Update existing record by adding new blocks to the total
+        const updateQuery = supabase
+          .from('channel_usage')
+          .update({
+            total_blocks_processed: newTotal,
+            last_processed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('channel_id', channelId);
+
+        if (userId) {
+          updateQuery.eq('user_id', userId);
+        } else {
+          updateQuery.eq('session_id', sessionId).is('user_id', null);
+        }
+
+        const { data: updateData, error: updateError } = await updateQuery.select().single();
+
+        if (updateError) {
+          console.error('Error updating usage:', updateError);
+          throw new Error(`Failed to update usage: ${updateError.message}`);
+        }
+
         return updateData as unknown as UsageRecord;
+      } else {
+        // Create new record
+        const insertData = {
+          channel_id: channelId,
+          user_id: userId || null,
+          session_id: userId ? null : sessionId,
+          ip_address: ipAddress,
+          total_blocks_processed: blocksProcessed,
+          is_free_tier: true, // Default to free tier for now
+          first_processed_at: new Date().toISOString(),
+          last_processed_at: new Date().toISOString()
+        };
+
+        const { data: insertResult, error: insertError } = await supabase
+          .from('channel_usage')
+          .insert(insertData)
+          .select()
+          .single();
+
+        if (insertError) {
+          console.error('Error recording usage:', insertError);
+          throw new Error(`Failed to record usage: ${insertError.message}`);
+        }
+
+        return insertResult as unknown as UsageRecord;
       }
-
-      // If update failed, create new record
-      const insertData = {
-        channel_id: channelId,
-        user_id: userId || null,
-        session_id: userId ? null : sessionId,
-        ip_address: ipAddress,
-        total_blocks_processed: blocksProcessed,
-        is_free_tier: true, // Default to free tier for now
-        first_processed_at: new Date().toISOString(),
-        last_processed_at: new Date().toISOString()
-      };
-
-      const { data: insertResult, error: insertError } = await supabase
-        .from('channel_usage')
-        .insert(insertData)
-        .select()
-        .single();
-
-      if (insertError) {
-        console.error('Error recording usage:', insertError);
-        throw new Error(`Failed to record usage: ${insertError.message}`);
-      }
-
-      return insertResult as unknown as UsageRecord;
 
     } catch (error) {
       console.error('Error in recordUsage:', error);
