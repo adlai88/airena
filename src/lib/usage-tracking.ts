@@ -24,7 +24,7 @@ export interface UsageCheckResult {
 }
 
 export class UsageTracker {
-  private static readonly FREE_TIER_LIMIT = 50;
+  private static readonly FREE_TIER_LIMIT = 25;
 
   /**
    * Generate a session ID for anonymous users
