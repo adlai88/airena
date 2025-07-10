@@ -26,9 +26,9 @@ export async function POST(req: Request) {
     // Get channel info with block count in single query
     const { data: channel, error: channelError } = await supabase
       .from('channels')
-      .select('arena_id, title, slug')
+      .select('id, arena_id, title, slug')
       .eq('slug', channelSlug)
-      .single() as { data: { arena_id: number; title: string; slug: string } | null; error: unknown };
+      .single() as { data: { id: number; arena_id: number; title: string; slug: string } | null; error: unknown };
 
     if (channelError || !channel) {
       return new Response('Channel not found', { status: 404 });
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
       const { data: hybridData, error: hybridError } = await supabase.rpc('search_blocks_hybrid', {
         query_text: lastMessage.content,
         query_embedding: queryEmbedding,
-        channel_filter: channel.arena_id,
+        channel_filter: channel.id,
         similarity_threshold: 0.3,
         match_count: 10
       }) as { data: (ContextBlock & { block_type?: string, title_similarity?: number, semantic_similarity?: number, hybrid_score?: number })[] | null; error: unknown };
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
         for (const threshold of thresholds) {
           const { data, error } = await supabase.rpc('search_blocks', {
             query_embedding: queryEmbedding,
-            channel_filter: channel.arena_id,
+            channel_filter: channel.id,
             similarity_threshold: threshold,
             match_count: 10
           }) as { data: (ContextBlock & { block_type?: string })[] | null; error: unknown };
@@ -89,7 +89,7 @@ export async function POST(req: Request) {
           supabase
             .from('blocks')
             .select('id, arena_id, title, url, content, block_type')
-            .eq('channel_id', channel.arena_id)
+            .eq('channel_id', channel.id)
             .not('embedding', 'is', null)
             .order('created_at', { ascending: false })
             .limit(3),
@@ -97,7 +97,7 @@ export async function POST(req: Request) {
           supabase
             .from('blocks')
             .select('id, arena_id, title, url, content, block_type')
-            .eq('channel_id', channel.arena_id)
+            .eq('channel_id', channel.id)
             .not('embedding', 'is', null)
             .order('updated_at', { ascending: false })
             .limit(10) // Get 10 to pick diverse ones from
@@ -137,14 +137,14 @@ export async function POST(req: Request) {
           supabase
             .from('blocks')
             .select('id, arena_id, title, url, content, block_type')
-            .eq('channel_id', channel.arena_id)
+            .eq('channel_id', channel.id)
             .not('embedding', 'is', null)
             .order('created_at', { ascending: false })
             .limit(3),
           supabase
             .from('blocks')
             .select('id, arena_id, title, url, content, block_type')
-            .eq('channel_id', channel.arena_id)
+            .eq('channel_id', channel.id)
             .not('embedding', 'is', null)
             .order('updated_at', { ascending: false })
             .limit(10)
