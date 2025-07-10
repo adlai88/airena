@@ -341,7 +341,7 @@ export class SyncService {
         console.log(`Processing batch ${Math.floor(batchStart / BATCH_SIZE) + 1}: blocks ${batchStart + 1}-${Math.min(batchStart + BATCH_SIZE, newBlocks.length)}`);
 
         // Create promises for parallel processing with individual timeouts
-        const batchPromises = batch.map(async (block, batchIndex) => {
+        const batchPromises = batch.map(async (block) => {
           // Add jitter to avoid hitting rate limits simultaneously (0-1000ms)
           const jitter = Math.random() * 1000;
           await new Promise(resolve => setTimeout(resolve, jitter));
@@ -478,7 +478,7 @@ export class SyncService {
         console.log(`Embedding batch ${Math.floor(batchStart / EMBEDDING_BATCH_SIZE) + 1}: blocks ${batchStart + 1}-${Math.min(batchStart + EMBEDDING_BATCH_SIZE, processedBlocksList.length)}`);
 
         // Create promises for parallel embedding with individual timeouts
-        const batchPromises = batch.map(async (processedBlock, batchIndex) => {
+        const batchPromises = batch.map(async (processedBlock) => {
           const blockId = 'arenaId' in processedBlock ? processedBlock.arenaId : processedBlock.id;
           
           // Small jitter for database writes (0-200ms)
