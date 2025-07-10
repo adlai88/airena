@@ -328,10 +328,10 @@ export class SyncService {
       const processedBlocksList: ProcessedAnyBlock[] = [];
       const detailedErrors: Array<{blockId: number, stage: string, error: string, url?: string}> = [];
 
-      // Parallel processing configuration
-      const BATCH_SIZE = 5; // Process 5 blocks simultaneously
-      const BLOCK_TIMEOUT = 30000; // 30 seconds per block
-      const BATCH_DELAY = 1000; // 1 second between batches
+      // Parallel processing configuration (conservative for rate limits)
+      const BATCH_SIZE = 3; // Process 3 blocks simultaneously (reduced from 5)
+      const BLOCK_TIMEOUT = 45000; // 45 seconds per block (increased)
+      const BATCH_DELAY = 2000; // 2 seconds between batches (increased)
 
       console.log(`Starting parallel processing: ${newBlocks.length} blocks in batches of ${BATCH_SIZE}`);
 
@@ -340,22 +340,50 @@ export class SyncService {
         const batch = newBlocks.slice(batchStart, batchStart + BATCH_SIZE);
         console.log(`Processing batch ${Math.floor(batchStart / BATCH_SIZE) + 1}: blocks ${batchStart + 1}-${Math.min(batchStart + BATCH_SIZE, newBlocks.length)}`);
 
-        // Create promises for parallel processing with individual timeouts
-        const batchPromises = batch.map(async (block) => {
-          // Add jitter to avoid hitting rate limits simultaneously (0-1000ms)
-          const jitter = Math.random() * 1000;
+        // Create promises for parallel processing with individual timeouts and rate limit handling
+        const batchPromises = batch.map(async (block, blockIndex) => {
+          // Add progressive jitter to spread out requests (0-3000ms)
+          const jitter = Math.random() * 3000 + (blockIndex * 1000);
           await new Promise(resolve => setTimeout(resolve, jitter));
 
           try {
             console.log(`Processing block ${block.id} (${block.class}): ${block.source_url}`);
 
-            // Race between actual processing and timeout
-            const processedBlock = await Promise.race([
-              contentExtractor.processBlock(block),
-              new Promise<never>((_, reject) => 
-                setTimeout(() => reject(new Error('Block processing timeout')), BLOCK_TIMEOUT)
-              )
-            ]);
+            // Add retry logic for rate limit errors
+            let retryCount = 0;
+            const maxRetries = 3;
+            let processedBlock = null;
+
+            while (retryCount <= maxRetries && !processedBlock) {
+              try {
+                // Race between actual processing and timeout
+                processedBlock = await Promise.race([
+                  contentExtractor.processBlock(block),
+                  new Promise<never>((_, reject) => 
+                    setTimeout(() => reject(new Error('Block processing timeout')), BLOCK_TIMEOUT)
+                  )
+                ]);
+                break; // Success, exit retry loop
+              } catch (error) {
+                const errorStr = String(error);
+                
+                // Check if it's a rate limit error (429)
+                if (errorStr.includes('429') || errorStr.includes('Too Many Requests') || errorStr.includes('rate limit')) {
+                  retryCount++;
+                  if (retryCount <= maxRetries) {
+                    const backoffDelay = Math.pow(2, retryCount) * 1000 + Math.random() * 1000; // Exponential backoff
+                    console.log(`⏳ Rate limit hit for block ${block.id}, retrying in ${Math.round(backoffDelay)}ms (attempt ${retryCount}/${maxRetries})`);
+                    await new Promise(resolve => setTimeout(resolve, backoffDelay));
+                  } else {
+                    console.log(`❌ Rate limit retries exhausted for block ${block.id}`);
+                    throw new Error(`Rate limit exceeded after ${maxRetries} retries: ${errorStr}`);
+                  }
+                } else {
+                  // Non-rate-limit error, don't retry
+                  throw error;
+                }
+              }
+            }
 
             if (processedBlock) {
               console.log(`✅ Successfully processed block ${block.id}`);
@@ -432,10 +460,12 @@ export class SyncService {
           });
         });
 
-        // Brief pause between batches to avoid overwhelming APIs
+        // Progressive pause between batches to avoid overwhelming APIs (increases over time)
         if (batchStart + BATCH_SIZE < newBlocks.length) {
-          console.log(`Batch complete. Waiting ${BATCH_DELAY}ms before next batch...`);
-          await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+          const batchNumber = Math.floor(batchStart / BATCH_SIZE) + 1;
+          const progressiveDelay = BATCH_DELAY + (batchNumber * 500); // Add 500ms per batch
+          console.log(`Batch ${batchNumber} complete. Waiting ${progressiveDelay}ms before next batch (progressive rate limiting)...`);
+          await new Promise(resolve => setTimeout(resolve, progressiveDelay));
         }
       }
 
@@ -596,6 +626,7 @@ export class SyncService {
       await this.upsertChannel(channel);
 
       // Verify blocks were actually stored in database
+      console.log('Verifying blocks were stored in database...');
       const { count: actualStoredCount, error: countError } = await supabase
         .from('blocks')
         .select('*', { count: 'exact', head: true })
@@ -603,21 +634,25 @@ export class SyncService {
 
       if (countError) {
         console.error('Error verifying stored blocks:', countError);
+        errors.push(`Database verification error: ${countError.message || countError}`);
       }
 
       const actuallyStoredBlocks = actualStoredCount || 0;
-      console.log(`Verification: ${actuallyStoredBlocks} blocks actually stored in database (expected: ${embeddedBlocks})`);
+      console.log(`✅ Verification complete: ${actuallyStoredBlocks} blocks actually stored in database (expected: ${embeddedBlocks})`);
 
       // Check for discrepancy between expected and actual
       if (embeddedBlocks > 0 && actuallyStoredBlocks !== embeddedBlocks) {
         const discrepancyError = `Storage verification failed: Expected ${embeddedBlocks} blocks, but database contains ${actuallyStoredBlocks}`;
         errors.push(discrepancyError);
-        console.error(discrepancyError);
+        console.error(`❌ ${discrepancyError}`);
       }
+
+      console.log(`Preparing completion signal: actuallyStoredBlocks=${actuallyStoredBlocks}, processedBlocksList.length=${processedBlocksList.length}`);
       
       // Report detailed completion status
       if (actuallyStoredBlocks === 0 && processedBlocksList.length > 0) {
         // All blocks failed during embedding/storage phase
+        console.log('❌ All blocks failed during embedding/storage - sending error signal');
         this.reportProgress({
           stage: 'error',
           message: `Sync failed! All ${processedBlocksList.length} blocks failed during embedding/storage`,
@@ -627,6 +662,7 @@ export class SyncService {
           errors: errors.length > 0 ? errors.slice(0, 5) : ['Unknown embedding/storage failure'], // Limit error list
         });
 
+        console.log('❌ Returning failure result');
         return {
           success: false,
           channelId: dbChannelId,
@@ -641,6 +677,7 @@ export class SyncService {
         };
       }
 
+      console.log('✅ Sending completion signal to frontend');
       this.reportProgress({
         stage: 'complete',
         message: `Sync complete! Successfully stored ${actuallyStoredBlocks}/${newBlocks.length} blocks`,
@@ -649,6 +686,8 @@ export class SyncService {
         processedBlocks: actuallyStoredBlocks,
         errors: errors.length > 0 ? errors.slice(0, 5) : undefined, // Limit error list for UI
       });
+
+      console.log('✅ Completion signal sent successfully');
 
       // Record usage after successful processing (use actually stored blocks)
       if (actuallyStoredBlocks > 0) {
