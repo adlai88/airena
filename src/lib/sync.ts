@@ -324,57 +324,122 @@ export class SyncService {
         totalBlocks: newBlocks.length,
       });
 
-      // Stage 2: Extract content from new blocks
+      // Stage 2: Extract content from new blocks (PARALLEL PROCESSING)
       const processedBlocksList: ProcessedAnyBlock[] = [];
       const detailedErrors: Array<{blockId: number, stage: string, error: string, url?: string}> = [];
 
-      for (let i = 0; i < newBlocks.length; i++) {
-        const block = newBlocks[i];
-        
-        try {
-          console.log(`Processing block ${block.id} (${block.class}): ${block.source_url}`);
-          const processedBlock = await contentExtractor.processBlock(block);
+      // Parallel processing configuration
+      const BATCH_SIZE = 5; // Process 5 blocks simultaneously
+      const BLOCK_TIMEOUT = 30000; // 30 seconds per block
+      const BATCH_DELAY = 1000; // 1 second between batches
+
+      console.log(`Starting parallel processing: ${newBlocks.length} blocks in batches of ${BATCH_SIZE}`);
+
+      // Process blocks in parallel batches
+      for (let batchStart = 0; batchStart < newBlocks.length; batchStart += BATCH_SIZE) {
+        const batch = newBlocks.slice(batchStart, batchStart + BATCH_SIZE);
+        console.log(`Processing batch ${Math.floor(batchStart / BATCH_SIZE) + 1}: blocks ${batchStart + 1}-${Math.min(batchStart + BATCH_SIZE, newBlocks.length)}`);
+
+        // Create promises for parallel processing with individual timeouts
+        const batchPromises = batch.map(async (block, batchIndex) => {
+          // Add jitter to avoid hitting rate limits simultaneously (0-1000ms)
+          const jitter = Math.random() * 1000;
+          await new Promise(resolve => setTimeout(resolve, jitter));
+
+          try {
+            console.log(`Processing block ${block.id} (${block.class}): ${block.source_url}`);
+
+            // Race between actual processing and timeout
+            const processedBlock = await Promise.race([
+              contentExtractor.processBlock(block),
+              new Promise<never>((_, reject) => 
+                setTimeout(() => reject(new Error('Block processing timeout')), BLOCK_TIMEOUT)
+              )
+            ]);
+
+            if (processedBlock) {
+              console.log(`✅ Successfully processed block ${block.id}`);
+              return { success: true, block, processedBlock };
+            } else {
+              const errorMsg = `Failed to extract content from block ${block.id}: ${block.source_url}`;
+              console.error(`❌ ${errorMsg}`);
+              return { 
+                success: false, 
+                block, 
+                error: 'Content extraction returned null',
+                stage: 'extraction' as const
+              };
+            }
+          } catch (error) {
+            const errorMsg = `Error processing block ${block.id}: ${error}`;
+            console.error(`❌ ${errorMsg}`);
+            return { 
+              success: false, 
+              block, 
+              error: String(error),
+              stage: 'extraction' as const
+            };
+          }
+        });
+
+        // Wait for all blocks in this batch to complete
+        const batchResults = await Promise.allSettled(batchPromises);
+
+        // Process results
+        batchResults.forEach((result, batchIndex) => {
+          const globalIndex = batchStart + batchIndex;
           
-          if (processedBlock) {
-            processedBlocksList.push(processedBlock);
-            processedBlocks++;
-            console.log(`✅ Successfully processed block ${block.id}`);
+          if (result.status === 'fulfilled') {
+            const blockResult = result.value;
+            
+            if (blockResult.success) {
+              processedBlocksList.push(blockResult.processedBlock);
+              processedBlocks++;
+            } else {
+              skippedBlocks++;
+              const errorMsg = `Failed to extract content from block ${blockResult.block.id}: ${blockResult.block.source_url}`;
+              errors.push(errorMsg);
+              detailedErrors.push({
+                blockId: blockResult.block.id,
+                stage: blockResult.stage,
+                error: blockResult.error,
+                url: blockResult.block.source_url || undefined
+              });
+            }
           } else {
+            // Promise itself was rejected (shouldn't happen with our error handling, but just in case)
+            const block = batch[batchIndex];
             skippedBlocks++;
-            const errorMsg = `Failed to extract content from block ${block.id}: ${block.source_url}`;
+            const errorMsg = `Batch processing failed for block ${block.id}: ${result.reason}`;
             errors.push(errorMsg);
             detailedErrors.push({
               blockId: block.id,
               stage: 'extraction',
-              error: 'Content extraction returned null',
+              error: String(result.reason),
               url: block.source_url || undefined
             });
             console.error(`❌ ${errorMsg}`);
           }
 
-          // Report progress with detailed info
-          const progress = 35 + (i + 1) / newBlocks.length * 35; // 35-70% for extraction
+          // Report progress after each batch
+          const progress = 35 + (globalIndex + 1) / newBlocks.length * 35; // 35-70% for extraction
           this.reportProgress({
             stage: 'extracting',
-            message: `Processed ${i + 1}/${newBlocks.length} blocks (${processedBlocks} successful, ${skippedBlocks} failed)`,
+            message: `Processed ${globalIndex + 1}/${newBlocks.length} blocks (${processedBlocks} successful, ${skippedBlocks} failed)`,
             progress,
             totalBlocks: newBlocks.length,
             processedBlocks: processedBlocks,
           });
+        });
 
-        } catch (error) {
-          skippedBlocks++;
-          const errorMsg = `Error processing block ${block.id}: ${error}`;
-          errors.push(errorMsg);
-          detailedErrors.push({
-            blockId: block.id,
-            stage: 'extraction',
-            error: String(error),
-            url: block.source_url || undefined
-          });
-          console.error(`❌ ${errorMsg}`);
+        // Brief pause between batches to avoid overwhelming APIs
+        if (batchStart + BATCH_SIZE < newBlocks.length) {
+          console.log(`Batch complete. Waiting ${BATCH_DELAY}ms before next batch...`);
+          await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
         }
       }
+
+      console.log(`Parallel processing complete: ${processedBlocks} successful, ${skippedBlocks} failed out of ${newBlocks.length} total`);
 
       if (processedBlocksList.length === 0) {
         return {
@@ -389,7 +454,7 @@ export class SyncService {
         };
       }
 
-      // Stage 3: Create embeddings and store
+      // Stage 3: Create embeddings and store (PARALLEL PROCESSING)
       this.reportProgress({
         stage: 'embedding',
         message: `Creating embeddings for ${processedBlocksList.length} blocks...`,
@@ -400,60 +465,132 @@ export class SyncService {
       let embeddedBlocks = 0;
       let embeddingErrors = 0;
 
-      for (let i = 0; i < processedBlocksList.length; i++) {
-        const processedBlock = processedBlocksList[i];
-        const blockId = 'arenaId' in processedBlock ? processedBlock.arenaId : processedBlock.id;
+      // Parallel embedding configuration (smaller batch size for database writes)
+      const EMBEDDING_BATCH_SIZE = 3; // Process 3 embeddings simultaneously
+      const EMBEDDING_TIMEOUT = 15000; // 15 seconds per embedding
+      const EMBEDDING_DELAY = 500; // 500ms between batches
 
-        try {
-          console.log(`Creating embedding for block ${blockId}...`);
+      console.log(`Starting parallel embedding: ${processedBlocksList.length} blocks in batches of ${EMBEDDING_BATCH_SIZE}`);
+
+      // Process embeddings in parallel batches
+      for (let batchStart = 0; batchStart < processedBlocksList.length; batchStart += EMBEDDING_BATCH_SIZE) {
+        const batch = processedBlocksList.slice(batchStart, batchStart + EMBEDDING_BATCH_SIZE);
+        console.log(`Embedding batch ${Math.floor(batchStart / EMBEDDING_BATCH_SIZE) + 1}: blocks ${batchStart + 1}-${Math.min(batchStart + EMBEDDING_BATCH_SIZE, processedBlocksList.length)}`);
+
+        // Create promises for parallel embedding with individual timeouts
+        const batchPromises = batch.map(async (processedBlock, batchIndex) => {
+          const blockId = 'arenaId' in processedBlock ? processedBlock.arenaId : processedBlock.id;
           
-          // Create embedding (using first chunk for simplicity in MVP)
-          const embeddingChunks = await embeddingService.createBlockEmbedding(processedBlock);
+          // Small jitter for database writes (0-200ms)
+          const jitter = Math.random() * 200;
+          await new Promise(resolve => setTimeout(resolve, jitter));
+
+          try {
+            console.log(`Creating embedding for block ${blockId}...`);
+
+            // Race between embedding creation and timeout
+            const embeddingChunks = await Promise.race([
+              embeddingService.createBlockEmbedding(processedBlock),
+              new Promise<never>((_, reject) => 
+                setTimeout(() => reject(new Error('Embedding creation timeout')), EMBEDDING_TIMEOUT)
+              )
+            ]);
+
+            if (embeddingChunks.length > 0) {
+              console.log(`Storing block ${blockId} in database...`);
+              
+              // Store in database with timeout
+              await Promise.race([
+                embeddingService.storeBlock(
+                  processedBlock,
+                  dbChannelId,
+                  embeddingChunks[0].embedding
+                ),
+                new Promise<never>((_, reject) => 
+                  setTimeout(() => reject(new Error('Database storage timeout')), 10000)
+                )
+              ]);
+
+              console.log(`✅ Successfully embedded and stored block ${blockId}`);
+              return { success: true, blockId };
+            } else {
+              const errorMsg = `No embedding chunks created for block ${blockId}`;
+              console.error(`❌ ${errorMsg}`);
+              return { 
+                success: false, 
+                blockId, 
+                error: 'No embedding chunks created',
+                stage: 'embedding' as const
+              };
+            }
+          } catch (error) {
+            const errorMsg = `Error creating embedding for block ${blockId}: ${error}`;
+            console.error(`❌ ${errorMsg}`);
+            return { 
+              success: false, 
+              blockId, 
+              error: String(error),
+              stage: 'embedding' as const
+            };
+          }
+        });
+
+        // Wait for all embeddings in this batch to complete
+        const batchResults = await Promise.allSettled(batchPromises);
+
+        // Process results
+        batchResults.forEach((result, batchIndex) => {
+          const globalIndex = batchStart + batchIndex;
           
-          if (embeddingChunks.length > 0) {
-            console.log(`Storing block ${blockId} in database...`);
-            // Use the first chunk's embedding for the block
-            await embeddingService.storeBlock(
-              processedBlock,
-              dbChannelId,
-              embeddingChunks[0].embedding
-            );
-            embeddedBlocks++;
-            console.log(`✅ Successfully embedded and stored block ${blockId}`);
+          if (result.status === 'fulfilled') {
+            const embeddingResult = result.value;
+            
+            if (embeddingResult.success) {
+              embeddedBlocks++;
+            } else {
+              embeddingErrors++;
+              const errorMsg = `Embedding failed for block ${embeddingResult.blockId}: ${embeddingResult.error}`;
+              errors.push(errorMsg);
+              detailedErrors.push({
+                blockId: Number(embeddingResult.blockId),
+                stage: embeddingResult.stage,
+                error: embeddingResult.error
+              });
+            }
           } else {
+            // Promise itself was rejected
+            const processedBlock = batch[batchIndex];
+            const blockId = 'arenaId' in processedBlock ? processedBlock.arenaId : processedBlock.id;
             embeddingErrors++;
-            const errorMsg = `No embedding chunks created for block ${blockId}`;
+            const errorMsg = `Embedding batch failed for block ${blockId}: ${result.reason}`;
             errors.push(errorMsg);
             detailedErrors.push({
               blockId: Number(blockId),
               stage: 'embedding',
-              error: 'No embedding chunks created'
+              error: String(result.reason)
             });
             console.error(`❌ ${errorMsg}`);
           }
 
-          // Report progress with detailed status
-          const progress = 70 + (i + 1) / processedBlocksList.length * 25; // 70-95% for embedding
+          // Report progress after each batch
+          const progress = 70 + (globalIndex + 1) / processedBlocksList.length * 25; // 70-95% for embedding
           this.reportProgress({
             stage: 'embedding',
-            message: `Embedded ${i + 1}/${processedBlocksList.length} blocks (${embeddedBlocks} stored, ${embeddingErrors} failed)`,
+            message: `Embedded ${globalIndex + 1}/${processedBlocksList.length} blocks (${embeddedBlocks} stored, ${embeddingErrors} failed)`,
             progress,
             totalBlocks: processedBlocksList.length,
             processedBlocks: embeddedBlocks,
           });
+        });
 
-        } catch (error) {
-          embeddingErrors++;
-          const errorMsg = `Error creating embedding for block ${blockId}: ${error}`;
-          errors.push(errorMsg);
-          detailedErrors.push({
-            blockId: Number(blockId),
-            stage: 'embedding',
-            error: String(error)
-          });
-          console.error(`❌ ${errorMsg}`);
+        // Brief pause between embedding batches
+        if (batchStart + EMBEDDING_BATCH_SIZE < processedBlocksList.length) {
+          console.log(`Embedding batch complete. Waiting ${EMBEDDING_DELAY}ms before next batch...`);
+          await new Promise(resolve => setTimeout(resolve, EMBEDDING_DELAY));
         }
       }
+
+      console.log(`Parallel embedding complete: ${embeddedBlocks} successful, ${embeddingErrors} failed out of ${processedBlocksList.length} total`);
 
       // Update channel sync timestamp
       await this.upsertChannel(channel);
