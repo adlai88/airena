@@ -328,10 +328,10 @@ export class SyncService {
       const processedBlocksList: ProcessedAnyBlock[] = [];
       const detailedErrors: Array<{blockId: number, stage: string, error: string, url?: string}> = [];
 
-      // Parallel processing configuration (very conservative for rate limits)
-      const BATCH_SIZE = 2; // Process 2 blocks simultaneously (reduced from 3)
-      const BLOCK_TIMEOUT = 60000; // 60 seconds per block (increased)
-      const BATCH_DELAY = 3000; // 3 seconds between batches (increased)
+      // Parallel processing configuration (optimized for 25-block limit)
+      const BATCH_SIZE = 5; // Process 5 blocks simultaneously (increased for 25-block limit)
+      const BLOCK_TIMEOUT = 45000; // 45 seconds per block
+      const BATCH_DELAY = 1000; // 1 second between batches (reduced)
 
       console.log(`Starting parallel processing: ${newBlocks.length} blocks in batches of ${BATCH_SIZE}`);
 
@@ -342,8 +342,8 @@ export class SyncService {
 
         // Create promises for parallel processing with individual timeouts and rate limit handling
         const batchPromises = batch.map(async (block, blockIndex) => {
-          // Add much larger progressive jitter to spread out requests (0-5000ms)
-          const jitter = Math.random() * 5000 + (blockIndex * 2000);
+          // Reduced jitter for better responsiveness (0-1000ms + 500ms spacing)
+          const jitter = Math.random() * 1000 + (blockIndex * 500);
           await new Promise(resolve => setTimeout(resolve, jitter));
 
           try {
@@ -460,12 +460,11 @@ export class SyncService {
           });
         });
 
-        // Progressive pause between batches to avoid overwhelming APIs (increases over time)
+        // Brief pause between batches (reduced for better responsiveness)
         if (batchStart + BATCH_SIZE < newBlocks.length) {
           const batchNumber = Math.floor(batchStart / BATCH_SIZE) + 1;
-          const progressiveDelay = BATCH_DELAY + (batchNumber * 1000); // Add 1000ms per batch
-          console.log(`Batch ${batchNumber} complete. Waiting ${progressiveDelay}ms before next batch (progressive rate limiting)...`);
-          await new Promise(resolve => setTimeout(resolve, progressiveDelay));
+          console.log(`Batch ${batchNumber} complete. Waiting ${BATCH_DELAY}ms before next batch...`);
+          await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
         }
       }
 
@@ -507,10 +506,10 @@ export class SyncService {
       let embeddedBlocks = 0;
       let embeddingErrors = 0;
 
-      // Parallel embedding configuration (smaller batch size for database writes)
-      const EMBEDDING_BATCH_SIZE = 3; // Process 3 embeddings simultaneously
+      // Parallel embedding configuration (optimized for 25-block limit)
+      const EMBEDDING_BATCH_SIZE = 5; // Process 5 embeddings simultaneously (increased)
       const EMBEDDING_TIMEOUT = 15000; // 15 seconds per embedding
-      const EMBEDDING_DELAY = 500; // 500ms between batches
+      const EMBEDDING_DELAY = 300; // 300ms between batches (reduced)
 
       console.log(`Starting parallel embedding: ${processedBlocksList.length} blocks in batches of ${EMBEDDING_BATCH_SIZE}`);
 
@@ -523,8 +522,8 @@ export class SyncService {
         const batchPromises = batch.map(async (processedBlock) => {
           const blockId = 'arenaId' in processedBlock ? processedBlock.arenaId : processedBlock.id;
           
-          // Small jitter for database writes (0-200ms)
-          const jitter = Math.random() * 200;
+          // Small jitter for database writes (0-100ms)
+          const jitter = Math.random() * 100;
           await new Promise(resolve => setTimeout(resolve, jitter));
 
           try {
