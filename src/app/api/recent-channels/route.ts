@@ -12,6 +12,7 @@ export async function GET() {
     const { data: channels, error } = await supabase
       .from('channels')
       .select(`
+        id,
         slug,
         title,
         last_sync,
@@ -30,11 +31,11 @@ export async function GET() {
     // Format the response to include block counts
     const formattedChannels = await Promise.all(
       (channels || []).map(async (channel) => {
-        // Get block count for this channel
+        // Get block count for this channel (using the correct channel.id for foreign key)
         const { count: blockCount, error: countError } = await supabase
           .from('blocks')
           .select('*', { count: 'exact', head: true })
-          .eq('channel_id', channel.arena_id);
+          .eq('channel_id', channel.id);
         
         if (countError) {
           console.error(`Error counting blocks for channel ${channel.slug}:`, countError);

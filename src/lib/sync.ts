@@ -17,6 +17,7 @@ export interface SyncProgress {
 export interface SyncResult {
   success: boolean;
   channelId: number;
+  channelTitle?: string;
   totalBlocks: number;
   processedBlocks: number;
   skippedBlocks: number;
@@ -438,6 +439,7 @@ export class SyncService {
       return {
         success: true,
         channelId: dbChannelId,
+        channelTitle: channel.title,
         totalBlocks: newBlocks.length,
         processedBlocks,
         skippedBlocks,
