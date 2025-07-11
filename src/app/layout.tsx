@@ -49,9 +49,9 @@ export default function RootLayout({
         elements: {
           formButtonPrimary: "bg-primary hover:bg-primary/90",
           footerActionLink: "text-primary hover:text-primary/90",
-          avatarBox: "rounded-full",
-          userButtonAvatarBox: "rounded-full border-2 border-gray-600",
-          userButtonAvatarImage: "rounded-full"
+          avatarBox: "rounded-sm bg-gray-200 text-gray-800",
+          userButtonAvatarBox: "rounded-sm bg-gray-200",
+          userButtonAvatarImage: "rounded-sm"
         },
         variables: {
           colorPrimary: "#ee8144", // Your orange theme color
