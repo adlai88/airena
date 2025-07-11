@@ -48,7 +48,16 @@ export default function RootLayout({
         baseTheme: dark,
         elements: {
           formButtonPrimary: "bg-primary hover:bg-primary/90",
-          footerActionLink: "text-primary hover:text-primary/90"
+          footerActionLink: "text-primary hover:text-primary/90",
+          avatarBox: "rounded-full",
+          userButtonAvatarBox: "rounded-full border-2 border-gray-600",
+          userButtonAvatarImage: "rounded-full"
+        },
+        variables: {
+          colorPrimary: "#ee8144", // Your orange theme color
+          colorBackground: "#0a0a0a", // Dark background
+          colorInputBackground: "#1a1a1a", // Dark input background
+          colorInputText: "#ffffff" // White input text
         }
       }}
     >
