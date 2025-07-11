@@ -17,7 +17,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ChevronDown, Cog, MessageSquare, Wand2 } from 'lucide-react';
+import { ChevronDown, Cog, MessageSquare, Wand2, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 
 interface NavigationProps {
@@ -78,6 +78,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
     if (isActivePage('/setup')) return { name: 'Channel', icon: Cog };
     if (isActivePage('/chat')) return { name: 'Chat', icon: MessageSquare };
     if (isActivePage('/generate')) return { name: 'Generate', icon: Wand2 };
+    if (isActivePage('/usage')) return { name: 'Usage', icon: BarChart3 };
     return { name: 'Channel', icon: Cog }; // default
   };
 
@@ -132,6 +133,13 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                     >
                       <Wand2 className="mr-2 h-4 w-4" />
                       Generate
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => navigateWithParams('/usage')}
+                      className={isActivePage('/usage') ? 'bg-accent text-accent-foreground' : ''}
+                    >
+                      <BarChart3 className="mr-2 h-4 w-4" />
+                      Usage
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

@@ -328,10 +328,25 @@ export class SyncService {
       const processedBlocksList: ProcessedAnyBlock[] = [];
       const detailedErrors: Array<{blockId: number, stage: string, error: string, url?: string}> = [];
 
-      // Parallel processing configuration (optimized for 25-block limit)
-      const BATCH_SIZE = 5; // Process 5 blocks simultaneously (increased for 25-block limit)
-      const BLOCK_TIMEOUT = 45000; // 45 seconds per block
-      const BATCH_DELAY = 1000; // 1 second between batches (reduced)
+      // Tier-aware parallel processing configuration
+      const userTier = usageInfo.tier || 'free';
+      let BATCH_SIZE = 5; // Default for free tier
+      let BLOCK_TIMEOUT = 45000; // 45 seconds per block
+      let BATCH_DELAY = 1000; // 1 second between batches
+
+      // Optimize performance based on user tier
+      if (userTier === 'starter') {
+        BATCH_SIZE = 7; // Slightly larger batches
+        BATCH_DELAY = 800; // Faster processing
+      } else if (userTier === 'pro') {
+        BATCH_SIZE = 10; // Larger batches for Pro users
+        BATCH_DELAY = 600; // Even faster processing
+        BLOCK_TIMEOUT = 60000; // More timeout for complex content
+      } else if (userTier === 'enterprise') {
+        BATCH_SIZE = 15; // Maximum parallelization
+        BATCH_DELAY = 400; // Fastest processing
+        BLOCK_TIMEOUT = 60000; // Extended timeout for enterprise
+      }
 
       console.log(`Starting parallel processing: ${newBlocks.length} blocks in batches of ${BATCH_SIZE}`);
 
@@ -506,10 +521,24 @@ export class SyncService {
       let embeddedBlocks = 0;
       let embeddingErrors = 0;
 
-      // Parallel embedding configuration (optimized for 25-block limit)
-      const EMBEDDING_BATCH_SIZE = 5; // Process 5 embeddings simultaneously (increased)
-      const EMBEDDING_TIMEOUT = 15000; // 15 seconds per embedding
-      const EMBEDDING_DELAY = 300; // 300ms between batches (reduced)
+      // Tier-aware embedding configuration
+      let EMBEDDING_BATCH_SIZE = 5; // Default for free tier
+      let EMBEDDING_TIMEOUT = 15000; // 15 seconds per embedding
+      let EMBEDDING_DELAY = 300; // 300ms between batches
+
+      // Optimize embedding performance based on user tier
+      if (userTier === 'starter') {
+        EMBEDDING_BATCH_SIZE = 7;
+        EMBEDDING_DELAY = 250;
+      } else if (userTier === 'pro') {
+        EMBEDDING_BATCH_SIZE = 10;
+        EMBEDDING_DELAY = 200;
+        EMBEDDING_TIMEOUT = 20000; // More timeout for Pro
+      } else if (userTier === 'enterprise') {
+        EMBEDDING_BATCH_SIZE = 15;
+        EMBEDDING_DELAY = 150;
+        EMBEDDING_TIMEOUT = 25000; // Maximum timeout for enterprise
+      }
 
       console.log(`Starting parallel embedding: ${processedBlocksList.length} blocks in batches of ${EMBEDDING_BATCH_SIZE}`);
 
