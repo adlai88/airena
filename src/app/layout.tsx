@@ -50,9 +50,11 @@ export default function RootLayout({
           formButtonPrimary: "bg-primary hover:bg-primary/90",
           footerActionLink: "text-primary hover:text-primary/90",
           avatarBox: "!rounded-sm !bg-gray-100 !text-gray-800 !border-0",
-          userButtonAvatarBox: "!rounded-sm !bg-gray-100 !border-0",
+          userButtonAvatarBox: "!rounded-sm !bg-gray-100 !border-0 hover:!bg-gray-200",
           userButtonAvatarImage: "!rounded-sm",
           userPreviewAvatarBox: "!rounded-sm !bg-gray-100 !text-gray-800",
+          userButtonTrigger: "!rounded-sm hover:!rounded-sm focus:!rounded-sm",
+          userButtonBox: "!rounded-sm",
           profileSectionPrimaryButton: "bg-primary hover:bg-primary/90"
         },
         variables: {
