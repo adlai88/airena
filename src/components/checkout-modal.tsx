@@ -67,7 +67,7 @@ export function CheckoutModal({ isOpen, onClose, planName, planPrice, tier }: Ch
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+      <DialogContent className="max-w-md p-0">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="flex items-center gap-2">
             <CreditCard className="h-5 w-5" />
@@ -93,16 +93,28 @@ export function CheckoutModal({ isOpen, onClose, planName, planPrice, tier }: Ch
           )}
 
           {checkoutUrl && !isLoading && !error && (
-            <div className="space-y-4">
-              <div className="border rounded-lg overflow-hidden bg-white">
-                <iframe
-                  src={checkoutUrl}
-                  className="w-full h-[600px] border-0"
-                  title="Secure Checkout"
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
-                />
+            <div className="space-y-6">
+              <div className="text-center space-y-4">
+                <div className="flex justify-center">
+                  <CreditCard className="h-16 w-16 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Ready to subscribe?</h3>
+                  <p className="text-muted-foreground">
+                    Click below to complete your subscription in a secure checkout window.
+                  </p>
+                </div>
+                <Button 
+                  onClick={() => {
+                    window.open(checkoutUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+                    handleClose();
+                  }}
+                  className="bg-primary hover:bg-primary/90 text-white px-8 py-3 text-base"
+                >
+                  Open Secure Checkout
+                </Button>
               </div>
-              <div className="text-xs text-muted-foreground text-center">
+              <div className="text-xs text-muted-foreground text-center border-t pt-4">
                 🔒 Secure checkout powered by Polar.sh
               </div>
             </div>

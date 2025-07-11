@@ -232,6 +232,8 @@ export default function PricingPage() {
                       plan.popular
                         ? 'bg-primary hover:bg-primary/90'
                         : 'bg-secondary hover:bg-secondary/80 text-foreground'
+                    } ${
+                      !(plan.comingSoon || (isSignedIn && currentTier === plan.id)) ? 'cursor-pointer' : ''
                     }`}
                     disabled={plan.comingSoon || (isSignedIn && currentTier === plan.id)}
                   >

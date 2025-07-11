@@ -66,8 +66,7 @@ export async function POST(request: NextRequest) {
             userId,
             tier,
             source: 'airena'
-          },
-          embed: true  // Request embeddable checkout
+          }
         }),
       });
 
