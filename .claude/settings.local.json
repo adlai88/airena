@@ -8,7 +8,8 @@
       "Bash(npx tsx:*)",
       "Bash(npm run lint)",
       "Bash(rg:*)",
-      "WebFetch(domain:clerk.com)"
+      "WebFetch(domain:clerk.com)",
+      "Bash(find:*)"
     ],
     "deny": []
   },

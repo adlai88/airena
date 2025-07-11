@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     }
 
     // Get authentication info
-    const { userId } = auth();
+    const { userId } = await auth();
     const userSessionId = sessionId || UsageTracker.generateSessionId();
 
     // Get channel info
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     const generationLimitCheck = await UsageTracker.checkChatGenerationLimits(
       channel.id,
       userSessionId,
-      userId,
+      userId || undefined,
       'generation'
     );
 
@@ -118,7 +118,7 @@ export async function POST(req: Request) {
       channel.id,
       userSessionId,
       'generation',
-      userId
+      userId || undefined
     ).catch(error => {
       console.error('Failed to record generation usage:', error);
     });

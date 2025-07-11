@@ -32,7 +32,6 @@ export interface TierLimits {
   free: { blocks: 25; type: 'per_channel'; chatMessages: 10; generations: 2 };
   starter: { blocks: 200; type: 'per_month'; chatMessages: -1; generations: -1 }; // -1 = unlimited
   pro: { blocks: 500; type: 'per_month'; chatMessages: -1; generations: -1 };
-  enterprise: { blocks: 2000; type: 'per_month'; chatMessages: -1; generations: -1 };
 }
 
 export interface UsageCheckResult {
@@ -836,7 +835,7 @@ export class UsageTracker {
 
       if (existingLimits) {
         // Update existing record
-        const updates: any = {
+        const updates: Record<string, unknown> = {
           updated_at: new Date().toISOString()
         };
 

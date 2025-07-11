@@ -15,8 +15,8 @@ export class UserService {
    */
   static async getUserTier(userId: string): Promise<UserTier> {
     try {
-      const user = await clerkClient.users.getUser(userId);
-      const privateMetadata = user.privateMetadata as any;
+      const user = await (await clerkClient()).users.getUser(userId);
+      const privateMetadata = user.privateMetadata as Record<string, unknown>;
       
       // Check for subscription tier in private metadata
       const tier = privateMetadata?.subscriptionTier as UserTier;
@@ -32,16 +32,16 @@ export class UserService {
    */
   static async getUserSubscription(userId: string): Promise<UserSubscription> {
     try {
-      const user = await clerkClient.users.getUser(userId);
-      const privateMetadata = user.privateMetadata as any;
+      const user = await (await clerkClient()).users.getUser(userId);
+      const privateMetadata = user.privateMetadata as Record<string, unknown>;
       
       return {
-        tier: privateMetadata?.subscriptionTier || 'free',
-        polarCustomerId: privateMetadata?.polarCustomerId,
-        subscriptionId: privateMetadata?.subscriptionId,
-        status: privateMetadata?.subscriptionStatus || 'inactive',
+        tier: (privateMetadata?.subscriptionTier as UserTier) || 'free',
+        polarCustomerId: privateMetadata?.polarCustomerId as string,
+        subscriptionId: privateMetadata?.subscriptionId as string,
+        status: (privateMetadata?.subscriptionStatus as 'active' | 'inactive' | 'cancelled' | 'past_due') || 'inactive',
         currentPeriodEnd: privateMetadata?.currentPeriodEnd 
-          ? new Date(privateMetadata.currentPeriodEnd)
+          ? new Date(privateMetadata.currentPeriodEnd as string)
           : undefined
       };
     } catch (error) {
@@ -67,7 +67,7 @@ export class UserService {
     }
   ): Promise<void> {
     try {
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         subscriptionTier: tier,
         subscriptionStatus: subscriptionData?.status || 'active',
         updatedAt: new Date().toISOString()
@@ -85,7 +85,7 @@ export class UserService {
         updateData.currentPeriodEnd = subscriptionData.currentPeriodEnd.toISOString();
       }
 
-      await clerkClient.users.updateUserMetadata(userId, {
+      await (await clerkClient()).users.updateUserMetadata(userId, {
         privateMetadata: updateData
       });
     } catch (error) {
@@ -112,7 +112,7 @@ export class UserService {
    */
   static async getUserByEmail(email: string) {
     try {
-      const users = await clerkClient.users.getUserList({
+      const users = await (await clerkClient()).users.getUserList({
         emailAddress: [email]
       });
       

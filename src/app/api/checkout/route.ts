@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { Checkout } from '@polar-sh/nextjs';
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
     
     if (!userId) {
       return NextResponse.json(
@@ -13,17 +12,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const { tier } = body;
+    const { tier } = await request.json();
 
-    if (!tier) {
+    if (!tier || !['starter', 'pro'].includes(tier)) {
       return NextResponse.json(
-        { error: 'Tier is required' },
+        { error: 'Invalid tier' },
         { status: 400 }
       );
     }
 
-    // Map tiers to actual Polar.sh product IDs
+    // Map tier to product ID
     const PRODUCT_IDS = {
       starter: '2d078db5-1c02-43ae-bf7a-8b763fd26140',
       pro: 'bda6be16-5294-4b12-8973-6ccdd0bf05e7'
@@ -33,27 +31,27 @@ export async function POST(request: NextRequest) {
     
     if (!productId) {
       return NextResponse.json(
-        { error: 'Invalid tier specified' },
+        { error: 'Product not found for tier' },
         { status: 400 }
       );
     }
 
-    // Create Polar checkout session
-    const checkout = await Checkout({
-      accessToken: process.env.POLAR_ACCESS_TOKEN!,
-      productId: productId,
-      successUrl: process.env.NEXT_PUBLIC_SUCCESS_URL || `${process.env.NEXT_PUBLIC_APP_URL}/success`,
-      customerEmail: '', // Will be populated by Clerk user data
-      metadata: {
-        userId,
-        tier,
-        source: 'airena'
-      }
-    });
+    // Create checkout URL with Polar.sh
+    const baseUrl = process.env.NODE_ENV === 'production' ? 'https://api.polar.sh' : 'https://sandbox-api.polar.sh';
+    const successUrl = process.env.NEXT_PUBLIC_SUCCESS_URL || `${process.env.NEXT_PUBLIC_APP_URL}/success`;
+    
+    const metadata = encodeURIComponent(JSON.stringify({
+      userId,
+      tier,
+      source: 'airena'
+    }));
+
+    // Build the Polar.sh checkout URL
+    const checkoutUrl = `${baseUrl}/checkout?products=${productId}&successUrl=${encodeURIComponent(successUrl)}&metadata=${metadata}`;
 
     return NextResponse.json({
-      checkoutUrl: checkout.url,
-      checkoutId: checkout.id
+      checkoutUrl,
+      productId
     });
 
   } catch (error) {
@@ -64,9 +62,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-// Alternative: Direct checkout handler
-export const GET = Checkout({
-  accessToken: process.env.POLAR_ACCESS_TOKEN!,
-  successUrl: process.env.NEXT_PUBLIC_SUCCESS_URL!,
-});

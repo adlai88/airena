@@ -357,10 +357,6 @@ export class SyncService {
         BATCH_SIZE = 10; // Larger batches for Pro users
         BATCH_DELAY = 600; // Even faster processing
         BLOCK_TIMEOUT = 60000; // More timeout for complex content
-      } else if (userTier === 'enterprise') {
-        BATCH_SIZE = 15; // Maximum parallelization
-        BATCH_DELAY = 400; // Fastest processing
-        BLOCK_TIMEOUT = 60000; // Extended timeout for enterprise
       }
 
       console.log(`Starting parallel processing: ${newBlocks.length} blocks in batches of ${BATCH_SIZE}`);
@@ -549,10 +545,6 @@ export class SyncService {
         EMBEDDING_BATCH_SIZE = 10;
         EMBEDDING_DELAY = 200;
         EMBEDDING_TIMEOUT = 20000; // More timeout for Pro
-      } else if (userTier === 'enterprise') {
-        EMBEDDING_BATCH_SIZE = 15;
-        EMBEDDING_DELAY = 150;
-        EMBEDDING_TIMEOUT = 25000; // Maximum timeout for enterprise
       }
 
       console.log(`Starting parallel embedding: ${processedBlocksList.length} blocks in batches of ${EMBEDDING_BATCH_SIZE}`);

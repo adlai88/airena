@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Get authentication info
-    const { userId } = auth();
+    const { userId } = await auth();
     
     // Get or generate session ID for usage tracking
     const userSessionId = sessionId || UsageTracker.generateSessionId();
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
             channelSlug,
             userSessionId,
             ipAddress,
-            userId
+            userId || undefined
           );
 
           // Send final result with session ID

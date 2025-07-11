@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     }
 
     // Get authentication info
-    const { userId } = auth();
+    const { userId } = await auth();
     const userSessionId = sessionId || UsageTracker.generateSessionId();
 
     // Get the latest user message
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     const chatLimitCheck = await UsageTracker.checkChatGenerationLimits(
       channel.id,
       userSessionId,
-      userId,
+      userId || undefined,
       'chat'
     );
 
@@ -321,7 +321,7 @@ export async function POST(req: Request) {
       channel.id,
       userSessionId,
       'chat',
-      userId
+      userId || undefined
     ).catch(error => {
       console.error('Failed to record chat usage:', error);
     });

@@ -65,7 +65,7 @@ export class ChannelAccessService {
               requiresUpgrade: false,
               userTier
             };
-          } catch (privateError) {
+          } catch {
             // Even with API key, channel is not accessible
             return {
               canAccess: false,
