@@ -109,7 +109,7 @@ export function CheckoutModal({ isOpen, onClose, planName, planPrice, tier }: Ch
                     window.open(checkoutUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
                     handleClose();
                   }}
-                  className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 text-base"
+                  className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 px-8 py-3 text-base"
                 >
                   Open Secure Checkout
                 </Button>
