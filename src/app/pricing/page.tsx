@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Layout } from '@/components/layout';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -71,21 +71,58 @@ const plans = [
 
 export default function PricingPage() {
   const [isAnnual, setIsAnnual] = useState(false);
-  const { isSignedIn } = useUser();
+  const [currentTier, setCurrentTier] = useState<string>('free');
+  const [isLoading, setIsLoading] = useState(false);
+  const { isSignedIn, isLoaded } = useUser();
+
+  // Fetch current user tier
+  useEffect(() => {
+    if (isLoaded) {
+      fetchCurrentTier();
+    }
+  }, [isLoaded]);
+
+  const fetchCurrentTier = async () => {
+    try {
+      const response = await fetch('/api/user-tier');
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentTier(data.tier);
+      }
+    } catch (error) {
+      console.error('Failed to fetch current tier:', error);
+      setCurrentTier('free');
+    }
+  };
 
   const handleSubscribe = async (planId: string) => {
+    console.log('🔍 handleSubscribe called with planId:', planId);
+    console.log('🔍 User signed in:', isSignedIn);
+    console.log('🔍 Current tier:', currentTier);
+
     if (!isSignedIn) {
+      console.log('🔍 Redirecting to sign-up');
       window.location.href = '/sign-up';
       return;
     }
 
     if (planId === 'free') {
+      console.log('🔍 Redirecting to home (free plan)');
       window.location.href = '/';
       return;
     }
 
+    if (planId === currentTier) {
+      console.log('🔍 User already on this tier');
+      alert('You are already on this plan!');
+      return;
+    }
+
+    setIsLoading(true);
+    console.log('🔍 Starting checkout process...');
 
     try {
+      console.log('🔍 Calling /api/checkout with tier:', planId);
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: {
@@ -96,15 +133,22 @@ export default function PricingPage() {
         }),
       });
 
+      console.log('🔍 Checkout API response status:', response.status);
       const data = await response.json();
+      console.log('🔍 Checkout API response data:', data);
       
       if (response.ok) {
+        console.log('🔍 Redirecting to checkout URL:', data.checkoutUrl);
         window.location.href = data.checkoutUrl;
       } else {
-        console.error('Checkout error:', data.error);
+        console.error('❌ Checkout error:', data.error);
+        alert(`Checkout failed: ${data.error}`);
       }
     } catch (error) {
-      console.error('Checkout error:', error);
+      console.error('❌ Checkout error:', error);
+      alert(`Checkout failed: ${error}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -116,6 +160,9 @@ export default function PricingPage() {
             title="AI intelligence for Are.na"
             subtitle="Transform your curation into intelligent agents. Starting at $5/month."
           />
+
+          {/* Current Plan Display */}
+          {/* Removed badge display here as it's redundant with the plan card indicator */}
 
           {/* Pricing Toggle */}
           <div className="flex items-center justify-center mt-8 mb-12">
@@ -200,10 +247,13 @@ export default function PricingPage() {
                         ? 'bg-primary hover:bg-primary/90'
                         : 'bg-secondary hover:bg-secondary/80 text-foreground'
                     }`}
-                    disabled={plan.comingSoon}
+                    disabled={plan.comingSoon || isLoading || (isSignedIn && currentTier === plan.id)}
                   >
-                    {plan.comingSoon ? 'Coming Soon' : plan.cta}
-                    {!plan.comingSoon && plan.id !== 'free' && (
+                    {plan.comingSoon ? 'Coming Soon' : 
+                     isLoading ? 'Loading...' :
+                     isSignedIn && currentTier === plan.id ? 'Current Plan' :
+                     plan.cta}
+                    {!plan.comingSoon && !isLoading && plan.id !== 'free' && !(isSignedIn && currentTier === plan.id) && (
                       <ArrowRight className="h-4 w-4 ml-1" />
                     )}
                   </Button>
