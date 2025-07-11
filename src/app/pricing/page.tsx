@@ -152,7 +152,7 @@ export default function PricingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <PageHeader
             title="AI intelligence for Are.na"
-            subtitle="Transform your curation into intelligent agents. Starting at $5/month."
+            subtitle="Starting at $5/month."
           />
 
           {/* Current Plan Display */}
