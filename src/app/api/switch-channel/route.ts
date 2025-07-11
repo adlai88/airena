@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     const { count: blockCount } = await supabase
       .from('blocks')
       .select('*', { count: 'exact', head: true })
-      .eq('channel_id', channel.arena_id);
+      .eq('channel_id', channel.id);
 
     return NextResponse.json({ 
       success: true,
