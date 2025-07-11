@@ -9,7 +9,7 @@ import { Layout } from '@/components/layout';
 import { PromptTemplates } from '@/lib/templates';
 import { useParams } from 'next/navigation';
 import { AutoTextarea } from '@/components/ui/auto-textarea';
-import { ArrowUpIcon } from 'lucide-react';
+import { ArrowUpIcon, Grid, ArrowUpRight } from 'lucide-react';
 import Image from 'next/image';
 import { Spinner } from '@/components/ui/spinner';
 
@@ -499,31 +499,46 @@ function ChatContent() {
                           <div className="text-xs text-muted-foreground/70 uppercase tracking-wide">
                             Referenced Blocks
                           </div>
-                          <div className="flex flex-wrap gap-2">
-                            {message.images.map((image, index) => (
-                              <div
-                                key={index}
-                                className="group relative cursor-pointer"
-                                onClick={() => {
-                                  // Open Are.na block page
-                                  window.open(image.url, '_blank');
-                                }}
-                              >
-                                <Image
-                                  src={image.image_url}
-                                  alt={image.title}
-                                  width={96}
-                                  height={80}
-                                  className="max-w-24 max-h-20 w-auto h-auto object-contain border border-border hover:border-primary/50 transition-all duration-200 hover:scale-105"
-                                  unoptimized
-                                />
-                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                                {/* Tooltip with title */}
-                                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-popover text-popover-foreground text-xs px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-nowrap max-w-32 truncate">
-                                  {image.title}
+                          <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap gap-2">
+                              {message.images.map((image, index) => (
+                                <div
+                                  key={index}
+                                  className="group relative cursor-pointer"
+                                  onClick={() => {
+                                    // Open Are.na block page
+                                    window.open(image.url, '_blank');
+                                  }}
+                                >
+                                  <Image
+                                    src={image.image_url}
+                                    alt={image.title}
+                                    width={96}
+                                    height={80}
+                                    className="max-w-24 max-h-20 w-auto h-auto object-contain border border-border hover:border-primary/50 transition-all duration-200 hover:scale-105"
+                                    unoptimized
+                                  />
+                                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                                  {/* Tooltip with title */}
+                                  <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-popover text-popover-foreground text-xs px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-nowrap max-w-32 truncate">
+                                    {image.title}
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              ))}
+                            </div>
+                            {/* 'View All' rectangle linking to the Are.na channel */}
+                            <a
+                              href={username
+                                ? `https://www.are.na/${username.toLowerCase().replace(/[^a-z0-9]/g, '')}/${channelSlug}`
+                                : `https://www.are.na/${channelSlug}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="ml-2 flex items-center justify-center w-24 h-20 border border-border bg-transparent hover:bg-primary/5 transition-colors cursor-pointer text-xs font-medium text-muted-foreground rounded-none"
+                              title="View Are.na Channel"
+                            >
+                              <span className="mr-1">View All</span>
+                              <ArrowUpRight className="w-4 h-4 text-muted-foreground" />
+                            </a>
                           </div>
                         </div>
                       )}
