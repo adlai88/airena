@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { Checkout } from '@polar-sh/nextjs';
 
 export async function POST(request: NextRequest) {
   try {

@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, ArrowRight, Star } from 'lucide-react';
+import { CheckCircle, ArrowRight } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 
 const plans = [
@@ -43,7 +43,7 @@ const plans = [
       'Export generated content',
       'Email support'
     ],
-    cta: 'Start Free Trial',
+    cta: 'Subscribe Now',
     popular: true,
     comingSoon: false
   },
@@ -63,7 +63,7 @@ const plans = [
       'Channel isolation',
       'Priority support'
     ],
-    cta: 'Start Free Trial',
+    cta: 'Subscribe Now',
     popular: false,
     comingSoon: false
   }
@@ -204,14 +204,6 @@ export default function PricingPage() {
                     : 'border-border'
                 }`}
               >
-                {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-primary text-primary-foreground">
-                      <Star className="h-3 w-3 mr-1" />
-                      Most Popular
-                    </Badge>
-                  </div>
-                )}
                 
                 <CardHeader className="text-center">
                   <CardTitle className="text-xl">{plan.name}</CardTitle>
@@ -263,29 +255,7 @@ export default function PricingPage() {
           </div>
 
           {/* Comparison Section */}
-          <div className="mt-16 text-center">
-            <h3 className="text-2xl font-bold mb-4">Why choose Airena?</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-primary mb-2">2x Value</div>
-                <p className="text-sm text-muted-foreground">
-                  Cheaper than Are.na Premium, with unlimited AI intelligence
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-primary mb-2">5 Types</div>
-                <p className="text-sm text-muted-foreground">
-                  Complete multimodal intelligence: websites, PDFs, images, videos, text
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-primary mb-2">No Lock-in</div>
-                <p className="text-sm text-muted-foreground">
-                  Open source core, export your data, cancel anytime
-                </p>
-              </div>
-            </div>
-          </div>
+          {/* Removed 'Why choose Airena?' section and its columns */}
 
           {/* Overage Pricing */}
           <div className="mt-12 text-center">
