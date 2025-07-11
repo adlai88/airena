@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, ArrowRight } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
+import { CheckoutModal } from '@/components/checkout-modal';
 
 const plans = [
   {
@@ -72,7 +73,17 @@ const plans = [
 export default function PricingPage() {
   const [isAnnual, setIsAnnual] = useState(false);
   const [currentTier, setCurrentTier] = useState<string>('free');
-  const [isLoading, setIsLoading] = useState(false);
+  const [checkoutModal, setCheckoutModal] = useState<{
+    isOpen: boolean;
+    planName: string;
+    planPrice: string;
+    tier: string;
+  }>({
+    isOpen: false,
+    planName: '',
+    planPrice: '',
+    tier: ''
+  });
   const { isSignedIn, isLoaded } = useUser();
 
   // Fetch current user tier
@@ -118,38 +129,21 @@ export default function PricingPage() {
       return;
     }
 
-    setIsLoading(true);
-    console.log('🔍 Starting checkout process...');
-
-    try {
-      console.log('🔍 Calling /api/checkout with tier:', planId);
-      const response = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          tier: planId
-        }),
-      });
-
-      console.log('🔍 Checkout API response status:', response.status);
-      const data = await response.json();
-      console.log('🔍 Checkout API response data:', data);
-      
-      if (response.ok) {
-        console.log('🔍 Redirecting to checkout URL:', data.checkoutUrl);
-        window.location.href = data.checkoutUrl;
-      } else {
-        console.error('❌ Checkout error:', data.error);
-        alert(`Checkout failed: ${data.error}`);
-      }
-    } catch (error) {
-      console.error('❌ Checkout error:', error);
-      alert(`Checkout failed: ${error}`);
-    } finally {
-      setIsLoading(false);
+    // Find the plan details for the modal
+    const plan = plans.find(p => p.id === planId);
+    if (!plan) {
+      console.error('❌ Plan not found:', planId);
+      return;
     }
+
+    // Open the checkout modal
+    console.log('🔍 Opening checkout modal for:', plan.name);
+    setCheckoutModal({
+      isOpen: true,
+      planName: plan.name,
+      planPrice: plan.price.replace('$', ''),
+      tier: planId
+    });
   };
 
   return (
@@ -239,13 +233,12 @@ export default function PricingPage() {
                         ? 'bg-primary hover:bg-primary/90'
                         : 'bg-secondary hover:bg-secondary/80 text-foreground'
                     }`}
-                    disabled={plan.comingSoon || isLoading || (isSignedIn && currentTier === plan.id)}
+                    disabled={plan.comingSoon || (isSignedIn && currentTier === plan.id)}
                   >
                     {plan.comingSoon ? 'Coming Soon' : 
-                     isLoading ? 'Loading...' :
                      isSignedIn && currentTier === plan.id ? 'Current Plan' :
                      plan.cta}
-                    {!plan.comingSoon && !isLoading && plan.id !== 'free' && !(isSignedIn && currentTier === plan.id) && (
+                    {!plan.comingSoon && plan.id !== 'free' && !(isSignedIn && currentTier === plan.id) && (
                       <ArrowRight className="h-4 w-4 ml-1" />
                     )}
                   </Button>
@@ -266,6 +259,15 @@ export default function PricingPage() {
           </div>
         </div>
       </div>
+
+      {/* Checkout Modal */}
+      <CheckoutModal
+        isOpen={checkoutModal.isOpen}
+        onClose={() => setCheckoutModal(prev => ({ ...prev, isOpen: false }))}
+        planName={checkoutModal.planName}
+        planPrice={checkoutModal.planPrice}
+        tier={checkoutModal.tier}
+      />
     </Layout>
   );
 }
