@@ -12,8 +12,15 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: 'Channel slug is required' }, { status: 400 });
     }
 
-    // Get authentication info
-    const { userId } = await auth();
+    // Get authentication info (optional for free users)
+    let userId: string | null = null;
+    try {
+      const authResult = await auth();
+      userId = authResult.userId;
+    } catch {
+      // No authentication required for free users
+      userId = null;
+    }
     
     // Get or generate session ID for usage tracking
     const userSessionId = sessionId || UsageTracker.generateSessionId();
