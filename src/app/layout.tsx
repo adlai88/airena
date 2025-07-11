@@ -49,9 +49,11 @@ export default function RootLayout({
         elements: {
           formButtonPrimary: "bg-primary hover:bg-primary/90",
           footerActionLink: "text-primary hover:text-primary/90",
-          avatarBox: "rounded-sm bg-gray-200 text-gray-800",
-          userButtonAvatarBox: "rounded-sm bg-gray-200",
-          userButtonAvatarImage: "rounded-sm"
+          avatarBox: "!rounded-sm !bg-gray-100 !text-gray-800 !border-0",
+          userButtonAvatarBox: "!rounded-sm !bg-gray-100 !border-0",
+          userButtonAvatarImage: "!rounded-sm",
+          userPreviewAvatarBox: "!rounded-sm !bg-gray-100 !text-gray-800",
+          profileSectionPrimaryButton: "bg-primary hover:bg-primary/90"
         },
         variables: {
           colorPrimary: "#ee8144", // Your orange theme color
