@@ -113,7 +113,7 @@ export default function UsagePage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <PageHeader
             title="Usage Dashboard"
-            description="Monitor your block processing and subscription limits"
+            subtitle="Monitor your block processing and subscription limits"
           />
 
           <div className="space-y-6 mt-8">

@@ -260,7 +260,6 @@ export class SyncService {
       const usageInfo = await UsageTracker.checkUsageLimit(
         dbChannelId,
         sessionId,
-        ipAddress,
         userId,
         newBlocks.length
       );

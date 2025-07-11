@@ -78,7 +78,7 @@ export class UsageTracker {
   /**
    * Get user tier (placeholder for future authentication integration)
    */
-  private static getUserTier(_userId?: string): UserTier {
+  private static getUserTier(): UserTier {
     // TODO: Integrate with actual user subscription system
     // For now, all users are free tier
     return 'free';
@@ -110,7 +110,7 @@ export class UsageTracker {
    * Generate a session ID for anonymous users
    */
   static generateSessionId(): string {
-    return `anon_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `anon_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 
   /**
@@ -220,12 +220,11 @@ export class UsageTracker {
   static async checkUsageLimit(
     channelId: number,
     sessionId: string,
-    ipAddress: string,
     userId?: string,
     blocksToProcess?: number
   ): Promise<UsageCheckResult> {
     try {
-      const userTier = this.getUserTier(userId);
+      const userTier = this.getUserTier();
       const tierConfig = this.TIER_LIMITS[userTier];
       const currentMonth = this.getCurrentMonth();
 
@@ -435,7 +434,7 @@ export class UsageTracker {
       const newTotal = currentTotal + blocksProcessed;
 
       // Also update monthly usage for paid tiers
-      const userTier = this.getUserTier(userId);
+      const userTier = this.getUserTier();
       if (userTier !== 'free') {
         await this.updateMonthlyUsage(userId || sessionId, sessionId, blocksProcessed, userTier);
       }
@@ -567,7 +566,7 @@ export class UsageTracker {
     totalBlocksProcessed: number;
   }> {
     try {
-      const userTier = this.getUserTier(userId);
+      const userTier = this.getUserTier();
       const tierConfig = this.TIER_LIMITS[userTier];
       const currentMonth = this.getCurrentMonth();
 
