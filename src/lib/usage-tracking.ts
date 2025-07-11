@@ -1,5 +1,4 @@
 import { supabase } from './supabase';
-import { UserService } from './user-service';
 
 export interface UsageRecord {
   id: number;
@@ -102,7 +101,7 @@ export class UsageTracker {
   }
 
   /**
-   * Get user tier from Clerk user metadata
+   * Get user tier from API route (for server-side usage)
    */
   private static async getUserTier(userId?: string): Promise<UserTier> {
     if (!userId) {
@@ -110,6 +109,9 @@ export class UsageTracker {
     }
 
     try {
+      // For server-side usage, we'll need to import UserService dynamically
+      // This avoids client-side import issues
+      const { UserService } = await import('./user-service');
       return await UserService.getUserTier(userId);
     } catch (error) {
       console.error('Error getting user tier:', error);

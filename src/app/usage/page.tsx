@@ -7,8 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
-import { UsageTracker, UserTier, UsageRecord } from '@/lib/usage-tracking';
+import { Loader2 } from 'lucide-react';
+import { UserTier, UsageRecord } from '@/lib/usage-tracking';
 import { useUser } from '@clerk/nextjs';
 
 interface UsageStats {
@@ -22,6 +22,13 @@ interface UsageStats {
   channels: UsageRecord[];
   totalChannelsProcessed: number;
   totalBlocksProcessed: number;
+  tierInfo: {
+    name: string;
+    blocks: number;
+    type: string;
+    price?: string;
+    features: string[];
+  };
 }
 
 export default function UsagePage() {
@@ -55,7 +62,8 @@ export default function UsagePage() {
     fetchStats();
   }, [isSignedIn, user]);
 
-  const tierInfo = stats ? UsageTracker.getTierInfo(stats.tier) : null;
+  // Get tier info from the stats response instead of UsageTracker
+  const tierInfo = stats?.tierInfo || null;
   const progressPercentage = stats ? Math.min((stats.monthly.current / stats.monthly.limit) * 100, 100) : 0;
 
   if (!isSignedIn) {
@@ -78,7 +86,7 @@ export default function UsagePage() {
       <Layout>
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <div className="flex justify-center mx-auto mb-4"><Spinner size={32} /></div>
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
             <p className="text-muted-foreground">Loading usage statistics...</p>
           </div>
         </div>

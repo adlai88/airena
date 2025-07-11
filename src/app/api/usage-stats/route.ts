@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { UsageTracker } from '@/lib/usage-tracking';
 import { auth } from '@clerk/nextjs/server';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const { userId } = auth();
     
@@ -14,8 +14,14 @@ export async function GET(request: NextRequest) {
     }
 
     const stats = await UsageTracker.getUserStats('', userId);
-
-    return NextResponse.json(stats);
+    
+    // Add tier info to the response
+    const tierInfo = UsageTracker.getTierInfo(stats.tier);
+    
+    return NextResponse.json({
+      ...stats,
+      tierInfo
+    });
   } catch (error) {
     console.error('Error getting usage stats:', error);
     return NextResponse.json(

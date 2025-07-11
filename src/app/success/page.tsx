@@ -174,7 +174,7 @@ export default function SuccessPage() {
               <div className="text-center">
                 <h3 className="font-semibold mb-2">Need Help?</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  We're here to help you get the most out of Airena. Reach out if you have any questions.
+                  We&apos;re here to help you get the most out of Airena. Reach out if you have any questions.
                 </p>
                 <div className="flex justify-center space-x-4">
                   <Button variant="outline" size="sm">

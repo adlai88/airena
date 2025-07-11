@@ -71,7 +71,7 @@ const plans = [
 
 export default function PricingPage() {
   const [isAnnual, setIsAnnual] = useState(false);
-  const { isSignedIn, user } = useUser();
+  const { isSignedIn } = useUser();
 
   const handleSubscribe = async (planId: string) => {
     if (!isSignedIn) {
