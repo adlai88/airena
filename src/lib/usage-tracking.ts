@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { UserService } from './user-service';
 
 export interface UsageRecord {
   id: number;
@@ -20,19 +21,19 @@ export interface MonthlyUsageRecord {
   session_id?: string;
   month: string; // YYYY-MM format
   total_blocks_processed: number;
-  tier: 'free' | 'starter' | 'pro' | 'enterprise';
+  tier: 'free' | 'starter' | 'pro';
   limit: number;
   created_at: string;
   updated_at: string;
 }
 
-export type UserTier = 'free' | 'starter' | 'pro' | 'enterprise';
+export type UserTier = 'free' | 'starter' | 'pro';
 
 export interface TierLimits {
-  free: { blocks: 25; type: 'per_channel' };
-  starter: { blocks: 200; type: 'per_month' };
-  pro: { blocks: 500; type: 'per_month' };
-  enterprise: { blocks: 2000; type: 'per_month' };
+  free: { blocks: 25; type: 'per_channel'; chatMessages: 10; generations: 2 };
+  starter: { blocks: 200; type: 'per_month'; chatMessages: -1; generations: -1 }; // -1 = unlimited
+  pro: { blocks: 500; type: 'per_month'; chatMessages: -1; generations: -1 };
+  enterprise: { blocks: 2000; type: 'per_month'; chatMessages: -1; generations: -1 };
 }
 
 export interface UsageCheckResult {
@@ -55,16 +56,41 @@ export interface UsageCheckResult {
   };
 }
 
+export interface ChannelLimitsRecord {
+  id: number;
+  channel_id: number;
+  user_id?: string;
+  session_id?: string;
+  month: string;
+  chat_messages_used: number;
+  generations_used: number;
+  chat_messages_limit: number;
+  generations_limit: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChatGenerationCheckResult {
+  canChat: boolean;
+  canGenerate: boolean;
+  chatMessagesUsed: number;
+  chatMessagesRemaining: number;
+  generationsUsed: number;
+  generationsRemaining: number;
+  isFirstTime: boolean;
+  tier: UserTier;
+  message?: string;
+}
+
 export class UsageTracker {
   private static readonly FREE_TIER_LIMIT = 25;
   private static readonly OVERAGE_COST_PER_BLOCK = 0.15; // $0.15 per block
   
   // Tier configuration with monthly limits
   private static readonly TIER_LIMITS: TierLimits = {
-    free: { blocks: 25, type: 'per_channel' },
-    starter: { blocks: 200, type: 'per_month' },
-    pro: { blocks: 500, type: 'per_month' },
-    enterprise: { blocks: 2000, type: 'per_month' }
+    free: { blocks: 25, type: 'per_channel', chatMessages: 10, generations: 2 },
+    starter: { blocks: 200, type: 'per_month', chatMessages: -1, generations: -1 },
+    pro: { blocks: 500, type: 'per_month', chatMessages: -1, generations: -1 }
   };
 
   /**
@@ -76,12 +102,19 @@ export class UsageTracker {
   }
 
   /**
-   * Get user tier (placeholder for future authentication integration)
+   * Get user tier from Clerk user metadata
    */
-  private static getUserTier(): UserTier {
-    // TODO: Integrate with actual user subscription system
-    // For now, all users are free tier
-    return 'free';
+  private static async getUserTier(userId?: string): Promise<UserTier> {
+    if (!userId) {
+      return 'free';
+    }
+
+    try {
+      return await UserService.getUserTier(userId);
+    } catch (error) {
+      console.error('Error getting user tier:', error);
+      return 'free';
+    }
   }
 
   /**
@@ -224,7 +257,7 @@ export class UsageTracker {
     blocksToProcess?: number
   ): Promise<UsageCheckResult> {
     try {
-      const userTier = this.getUserTier();
+      const userTier = await this.getUserTier(userId);
       const tierConfig = this.TIER_LIMITS[userTier];
       const currentMonth = this.getCurrentMonth();
 
@@ -434,7 +467,7 @@ export class UsageTracker {
       const newTotal = currentTotal + blocksProcessed;
 
       // Also update monthly usage for paid tiers
-      const userTier = this.getUserTier();
+      const userTier = await this.getUserTier(userId);
       if (userTier !== 'free') {
         await this.updateMonthlyUsage(userId || sessionId, sessionId, blocksProcessed, userTier);
       }
@@ -566,7 +599,7 @@ export class UsageTracker {
     totalBlocksProcessed: number;
   }> {
     try {
-      const userTier = this.getUserTier();
+      const userTier = await this.getUserTier(userId);
       const tierConfig = this.TIER_LIMITS[userTier];
       const currentMonth = this.getCurrentMonth();
 
@@ -615,7 +648,13 @@ export class UsageTracker {
           name: 'Free',
           blocks: config.blocks,
           type: config.type,
-          features: ['25 blocks per channel', 'Public channels only', 'Community support']
+          features: [
+            '25 blocks per channel',
+            '10 chat messages per channel/month',
+            '2 generations per channel/month',
+            'Public channels only',
+            'Complete multimodal intelligence'
+          ]
         };
       case 'starter':
         return {
@@ -623,7 +662,14 @@ export class UsageTracker {
           blocks: config.blocks,
           type: config.type,
           price: '$5/month',
-          features: ['200 blocks per month', 'Unlimited channels', 'Email support']
+          features: [
+            '200 blocks per month',
+            'Unlimited chat & generations',
+            'Private channels access',
+            'Unlimited channels',
+            'Advanced templates',
+            'Export generated content'
+          ]
         };
       case 'pro':
         return {
@@ -631,15 +677,15 @@ export class UsageTracker {
           blocks: config.blocks,
           type: config.type,
           price: '$14/month',
-          features: ['500 blocks per month', 'Advanced templates', 'Priority support']
-        };
-      case 'enterprise':
-        return {
-          name: 'Enterprise',
-          blocks: config.blocks,
-          type: config.type,
-          price: '$99/month',
-          features: ['2000 blocks per month', 'Team features', 'SLA support', 'Custom integrations']
+          features: [
+            '500 blocks per month',
+            'Everything in Starter',
+            'MCP server generation',
+            'API access',
+            'Webhook support',
+            'Priority processing',
+            'Channel isolation'
+          ]
         };
       default:
         return {
@@ -648,6 +694,190 @@ export class UsageTracker {
           type: 'unknown',
           features: []
         };
+    }
+  }
+
+  /**
+   * Get or create channel limits record for current month
+   */
+  private static async getChannelLimits(
+    channelId: number,
+    sessionId: string,
+    userId?: string,
+    month: string = this.getCurrentMonth()
+  ): Promise<ChannelLimitsRecord | null> {
+    try {
+      const query = supabase
+        .from('channel_limits')
+        .select('*')
+        .eq('channel_id', channelId)
+        .eq('month', month);
+
+      if (userId) {
+        query.eq('user_id', userId);
+      } else if (sessionId) {
+        query.eq('session_id', sessionId).is('user_id', null);
+      }
+
+      const { data, error } = await query.single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
+        console.error('Error getting channel limits:', error);
+        throw new Error(`Failed to get channel limits: ${error.message}`);
+      }
+
+      return data ? (data as unknown as ChannelLimitsRecord) : null;
+    } catch (error) {
+      console.error('Error in getChannelLimits:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Check chat and generation limits for free tier users
+   */
+  static async checkChatGenerationLimits(
+    channelId: number,
+    sessionId: string,
+    userId?: string,
+    actionType: 'chat' | 'generation' = 'chat'
+  ): Promise<ChatGenerationCheckResult> {
+    try {
+      const userTier = await this.getUserTier(userId);
+      const tierConfig = this.TIER_LIMITS[userTier];
+      const currentMonth = this.getCurrentMonth();
+
+      // Paid tiers have unlimited chat and generations
+      if (userTier !== 'free') {
+        return {
+          canChat: true,
+          canGenerate: true,
+          chatMessagesUsed: 0,
+          chatMessagesRemaining: -1, // unlimited
+          generationsUsed: 0,
+          generationsRemaining: -1, // unlimited
+          isFirstTime: false,
+          tier: userTier
+        };
+      }
+
+      // Get current channel limits
+      const channelLimits = await this.getChannelLimits(channelId, sessionId, userId, currentMonth);
+
+      if (!channelLimits) {
+        // First time for this channel this month
+        return {
+          canChat: true,
+          canGenerate: true,
+          chatMessagesUsed: 0,
+          chatMessagesRemaining: tierConfig.chatMessages,
+          generationsUsed: 0,
+          generationsRemaining: tierConfig.generations,
+          isFirstTime: true,
+          tier: userTier
+        };
+      }
+
+      const chatRemaining = Math.max(0, channelLimits.chat_messages_limit - channelLimits.chat_messages_used);
+      const generationsRemaining = Math.max(0, channelLimits.generations_limit - channelLimits.generations_used);
+
+      const canChat = chatRemaining > 0;
+      const canGenerate = generationsRemaining > 0;
+
+      let message: string | undefined;
+      if (actionType === 'chat' && !canChat) {
+        message = `Chat limit reached (${channelLimits.chat_messages_used}/${channelLimits.chat_messages_limit} messages this month). Upgrade to Starter for unlimited chat.`;
+      } else if (actionType === 'generation' && !canGenerate) {
+        message = `Generation limit reached (${channelLimits.generations_used}/${channelLimits.generations_limit} generations this month). Upgrade to Starter for unlimited generations.`;
+      }
+
+      return {
+        canChat,
+        canGenerate,
+        chatMessagesUsed: channelLimits.chat_messages_used,
+        chatMessagesRemaining: chatRemaining,
+        generationsUsed: channelLimits.generations_used,
+        generationsRemaining: generationsRemaining,
+        isFirstTime: false,
+        tier: userTier,
+        message
+      };
+
+    } catch (error) {
+      console.error('Error in checkChatGenerationLimits:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Record chat or generation usage
+   */
+  static async recordChatGenerationUsage(
+    channelId: number,
+    sessionId: string,
+    actionType: 'chat' | 'generation',
+    userId?: string
+  ): Promise<void> {
+    try {
+      const userTier = await this.getUserTier(userId);
+      
+      // Skip recording for paid tiers (unlimited)
+      if (userTier !== 'free') {
+        return;
+      }
+
+      const currentMonth = this.getCurrentMonth();
+      const tierConfig = this.TIER_LIMITS[userTier];
+
+      // Get existing record or create new one
+      const existingLimits = await this.getChannelLimits(channelId, sessionId, userId, currentMonth);
+
+      if (existingLimits) {
+        // Update existing record
+        const updates: any = {
+          updated_at: new Date().toISOString()
+        };
+
+        if (actionType === 'chat') {
+          updates.chat_messages_used = existingLimits.chat_messages_used + 1;
+        } else {
+          updates.generations_used = existingLimits.generations_used + 1;
+        }
+
+        const { error } = await supabase
+          .from('channel_limits')
+          .update(updates)
+          .eq('id', existingLimits.id);
+
+        if (error) {
+          console.error('Error updating channel limits:', error);
+          throw new Error(`Failed to update channel limits: ${error.message}`);
+        }
+      } else {
+        // Create new record
+        const insertData = {
+          channel_id: channelId,
+          user_id: userId || null,
+          session_id: userId ? null : sessionId,
+          month: currentMonth,
+          chat_messages_used: actionType === 'chat' ? 1 : 0,
+          generations_used: actionType === 'generation' ? 1 : 0,
+          chat_messages_limit: tierConfig.chatMessages,
+          generations_limit: tierConfig.generations
+        };
+
+        const { error } = await supabase
+          .from('channel_limits')
+          .insert(insertData);
+
+        if (error) {
+          console.error('Error creating channel limits:', error);
+          throw new Error(`Failed to create channel limits: ${error.message}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error in recordChatGenerationUsage:', error);
+      throw error;
     }
   }
 }

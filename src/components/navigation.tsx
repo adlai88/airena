@@ -16,9 +16,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ChevronDown, Cog, MessageSquare, Wand2, BarChart3 } from 'lucide-react';
-import Link from 'next/link';
+import { SignInButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs';
 
 interface NavigationProps {
   homeNav?: boolean;
@@ -27,6 +26,7 @@ interface NavigationProps {
 export function Navigation({ homeNav = false }: NavigationProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { isSignedIn } = useUser();
 
   // const isActive = (path: string) => pathname === path;
   
@@ -212,12 +212,22 @@ export function Navigation({ homeNav = false }: NavigationProps) {
               {/* Desktop: Log in / Sign up */}
               <div className="hidden sm:flex items-center gap-1 sm:gap-2">
                 <ThemeToggle />
-                <Button variant="ghost" size="sm" className="font-medium min-h-[44px] sm:min-h-auto text-sm" asChild>
-                  <Link href="#">Log in</Link>
-                </Button>
-                <Button variant="ghost" size="sm" className="font-medium min-h-[44px] sm:min-h-auto text-sm" asChild>
-                  <Link href="#">Sign up</Link>
-                </Button>
+                {isSignedIn ? (
+                  <UserButton />
+                ) : (
+                  <>
+                    <SignInButton mode="modal">
+                      <Button variant="ghost" size="sm" className="font-medium min-h-[44px] sm:min-h-auto text-sm">
+                        Log in
+                      </Button>
+                    </SignInButton>
+                    <SignUpButton mode="modal">
+                      <Button variant="ghost" size="sm" className="font-medium min-h-[44px] sm:min-h-auto text-sm">
+                        Sign up
+                      </Button>
+                    </SignUpButton>
+                  </>
+                )}
               </div>
             </>
           ) : (
@@ -228,15 +238,18 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                 <HamburgerMenu homeNav={false} />
               </div>
               
-              {/* Desktop: Theme toggle + Avatar */}
+              {/* Desktop: Theme toggle + User */}
               <div className="hidden sm:flex items-center gap-1 sm:gap-3">
                 <ThemeToggle />
-                <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
-                  <AvatarImage src="" alt="User" />
-                  <AvatarFallback className="text-xs font-medium">
-                    U
-                  </AvatarFallback>
-                </Avatar>
+                {isSignedIn ? (
+                  <UserButton />
+                ) : (
+                  <SignInButton mode="modal">
+                    <Button variant="ghost" size="sm" className="font-medium">
+                      Sign in
+                    </Button>
+                  </SignInButton>
+                )}
               </div>
             </>
           )}

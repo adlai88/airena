@@ -2,14 +2,20 @@
 import { streamText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { supabase } from '@/lib/supabase';
+import { auth } from '@clerk/nextjs/server';
+import { UsageTracker } from '@/lib/usage-tracking';
 
 export async function POST(req: Request) {
   try {
-    const { channelSlug, customPrompt } = await req.json();
+    const { channelSlug, customPrompt, sessionId } = await req.json();
 
     if (!channelSlug) {
       return new Response('Channel slug is required', { status: 400 });
     }
+
+    // Get authentication info
+    const { userId } = auth();
+    const userSessionId = sessionId || UsageTracker.generateSessionId();
 
     // Get channel info
     const { data: channel, error: channelError } = await supabase
@@ -20,6 +26,32 @@ export async function POST(req: Request) {
 
     if (channelError || !channel) {
       return new Response('Channel not found', { status: 404 });
+    }
+
+    // Check generation limits for free tier users
+    const generationLimitCheck = await UsageTracker.checkChatGenerationLimits(
+      channel.id,
+      userSessionId,
+      userId,
+      'generation'
+    );
+
+    if (!generationLimitCheck.canGenerate) {
+      return new Response(
+        JSON.stringify({
+          error: 'Generation limit exceeded',
+          message: generationLimitCheck.message,
+          limitInfo: {
+            used: generationLimitCheck.generationsUsed,
+            limit: generationLimitCheck.generationsRemaining + generationLimitCheck.generationsUsed,
+            tier: generationLimitCheck.tier
+          }
+        }),
+        { 
+          status: 429, 
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
     }
 
     // Get all blocks for this channel for context
@@ -79,6 +111,16 @@ export async function POST(req: Request) {
         }
         controller.close();
       },
+    });
+
+    // Record generation usage for free tier users (async, don't await)
+    UsageTracker.recordChatGenerationUsage(
+      channel.id,
+      userSessionId,
+      'generation',
+      userId
+    ).catch(error => {
+      console.error('Failed to record generation usage:', error);
     });
 
     return new Response(stream, {

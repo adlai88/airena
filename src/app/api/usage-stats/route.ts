@@ -1,23 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { UsageTracker } from '@/lib/usage-tracking';
+import { auth } from '@clerk/nextjs/server';
 
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const sessionId = searchParams.get('sessionId');
-    const userId = searchParams.get('userId');
-
-    if (!sessionId && !userId) {
+    const { userId } = auth();
+    
+    if (!userId) {
       return NextResponse.json(
-        { error: 'Session ID or User ID is required' },
-        { status: 400 }
+        { error: 'Authentication required' },
+        { status: 401 }
       );
     }
 
-    const stats = await UsageTracker.getUserStats(
-      sessionId || '',
-      userId || undefined
-    );
+    const stats = await UsageTracker.getUserStats('', userId);
 
     return NextResponse.json(stats);
   } catch (error) {

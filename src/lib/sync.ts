@@ -4,6 +4,7 @@ import { arenaClient, ArenaChannel } from './arena';
 import { contentExtractor, ProcessedAnyBlock } from './extraction';
 import { embeddingService } from './embeddings';
 import { UsageTracker, UsageCheckResult } from './usage-tracking';
+import { ChannelAccessService } from './channel-access';
 
 export interface SyncProgress {
   stage: 'fetching' | 'extracting' | 'embedding' | 'storing' | 'complete' | 'error';
@@ -192,20 +193,35 @@ export class SyncService {
     let deletedBlocks = 0;
 
     try {
-      // Stage 1: Fetch channel and contents
+      // Stage 1: Check channel access based on user tier
+      this.reportProgress({
+        stage: 'fetching',
+        message: `Checking access to channel "${channelSlug}"...`,
+        progress: 5,
+      });
+
+      const accessResult = await ChannelAccessService.checkChannelAccess(channelSlug, userId);
+      
+      if (!accessResult.canAccess) {
+        throw new Error(accessResult.message || 'Channel not accessible');
+      }
+
+      // Stage 2: Fetch channel and contents
       this.reportProgress({
         stage: 'fetching',
         message: `Fetching channel "${channelSlug}"...`,
         progress: 10,
       });
 
-      const channel = await arenaClient.getChannel(channelSlug);
+      // Use appropriate client based on user tier
+      const client = ChannelAccessService.getArenaClient(accessResult.userTier);
+      const channel = await client.getChannel(channelSlug);
       const dbChannelId = await this.upsertChannel(channel);
 
-      const allBlocks = await arenaClient.getAllChannelContents(channelSlug);
+      const allBlocks = await client.getAllChannelContents(channelSlug);
       
       // Get detailed info for link, image, media, attachment, and text blocks
-      const { linkBlocks, imageBlocks, mediaBlocks, attachmentBlocks, textBlocks, allBlocks: processableBlocks } = await arenaClient.getDetailedProcessableBlocks(allBlocks);
+      const { linkBlocks, imageBlocks, mediaBlocks, attachmentBlocks, textBlocks, allBlocks: processableBlocks } = await client.getDetailedProcessableBlocks(allBlocks);
 
       // Create non-zero block type message
       const blockTypes = [];

@@ -7,7 +7,8 @@
       "Bash(npm run type-check:*)",
       "Bash(npx tsx:*)",
       "Bash(npm run lint)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "WebFetch(domain:clerk.com)"
     ],
     "deny": []
   },

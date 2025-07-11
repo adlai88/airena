@@ -2,6 +2,7 @@
 import { NextRequest } from 'next/server';
 import { SyncService, SyncProgress } from '@/lib/sync';
 import { UsageTracker } from '@/lib/usage-tracking';
+import { auth } from '@clerk/nextjs/server';
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,12 +12,12 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: 'Channel slug is required' }, { status: 400 });
     }
 
+    // Get authentication info
+    const { userId } = auth();
+    
     // Get or generate session ID for usage tracking
     const userSessionId = sessionId || UsageTracker.generateSessionId();
     const ipAddress = UsageTracker.getIpAddress(req);
-    
-    // TODO: Get userId from authentication when implemented
-    const userId = undefined;
 
     // Create a readable stream for Server-Sent Events
     const stream = new ReadableStream({

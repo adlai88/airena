@@ -4,10 +4,12 @@ import { openai } from '@ai-sdk/openai';
 import { supabase } from '@/lib/supabase';
 import { EmbeddingService } from '@/lib/embeddings';
 import { PromptTemplates, ContextBlock } from '@/lib/templates';
+import { auth } from '@clerk/nextjs/server';
+import { UsageTracker } from '@/lib/usage-tracking';
 
 export async function POST(req: Request) {
   try {
-    const { messages, channelSlug } = await req.json();
+    const { messages, channelSlug, sessionId } = await req.json();
 
     if (!messages || messages.length === 0) {
       return new Response('Messages are required', { status: 400 });
@@ -16,6 +18,10 @@ export async function POST(req: Request) {
     if (!channelSlug) {
       return new Response('Channel slug is required', { status: 400 });
     }
+
+    // Get authentication info
+    const { userId } = auth();
+    const userSessionId = sessionId || UsageTracker.generateSessionId();
 
     // Get the latest user message
     const lastMessage = messages[messages.length - 1];
@@ -32,6 +38,32 @@ export async function POST(req: Request) {
 
     if (channelError || !channel) {
       return new Response('Channel not found', { status: 404 });
+    }
+
+    // Check chat limits for free tier users
+    const chatLimitCheck = await UsageTracker.checkChatGenerationLimits(
+      channel.id,
+      userSessionId,
+      userId,
+      'chat'
+    );
+
+    if (!chatLimitCheck.canChat) {
+      return new Response(
+        JSON.stringify({
+          error: 'Chat limit exceeded',
+          message: chatLimitCheck.message,
+          limitInfo: {
+            used: chatLimitCheck.chatMessagesUsed,
+            limit: chatLimitCheck.chatMessagesRemaining + chatLimitCheck.chatMessagesUsed,
+            tier: chatLimitCheck.tier
+          }
+        }),
+        { 
+          status: 429, 
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
     }
 
     // Check if this is a casual greeting or conversation that doesn't need content search
@@ -282,6 +314,16 @@ export async function POST(req: Request) {
         
         controller.close();
       },
+    });
+
+    // Record chat usage for free tier users (async, don't await)
+    UsageTracker.recordChatGenerationUsage(
+      channel.id,
+      userSessionId,
+      'chat',
+      userId
+    ).catch(error => {
+      console.error('Failed to record chat usage:', error);
     });
 
     return new Response(stream, {

@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { UsageTracker, UserTier, UsageRecord } from '@/lib/usage-tracking';
+import { useUser } from '@clerk/nextjs';
 
 interface UsageStats {
   tier: UserTier;
@@ -27,28 +28,16 @@ export default function UsagePage() {
   const [stats, setStats] = useState<UsageStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sessionId, setSessionId] = useState<string>('');
-
-  // Initialize session ID
-  useEffect(() => {
-    let storedSessionId = typeof window !== 'undefined' ? localStorage.getItem('airena_session_id') : null;
-    if (!storedSessionId) {
-      storedSessionId = UsageTracker.generateSessionId();
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('airena_session_id', storedSessionId);
-      }
-    }
-    setSessionId(storedSessionId);
-  }, []);
+  const { isSignedIn, user } = useUser();
 
   // Fetch usage stats
   useEffect(() => {
     const fetchStats = async () => {
-      if (!sessionId) return;
+      if (!isSignedIn || !user) return;
 
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/usage-stats?sessionId=${sessionId}`);
+        const response = await fetch('/api/usage-stats');
         
         if (!response.ok) {
           throw new Error('Failed to fetch usage statistics');
@@ -64,10 +53,25 @@ export default function UsagePage() {
     };
 
     fetchStats();
-  }, [sessionId]);
+  }, [isSignedIn, user]);
 
   const tierInfo = stats ? UsageTracker.getTierInfo(stats.tier) : null;
   const progressPercentage = stats ? Math.min((stats.monthly.current / stats.monthly.limit) * 100, 100) : 0;
+
+  if (!isSignedIn) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-muted-foreground mb-4">Please sign in to view your usage statistics</p>
+            <Button onClick={() => window.location.href = '/sign-in'}>
+              Sign In
+            </Button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   if (isLoading) {
     return (

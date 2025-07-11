@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Menu, Home, User, Settings } from 'lucide-react';
+import { SignInButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs';
 
 interface HamburgerMenuProps {
   homeNav?: boolean;
@@ -21,6 +21,7 @@ interface HamburgerMenuProps {
 export function HamburgerMenu({ homeNav = false }: HamburgerMenuProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const { isSignedIn } = useUser();
 
   // Close menu when navigating
   const handleNavigation = (path: string) => {
@@ -45,14 +46,32 @@ export function HamburgerMenu({ homeNav = false }: HamburgerMenuProps) {
               Home
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <User className="mr-2 h-4 w-4" />
-              Log in
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <User className="mr-2 h-4 w-4" />
-              Sign up
-            </DropdownMenuItem>
+            {isSignedIn ? (
+              <DropdownMenuItem asChild>
+                <div className="flex items-center">
+                  <UserButton />
+                </div>
+              </DropdownMenuItem>
+            ) : (
+              <>
+                <DropdownMenuItem asChild>
+                  <SignInButton mode="modal">
+                    <div className="flex items-center cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      Log in
+                    </div>
+                  </SignInButton>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <SignUpButton mode="modal">
+                    <div className="flex items-center cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      Sign up
+                    </div>
+                  </SignUpButton>
+                </DropdownMenuItem>
+              </>
+            )}
           </>
         ) : (
           /* App Navigation Items - Other items (main nav moved to mobile dropdown) */
@@ -64,19 +83,28 @@ export function HamburgerMenu({ homeNav = false }: HamburgerMenuProps) {
             <DropdownMenuSeparator />
             
             {/* User Actions */}
-            <DropdownMenuItem>
-              <div className="flex items-center">
-                <Avatar className="h-4 w-4 mr-2">
-                  <AvatarImage src="" alt="User" />
-                  <AvatarFallback className="text-xs">U</AvatarFallback>
-                </Avatar>
-                Profile
-              </div>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </DropdownMenuItem>
+            {isSignedIn ? (
+              <>
+                <DropdownMenuItem asChild>
+                  <div className="flex items-center">
+                    <UserButton />
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </DropdownMenuItem>
+              </>
+            ) : (
+              <DropdownMenuItem asChild>
+                <SignInButton mode="modal">
+                  <div className="flex items-center cursor-pointer">
+                    <User className="mr-2 h-4 w-4" />
+                    Sign in
+                  </div>
+                </SignInButton>
+              </DropdownMenuItem>
+            )}
           </>
         )}
         <DropdownMenuSeparator />
