@@ -16,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ChevronDown, Cog, MessageSquare, Wand2, BarChart3, Settings } from 'lucide-react';
+import { ChevronDown, Cog, MessageSquare, Wand2, BarChart3, Settings, CreditCard } from 'lucide-react';
 import { SignInButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs';
 
 interface NavigationProps {
@@ -223,7 +223,20 @@ export function Navigation({ homeNav = false }: NavigationProps) {
               <div className="hidden sm:flex items-center gap-1 sm:gap-2">
                 <ThemeToggle />
                 {isSignedIn ? (
-                  <UserButton />
+                  <UserButton>
+                    <UserButton.MenuItems>
+                      <UserButton.Link
+                        label="Usage"
+                        labelIcon={<BarChart3 size={16} />}
+                        href="/usage"
+                      />
+                      <UserButton.Link
+                        label="Pricing"
+                        labelIcon={<CreditCard size={16} />}
+                        href="/pricing"
+                      />
+                    </UserButton.MenuItems>
+                  </UserButton>
                 ) : (
                   <>
                     <SignInButton mode="modal">
@@ -252,7 +265,20 @@ export function Navigation({ homeNav = false }: NavigationProps) {
               <div className="hidden sm:flex items-center gap-1 sm:gap-3">
                 <ThemeToggle />
                 {isSignedIn ? (
-                  <UserButton />
+                  <UserButton>
+                    <UserButton.MenuItems>
+                      <UserButton.Link
+                        label="Usage"
+                        labelIcon={<BarChart3 size={16} />}
+                        href="/usage"
+                      />
+                      <UserButton.Link
+                        label="Pricing"
+                        labelIcon={<CreditCard size={16} />}
+                        href="/pricing"
+                      />
+                    </UserButton.MenuItems>
+                  </UserButton>
                 ) : (
                   <SignInButton mode="modal">
                     <Button variant="ghost" size="sm" className="font-medium">
