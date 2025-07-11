@@ -9,7 +9,7 @@ import { Layout } from '@/components/layout';
 import { PromptTemplates } from '@/lib/templates';
 import { useParams } from 'next/navigation';
 import { AutoTextarea } from '@/components/ui/auto-textarea';
-import { ArrowUpIcon, Grid, ArrowUpRight } from 'lucide-react';
+import { ArrowUpIcon, ArrowUpRight } from 'lucide-react';
 import Image from 'next/image';
 import { Spinner } from '@/components/ui/spinner';
 
