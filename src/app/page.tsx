@@ -29,14 +29,6 @@ export default function HomePage() {
             <Button variant="outline" size="lg" className="font-medium min-h-[52px] px-8" asChild>
               <Link href="/setup">Try Demo</Link>
             </Button>
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="font-medium min-h-[52px] px-8 opacity-50" 
-              disabled
-            >
-              Join Waitlist
-            </Button>
           </div>
 
           <div className="mb-16">
