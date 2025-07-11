@@ -19,8 +19,15 @@ export async function POST(req: Request) {
       return new Response('Channel slug is required', { status: 400 });
     }
 
-    // Get authentication info
-    const { userId } = await auth();
+    // Get authentication info (optional for free users)
+    let userId: string | null = null;
+    try {
+      const authResult = await auth();
+      userId = authResult.userId;
+    } catch {
+      // No authentication required for free users
+      userId = null;
+    }
     const userSessionId = sessionId || UsageTracker.generateSessionId();
 
     // Get the latest user message
