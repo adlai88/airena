@@ -122,4 +122,52 @@ export class UserService {
       return null;
     }
   }
+
+  /**
+   * Update user settings (like Are.na API key)
+   */
+  static async updateUserSettings(
+    userId: string,
+    settings: { arenaApiKey?: string | null }
+  ): Promise<void> {
+    try {
+      const user = await (await clerkClient()).users.getUser(userId);
+      const currentMetadata = user.privateMetadata as Record<string, unknown>;
+
+      const updateData: Record<string, unknown> = {
+        ...currentMetadata,
+        updatedAt: new Date().toISOString()
+      };
+
+      if (settings.arenaApiKey !== undefined) {
+        if (settings.arenaApiKey === null) {
+          delete updateData.arenaApiKey;
+        } else {
+          updateData.arenaApiKey = settings.arenaApiKey;
+        }
+      }
+
+      await (await clerkClient()).users.updateUserMetadata(userId, {
+        privateMetadata: updateData
+      });
+    } catch (error) {
+      console.error('Error updating user settings:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get user's Are.na API key
+   */
+  static async getUserArenaApiKey(userId: string): Promise<string | null> {
+    try {
+      const user = await (await clerkClient()).users.getUser(userId);
+      const privateMetadata = user.privateMetadata as Record<string, unknown>;
+      
+      return (privateMetadata?.arenaApiKey as string) || null;
+    } catch (error) {
+      console.error('Error getting user Are.na API key:', error);
+      return null;
+    }
+  }
 }

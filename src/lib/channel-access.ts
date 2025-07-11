@@ -53,8 +53,17 @@ export class ChannelAccessService {
             };
           }
           
-          // User has paid tier - try with API key authentication
-          const privateClient = new ArenaClient(process.env.ARENA_API_KEY);
+          // User has paid tier - try with user's personal API key first, then fallback
+          let apiKeyToUse = process.env.ARENA_API_KEY;
+          
+          if (userId) {
+            const userApiKey = await UserService.getUserArenaApiKey(userId);
+            if (userApiKey) {
+              apiKeyToUse = userApiKey;
+            }
+          }
+          
+          const privateClient = new ArenaClient(apiKeyToUse);
           
           try {
             await privateClient.getChannel(channelSlug);
@@ -71,7 +80,9 @@ export class ChannelAccessService {
               canAccess: false,
               isPrivate: true,
               requiresUpgrade: false,
-              message: 'Channel not found or not accessible with current API key.',
+              message: userId && !await UserService.getUserArenaApiKey(userId) 
+                ? 'Private channel access requires your personal Are.na API key. Configure it in Settings.'
+                : 'Channel not found or not accessible with current API key.',
               userTier
             };
           }
