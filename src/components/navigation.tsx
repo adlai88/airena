@@ -231,7 +231,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                         href="/usage"
                       />
                       <UserButton.Link
-                        label="Pricing"
+                        label="Plan"
                         labelIcon={<CreditCard size={16} />}
                         href="/pricing"
                       />
@@ -273,7 +273,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                         href="/usage"
                       />
                       <UserButton.Link
-                        label="Pricing"
+                        label="Plan"
                         labelIcon={<CreditCard size={16} />}
                         href="/pricing"
                       />
