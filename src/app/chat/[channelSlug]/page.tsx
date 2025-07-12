@@ -474,7 +474,7 @@ function ChatContent() {
                 {message.role === 'assistant' && (
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-neutral-900 flex items-center justify-center mr-3 mt-1 overflow-hidden border border-border">
                     <Image
-                      src="/favicon.svg"
+                      src="/favicon-32x32.png"
                       alt="AI"
                       width={32}
                       height={32}
@@ -526,18 +526,18 @@ function ChatContent() {
                                 </div>
                               ))}
                             </div>
-                            {/* 'View All' rectangle linking to the Are.na channel */}
+                            {/* 'View Channel' block below thumbnails */}
                             <a
                               href={username
                                 ? `https://www.are.na/${username.toLowerCase().replace(/[^a-z0-9]/g, '')}/${channelSlug}`
                                 : `https://www.are.na/${channelSlug}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="ml-2 flex items-center justify-center w-24 h-20 border border-border bg-transparent hover:bg-primary/5 transition-colors cursor-pointer text-xs font-medium text-muted-foreground rounded-none px-3 gap-1"
+                              className="mt-3 block mx-auto w-24 h-20 border border-border bg-transparent hover:bg-primary/5 transition-colors cursor-pointer text-xs font-medium text-muted-foreground rounded-none px-3 gap-1 text-center"
                               title="View Are.na Channel"
                             >
                               <span className="mr-1">View Channel</span>
-                              <ArrowUpRight className="w-4 h-4 text-muted-foreground" />
+                              <ArrowUpRight className="w-4 h-4 text-muted-foreground inline-block" />
                             </a>
                           </div>
                         </div>
@@ -551,7 +551,7 @@ function ChatContent() {
               <div className="flex justify-start items-start">
                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-neutral-900 flex items-center justify-center mr-3 mt-1 overflow-hidden border border-border">
                   <Image
-                    src="/favicon.svg"
+                    src="/favicon-32x32.png"
                     alt="AI"
                     width={32}
                     height={32}
