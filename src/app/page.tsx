@@ -21,7 +21,7 @@ export default function HomePage() {
             </Link>
           </h1>
           <p className="text-xl mb-12 text-foreground">
-            Turn your curation into instant intelligence. Chat with your channels, generate content, and discover patterns across everything you've saved.
+            Turn your curation into instant intelligence. Chat with your channels, generate content, and discover patterns across everything you&apos;ve saved.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 mb-16">
