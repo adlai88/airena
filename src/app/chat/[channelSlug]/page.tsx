@@ -534,7 +534,7 @@ function ChatContent() {
                               : `https://www.are.na/${channelSlug}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="block w-full max-w-xs mx-auto mt-6 py-3 px-4 bg-muted border border-border rounded-none text-center text-base font-medium text-foreground hover:bg-primary/10 transition flex items-center justify-center gap-2"
+                            className="block w-full mt-6 py-3 px-4 bg-muted border border-border rounded-none text-center text-base font-medium text-foreground hover:bg-primary/10 transition flex items-center justify-center gap-2"
                             title="View Are.na Channel"
                           >
                             <span>View Channel</span>
