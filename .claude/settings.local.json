@@ -9,7 +9,8 @@
       "Bash(npm run lint)",
       "Bash(rg:*)",
       "WebFetch(domain:clerk.com)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "mcp__supabase__list_tables"
     ],
     "deny": []
   },

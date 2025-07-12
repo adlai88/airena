@@ -48,6 +48,7 @@ export default function SetupPage() {
   const [recentChannels, setRecentChannels] = useState<{
     slug: string;
     title: string;
+    thumbnailUrl?: string;
     lastSync: string;
     blockCount: number;
   }[]>([]);
@@ -495,12 +496,33 @@ export default function SetupPage() {
                       tabIndex={0}
                     >
                       <div className="flex items-center justify-between min-w-0">
-                        <div className="flex-1 min-w-0 pr-2">
-                          <div className="font-medium text-sm truncate">
-                            {channel.title || channel.slug}
-                          </div>
-                          <div className="text-xs text-muted-foreground truncate">
-                            {channel.blockCount} blocks • Last synced {new Date(channel.lastSync).toLocaleDateString()}
+                        <div className="flex items-center flex-1 min-w-0 pr-2">
+                          {/* Thumbnail */}
+                          {channel.thumbnailUrl ? (
+                            <img 
+                              src={channel.thumbnailUrl} 
+                              alt={`${channel.title || channel.slug} thumbnail`}
+                              className="w-10 h-10 rounded-md object-cover flex-shrink-0 mr-3"
+                              onError={(e) => {
+                                // Hide image on load error
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center flex-shrink-0 mr-3">
+                              <span className="text-xs text-muted-foreground font-medium">
+                                {(channel.title || channel.slug).charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                          )}
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm truncate">
+                              {channel.title || channel.slug}
+                            </div>
+                            <div className="text-xs text-muted-foreground truncate">
+                              {channel.blockCount} blocks • Last synced {new Date(channel.lastSync).toLocaleDateString()}
+                            </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-1 flex-shrink-0">

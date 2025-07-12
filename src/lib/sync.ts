@@ -57,9 +57,45 @@ export class SyncService {
   }
 
   /**
+   * Generate thumbnail from first image block in channel
+   */
+  private async generateChannelThumbnail(channelSlug: string): Promise<string | null> {
+    try {
+      // Get channel contents to find first image
+      const allBlocks = await arenaClient.getAllChannelContents(channelSlug);
+      
+      // Find first image block with a valid URL
+      const imageBlock = allBlocks.find(block => {
+        if (block.class === 'Image') {
+          // Check for external image URL or uploaded image
+          const hasExternalUrl = block.source_url && block.source_url.startsWith('http');
+          const hasUploadedImage = block.image?.original?.url;
+          return hasExternalUrl || hasUploadedImage;
+        }
+        return false;
+      });
+
+      if (imageBlock) {
+        // Prefer external source URL, fallback to uploaded image
+        const thumbnailUrl = imageBlock.source_url || imageBlock.image?.original?.url;
+        if (thumbnailUrl) {
+          console.log(`Found thumbnail for channel ${channelSlug}: ${thumbnailUrl}`);
+          return thumbnailUrl;
+        }
+      }
+
+      console.log(`No suitable thumbnail found for channel ${channelSlug}`);
+      return null;
+    } catch (error) {
+      console.error(`Error generating thumbnail for channel ${channelSlug}:`, error);
+      return null;
+    }
+  }
+
+  /**
    * Store or update channel in database
    */
-  private async upsertChannel(channel: ArenaChannel): Promise<number> {
+  private async upsertChannel(channel: ArenaChannel, thumbnailUrl?: string): Promise<number> {
     // First try to update existing record
     const { data: existingChannel } = await supabase
       .from('channels')
@@ -68,17 +104,24 @@ export class SyncService {
       .single();
 
     if (existingChannel) {
-      // Update existing channel with all fields including username
+      // Update existing channel with all fields including username and thumbnail
       console.log(`Updating existing channel ${channel.slug} with username: ${channel.user.username}`);
+      const updateData: any = {
+        title: channel.title,
+        slug: channel.slug,
+        username: channel.user.username,
+        last_sync: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      
+      // Only update thumbnail if provided
+      if (thumbnailUrl !== undefined) {
+        updateData.thumbnail_url = thumbnailUrl;
+      }
+      
       const { error } = await supabase
         .from('channels')
-        .update({
-          title: channel.title,
-          slug: channel.slug,
-          username: channel.user.username,
-          last_sync: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('arena_id', channel.id);
 
       if (error) {
@@ -90,17 +133,24 @@ export class SyncService {
     } else {
       // Insert new channel
       console.log(`Inserting new channel ${channel.slug} with username: ${channel.user.username}`);
+      const insertData: any = {
+        arena_id: channel.id,
+        title: channel.title,
+        slug: channel.slug,
+        username: channel.user.username,
+        user_id: null,
+        last_sync: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      
+      // Include thumbnail if provided
+      if (thumbnailUrl !== undefined) {
+        insertData.thumbnail_url = thumbnailUrl;
+      }
+      
       const { data: insertedChannel, error } = await supabase
         .from('channels')
-        .insert({
-          arena_id: channel.id,
-          title: channel.title,
-          slug: channel.slug,
-          username: channel.user.username,
-          user_id: null,
-          last_sync: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
+        .insert(insertData)
         .select('id')
         .single();
 
@@ -216,7 +266,16 @@ export class SyncService {
       // Use appropriate client based on user tier
       const client = ChannelAccessService.getArenaClient(accessResult.userTier);
       const channel = await client.getChannel(channelSlug);
-      const dbChannelId = await this.upsertChannel(channel);
+      
+      // Generate thumbnail for new or updated channels
+      this.reportProgress({
+        stage: 'fetching',
+        message: `Generating channel thumbnail...`,
+        progress: 8,
+      });
+      
+      const thumbnailUrl = await this.generateChannelThumbnail(channelSlug);
+      const dbChannelId = await this.upsertChannel(channel, thumbnailUrl);
 
       const allBlocks = await client.getAllChannelContents(channelSlug);
       
@@ -687,7 +746,7 @@ export class SyncService {
 
       console.log(`Parallel embedding complete: ${embeddedBlocks} successful, ${embeddingErrors} failed out of ${processedBlocksList.length} total`);
 
-      // Update channel sync timestamp
+      // Update channel sync timestamp (preserve existing thumbnail)
       await this.upsertChannel(channel);
 
       // Verify blocks were actually stored in database

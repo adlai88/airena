@@ -15,6 +15,7 @@ export async function GET() {
         id,
         slug,
         title,
+        thumbnail_url,
         last_sync,
         created_at,
         arena_id,
@@ -45,6 +46,7 @@ export async function GET() {
         return {
           slug: channel.slug,
           title: channel.title,
+          thumbnailUrl: channel.thumbnail_url,
           lastSync: channel.last_sync,
           createdAt: channel.created_at,
           blockCount: blockCount || 0,
