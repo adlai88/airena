@@ -54,24 +54,44 @@ export default function SetupPage() {
   }[]>([]);
   const [hoveredChannel, setHoveredChannel] = useState<string | null>(null);
   const [blockLimitWarning, setBlockLimitWarning] = useState<string | null>(null);
+  const [channelLimits, setChannelLimits] = useState<{
+    channelCount: number;
+    channelLimit: number;
+    userTier: string;
+    canAddMoreChannels: boolean;
+  } | null>(null);
   const router = useRouter();
 
-  // Load recent channels on mount
+  // Load recent channels and channel limits on mount
   useEffect(() => {
-    const loadRecentChannels = async () => {
+    const loadData = async () => {
       try {
-        const response = await fetch('/api/recent-channels');
-        if (response.ok) {
-          const data = await response.json();
-          setRecentChannels(data.channels || []);
+        // Load recent channels
+        const channelsResponse = await fetch('/api/recent-channels');
+        if (channelsResponse.ok) {
+          const channelsData = await channelsResponse.json();
+          setRecentChannels(channelsData.channels || []);
+        }
+
+        // Load channel limits
+        const limitsResponse = await fetch('/api/channel-limits', {
+          headers: {
+            'x-session-id': sessionId
+          }
+        });
+        if (limitsResponse.ok) {
+          const limitsData = await limitsResponse.json();
+          setChannelLimits(limitsData);
         }
       } catch {
-        console.log('Failed to load recent channels');
+        console.log('Failed to load data');
       }
     };
 
-    loadRecentChannels();
-  }, []);
+    if (sessionId) {
+      loadData();
+    }
+  }, [sessionId]);
 
   const handleSync = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -188,19 +208,31 @@ export default function SetupPage() {
                 // Refresh the hook to get updated channel info
                 refreshChannel();
                 
-                // Reload recent channels
-                const loadRecentChannels = async () => {
+                // Reload recent channels and channel limits
+                const loadData = async () => {
                   try {
-                    const response = await fetch('/api/recent-channels');
-                    if (response.ok) {
-                      const data = await response.json();
-                      setRecentChannels(data.channels || []);
+                    // Load recent channels
+                    const channelsResponse = await fetch('/api/recent-channels');
+                    if (channelsResponse.ok) {
+                      const channelsData = await channelsResponse.json();
+                      setRecentChannels(channelsData.channels || []);
+                    }
+
+                    // Load channel limits
+                    const limitsResponse = await fetch('/api/channel-limits', {
+                      headers: {
+                        'x-session-id': sessionId
+                      }
+                    });
+                    if (limitsResponse.ok) {
+                      const limitsData = await limitsResponse.json();
+                      setChannelLimits(limitsData);
                     }
                   } catch {
-                    console.log('Failed to load recent channels');
+                    console.log('Failed to load data');
                   }
                 };
-                loadRecentChannels();
+                loadData();
                 
                 // Show success modal
                 setTimeout(() => {
@@ -263,6 +295,21 @@ export default function SetupPage() {
 
   const isExistingChannel = (slug: string): boolean => {
     return recentChannels.some(channel => channel.slug === slug) || slug === connectedChannel;
+  };
+
+  const canAddChannel = (slug: string): boolean => {
+    // If it's an existing channel, can always refresh
+    if (isExistingChannel(slug)) {
+      return true;
+    }
+    
+    // If no channel limits data, assume can add
+    if (!channelLimits) {
+      return true;
+    }
+    
+    // Check if user can add more channels
+    return channelLimits.canAddMoreChannels;
   };
 
   const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -368,6 +415,20 @@ export default function SetupPage() {
             />
           </div>
         )}
+
+        {/* Show channel limits for free tier users */}
+        {channelLimits && channelLimits.userTier === 'free' && (
+          <div className="flex justify-center mb-4">
+            <div className="text-sm text-muted-foreground">
+              Channels: <span className="font-medium">{channelLimits.channelCount}/{channelLimits.channelLimit}</span>
+              {!channelLimits.canAddMoreChannels && (
+                <span className="text-orange-600 dark:text-orange-400 ml-2">
+                  (Upgrade for unlimited channels)
+                </span>
+              )}
+            </div>
+          </div>
+        )}
         
         <Card>
           <CardContent className="space-y-6 p-4 sm:p-6">
@@ -398,7 +459,7 @@ export default function SetupPage() {
 
               <Button
                 type="submit"
-                disabled={isLoading || !channelSlug.trim()}
+                disabled={isLoading || !channelSlug.trim() || !canAddChannel(channelSlug)}
                 className="w-full min-h-[48px] sm:min-h-auto"
                 size="lg"
               >
@@ -413,6 +474,20 @@ export default function SetupPage() {
                     : (connectedChannel ? 'Add Channel' : 'Add Channel')
                 )}
               </Button>
+
+              {/* Channel limit warning */}
+              {channelSlug && !canAddChannel(channelSlug) && (
+                <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded text-orange-800 text-xs">
+                  Channel limit reached ({channelLimits?.channelCount}/{channelLimits?.channelLimit}). 
+                  <Button 
+                    variant="link" 
+                    className="p-0 h-auto font-semibold text-orange-600 hover:text-orange-700 ml-1"
+                    onClick={() => window.location.href = '/pricing'}
+                  >
+                    Upgrade to Starter
+                  </Button> for unlimited channels.
+                </div>
+              )}
             </form>
 
             {/* Progress Bar */}

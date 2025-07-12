@@ -584,6 +584,93 @@ export class UsageTracker {
   }
 
   /**
+   * Count the number of channels a user has synced
+   */
+  static async getUserChannelCount(
+    sessionId: string,
+    userId?: string
+  ): Promise<number> {
+    try {
+      const usage = await this.getUserUsage(sessionId, userId);
+      return usage.length;
+    } catch (error) {
+      console.error('Error getting user channel count:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Check if user has reached their channel limit based on tier
+   */
+  static async checkChannelLimit(
+    channelSlug: string,
+    sessionId: string,
+    userId?: string
+  ): Promise<{
+    canAddChannel: boolean;
+    channelCount: number;
+    channelLimit: number;
+    isNewChannel: boolean;
+    message?: string;
+  }> {
+    try {
+      const userTier = await this.getUserTier(userId);
+      
+      // Paid tiers have unlimited channels
+      if (userTier !== 'free') {
+        return {
+          canAddChannel: true,
+          channelCount: 0,
+          channelLimit: -1, // unlimited
+          isNewChannel: false
+        };
+      }
+
+      // Free tier has 3 channel limit
+      const channelLimit = 3;
+      
+      // Check if this channel already exists for the user
+      const existingChannels = await this.getUserUsage(sessionId, userId);
+      const isExistingChannel = existingChannels.some(
+        channel => channel.channel_slug === channelSlug
+      );
+
+      if (isExistingChannel) {
+        // Existing channel - can always re-sync
+        return {
+          canAddChannel: true,
+          channelCount: existingChannels.length,
+          channelLimit,
+          isNewChannel: false
+        };
+      }
+
+      // New channel - check if under limit
+      const channelCount = existingChannels.length;
+      const canAddChannel = channelCount < channelLimit;
+
+      return {
+        canAddChannel,
+        channelCount,
+        channelLimit,
+        isNewChannel: true,
+        message: canAddChannel 
+          ? undefined 
+          : `Free tier is limited to ${channelLimit} channels. You have ${channelCount}/${channelLimit} channels. Upgrade to Starter for unlimited channels.`
+      };
+    } catch (error) {
+      console.error('Error checking channel limit:', error);
+      return {
+        canAddChannel: false,
+        channelCount: 0,
+        channelLimit: 3,
+        isNewChannel: true,
+        message: 'Error checking channel limits'
+      };
+    }
+  }
+
+  /**
    * Check if user has any usage history (for upgrade prompts)
    */
   static async hasUsageHistory(
@@ -669,6 +756,7 @@ export class UsageTracker {
           type: config.type,
           features: [
             '25 blocks per channel',
+            '3 channels maximum',
             '10 chat messages per channel/month',
             '2 generations per channel/month',
             'Public channels only',

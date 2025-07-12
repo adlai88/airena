@@ -256,6 +256,19 @@ export class SyncService {
         throw new Error(accessResult.message || 'Channel not accessible');
       }
 
+      // Stage 1.5: Check channel count limits for free tier users
+      this.reportProgress({
+        stage: 'fetching',
+        message: `Checking channel limits...`,
+        progress: 6,
+      });
+
+      const channelLimitResult = await UsageTracker.checkChannelLimit(channelSlug, sessionId, userId || undefined);
+      
+      if (!channelLimitResult.canAddChannel) {
+        throw new Error(channelLimitResult.message || 'Channel limit exceeded');
+      }
+
       // Stage 2: Fetch channel and contents
       this.reportProgress({
         stage: 'fetching',
