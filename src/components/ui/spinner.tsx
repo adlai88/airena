@@ -58,7 +58,7 @@ const bars = [
 
 export const Spinner = ({ size = 20, color = "#8f8f8f" }: SpinnerProps) => {
   return (
-    <div style={{ width: size, height: size }}>
+    <div style={{ position: "relative", width: size, height: size }}>
       <style jsx>{`
         @keyframes spin {
           0% {
@@ -69,24 +69,22 @@ export const Spinner = ({ size = 20, color = "#8f8f8f" }: SpinnerProps) => {
           }
         }
       `}</style>
-      <div style={{ position: "relative", width: size, height: size, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        {bars.map((item) => (
-          <div
-            key={item.transform}
-            style={{
-              position: "absolute",
-              height: "8%",
-              width: "24%",
-              left: "-10%",
-              top: "-3.9%",
-              borderRadius: 5,
-              backgroundColor: color,
-              animation: "spin 1.2s linear infinite",
-              ...item
-            }}
-          />
-        ))}
-      </div>
+      {bars.map((item) => (
+        <div
+          key={item.transform}
+          style={{
+            position: "absolute",
+            height: "8%",
+            width: "24%",
+            left: "-10%",
+            top: "-3.9%",
+            borderRadius: 5,
+            backgroundColor: color,
+            animation: "spin 1.2s linear infinite",
+            ...item
+          }}
+        />
+      ))}
     </div>
   );
 };
