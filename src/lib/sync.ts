@@ -220,8 +220,26 @@ export class SyncService {
 
       const allBlocks = await client.getAllChannelContents(channelSlug);
       
+      // Show channel size and set expectations for large channels
+      this.reportProgress({
+        stage: 'fetching',
+        message: allBlocks.length > 200 ? 
+          `Analyzing ${allBlocks.length} blocks (this may take 2-3 minutes for large channels)...` :
+          `Analyzing ${allBlocks.length} blocks...`,
+        progress: 12,
+      });
+      
       // Get detailed info for link, image, media, attachment, and text blocks
-      const { linkBlocks, imageBlocks, mediaBlocks, attachmentBlocks, textBlocks, allBlocks: processableBlocks } = await client.getDetailedProcessableBlocks(allBlocks);
+      const { linkBlocks, imageBlocks, mediaBlocks, attachmentBlocks, textBlocks, allBlocks: processableBlocks } = await client.getDetailedProcessableBlocks(
+        allBlocks,
+        (message: string, progress: number) => {
+          this.reportProgress({
+            stage: 'fetching',
+            message,
+            progress,
+          });
+        }
+      );
 
       // Create non-zero block type message
       const blockTypes = [];

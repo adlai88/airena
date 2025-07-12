@@ -422,7 +422,10 @@ export class ArenaClient {
   /**
    * Get detailed blocks for Link, Image, Media, Attachment, and Text types
    */
-  async getDetailedProcessableBlocks(blocks: ArenaBlock[]): Promise<{
+  async getDetailedProcessableBlocks(
+    blocks: ArenaBlock[], 
+    progressCallback?: (message: string, progress: number) => void
+  ): Promise<{
     linkBlocks: ArenaBlock[];
     imageBlocks: ArenaBlock[];
     mediaBlocks: ArenaBlock[];
@@ -430,12 +433,58 @@ export class ArenaClient {
     textBlocks: ArenaBlock[];
     allBlocks: ArenaBlock[];
   }> {
+    // Count blocks by type for progress reporting
+    const linkCount = blocks.filter(b => b.class === 'Link').length;
+    const imageCount = blocks.filter(b => b.class === 'Image').length;
+    const mediaCount = blocks.filter(b => b.class === 'Media').length;
+    const attachmentCount = blocks.filter(b => b.class === 'Attachment').length;
+    const textCount = blocks.filter(b => b.class === 'Text').length;
+
+    // Track completion for progress reporting
+    let completed = 0;
+    const total = 5; // 5 block types to process
+    
+    const updateProgress = (blockType: string, count: number) => {
+      completed++;
+      const progress = 10 + Math.round((completed / total) * 10); // Progress from 10% to 20%
+      const message = count > 0 ? 
+        `Analyzing ${blockType} (${count} found)...` : 
+        `Checking for ${blockType}...`;
+      progressCallback?.(message, progress);
+    };
+
+    // Process each block type and report progress
+    const linkBlocksPromise = this.getDetailedLinkBlocks(blocks).then(result => {
+      updateProgress('links', linkCount);
+      return result;
+    });
+
+    const imageBlocksPromise = this.getDetailedImageBlocks(blocks).then(result => {
+      updateProgress('images', imageCount);
+      return result;
+    });
+
+    const mediaBlocksPromise = this.getDetailedMediaBlocks(blocks).then(result => {
+      updateProgress('videos', mediaCount);
+      return result;
+    });
+
+    const attachmentBlocksPromise = this.getDetailedAttachmentBlocks(blocks).then(result => {
+      updateProgress('documents', attachmentCount);
+      return result;
+    });
+
+    const textBlocksPromise = this.getDetailedTextBlocks(blocks).then(result => {
+      updateProgress('text blocks', textCount);
+      return result;
+    });
+
     const [linkBlocks, imageBlocks, mediaBlocks, attachmentBlocks, textBlocks] = await Promise.all([
-      this.getDetailedLinkBlocks(blocks),
-      this.getDetailedImageBlocks(blocks),
-      this.getDetailedMediaBlocks(blocks),
-      this.getDetailedAttachmentBlocks(blocks),
-      this.getDetailedTextBlocks(blocks)
+      linkBlocksPromise,
+      imageBlocksPromise,
+      mediaBlocksPromise,
+      attachmentBlocksPromise,
+      textBlocksPromise
     ]);
 
     return {
