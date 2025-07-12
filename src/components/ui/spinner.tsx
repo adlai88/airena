@@ -59,24 +59,31 @@ const bars = [
 export const Spinner = ({ size = 20, color = "#8f8f8f" }: SpinnerProps) => {
   return (
     <div style={{ width: size, height: size }}>
-      <style jsx>
-        {`
-          @keyframes spin {
-              0% {
-                  opacity: 0.15;
-              }
-              100% {
-                  opacity: 1;
-              }
+      <style jsx>{`
+        @keyframes spin {
+          0% {
+            opacity: 0.15;
           }
-        `}
-      </style>
-      <div className="relative top-1/2 left-1/2" style={{ width: size, height: size }}>
+          100% {
+            opacity: 1;
+          }
+        }
+      `}</style>
+      <div style={{ position: "relative", width: size, height: size }}>
         {bars.map((item) => (
           <div
             key={item.transform}
-            className="absolute h-[8%] w-[24%] -left-[10%] -top-[3.9%] rounded-[5px]"
-            style={{ backgroundColor: color, animation: "spin 1.2s linear infinite", ...item }}
+            style={{
+              position: "absolute",
+              height: "8%",
+              width: "24%",
+              left: "-10%",
+              top: "-3.9%",
+              borderRadius: 5,
+              backgroundColor: color,
+              animation: "spin 1.2s linear infinite",
+              ...item
+            }}
           />
         ))}
       </div>
