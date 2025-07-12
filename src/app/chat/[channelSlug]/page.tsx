@@ -559,7 +559,7 @@ function ChatContent() {
                     draggable={false}
                   />
                 </div>
-                <Spinner size={32} />
+                <Spinner size={20} />
                 <span className="ml-2 text-muted-foreground text-sm">Thinking...</span>
               </div>
             )}

@@ -69,7 +69,7 @@ export const Spinner = ({ size = 20, color = "#8f8f8f" }: SpinnerProps) => {
           }
         }
       `}</style>
-      <div style={{ position: "relative", width: size, height: size }}>
+      <div style={{ position: "relative", width: size, height: size, display: "flex", alignItems: "center", justifyContent: "center" }}>
         {bars.map((item) => (
           <div
             key={item.transform}
