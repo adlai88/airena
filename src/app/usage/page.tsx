@@ -7,7 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, AlertCircle, Check, Key } from 'lucide-react';
 import { UserTier, UsageRecord } from '@/lib/usage-tracking';
 import { useUser } from '@clerk/nextjs';
 
@@ -31,40 +34,164 @@ interface UsageStats {
   };
 }
 
+interface ApiKeyStatus {
+  isValid: boolean;
+  message: string;
+  testing: boolean;
+}
+
 export default function UsagePage() {
   const [stats, setStats] = useState<UsageStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [apiKey, setApiKey] = useState('');
+  const [currentApiKey, setCurrentApiKey] = useState('');
+  const [apiKeyStatus, setApiKeyStatus] = useState<ApiKeyStatus>({
+    isValid: false,
+    message: '',
+    testing: false
+  });
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const { isSignedIn, user } = useUser();
 
-  // Fetch usage stats
+  // Fetch usage stats and API key data
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       if (!isSignedIn || !user) return;
 
       try {
         setIsLoading(true);
-        const response = await fetch('/api/usage-stats');
         
-        if (!response.ok) {
+        // Fetch usage stats
+        const statsResponse = await fetch('/api/usage-stats');
+        if (!statsResponse.ok) {
           throw new Error('Failed to fetch usage statistics');
         }
+        const statsData = await statsResponse.json();
+        setStats(statsData);
 
-        const data = await response.json();
-        setStats(data);
+        // Fetch API key status
+        const keyResponse = await fetch('/api/user-settings');
+        if (keyResponse.ok) {
+          const keyData = await keyResponse.json();
+          setCurrentApiKey(keyData.hasApiKey ? '•••••••••••••••' : '');
+          if (keyData.hasApiKey) {
+            setApiKeyStatus({
+              isValid: true,
+              message: 'API key is configured and working',
+              testing: false
+            });
+          }
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load usage statistics');
+        setError(err instanceof Error ? err.message : 'Failed to load data');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchStats();
+    fetchData();
   }, [isSignedIn, user]);
 
   // Get tier info from the stats response instead of UsageTracker
   const tierInfo = stats?.tierInfo || null;
   const progressPercentage = stats ? Math.min((stats.monthly.current / stats.monthly.limit) * 100, 100) : 0;
+
+  // API Key management functions
+  const testApiKey = async (key: string) => {
+    if (!key) {
+      setApiKeyStatus({
+        isValid: false,
+        message: 'Please enter an API key',
+        testing: false
+      });
+      return;
+    }
+
+    setApiKeyStatus({ isValid: false, message: '', testing: true });
+
+    try {
+      const response = await fetch('/api/test-arena-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey: key })
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setApiKeyStatus({
+          isValid: true,
+          message: `✓ Connected as ${result.username}`,
+          testing: false
+        });
+      } else {
+        setApiKeyStatus({
+          isValid: false,
+          message: result.error || 'Invalid API key',
+          testing: false
+        });
+      }
+    } catch {
+      setApiKeyStatus({
+        isValid: false,
+        message: 'Failed to test API key',
+        testing: false
+      });
+    }
+  };
+
+  const saveApiKey = async () => {
+    if (!apiKey) return;
+
+    setSaving(true);
+    try {
+      const response = await fetch('/api/user-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ arenaApiKey: apiKey })
+      });
+
+      if (response.ok) {
+        setSaved(true);
+        setCurrentApiKey('•••••••••••••••');
+        setApiKey('');
+        setTimeout(() => setSaved(false), 3000);
+      } else {
+        throw new Error('Failed to save API key');
+      }
+    } catch (error) {
+      console.error('Error saving API key:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const removeApiKey = async () => {
+    setSaving(true);
+    try {
+      const response = await fetch('/api/user-settings', {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        setCurrentApiKey('');
+        setApiKey('');
+        setApiKeyStatus({
+          isValid: false,
+          message: '',
+          testing: false
+        });
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+      }
+    } catch (error) {
+      console.error('Error removing API key:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (!isSignedIn) {
     return (
@@ -247,6 +374,114 @@ export default function UsagePage() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Private Channel Access */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Key className="h-5 w-5" />
+                  <CardTitle>Private Channel Access</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {stats?.tier === 'free' ? (
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      Private channel access requires a Starter plan or higher. 
+                      <Button 
+                        variant="link" 
+                        className="p-0 h-auto font-semibold text-primary ml-1"
+                        onClick={() => window.location.href = '/pricing'}
+                      >
+                        Upgrade to access your private channels.
+                      </Button>
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="api-key">Are.na API Key</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Configure your personal Are.na API key to access private channels
+                      </p>
+                      <div className="flex gap-2">
+                        <Input
+                          id="api-key"
+                          type="password"
+                          placeholder={currentApiKey || 'Enter your Are.na API key'}
+                          value={apiKey}
+                          onChange={(e) => {
+                            setApiKey(e.target.value);
+                            if (apiKeyStatus.message && !apiKeyStatus.testing) {
+                              setApiKeyStatus({ isValid: false, message: '', testing: false });
+                            }
+                          }}
+                          className="flex-1"
+                        />
+                        <Button
+                          variant="outline"
+                          onClick={() => testApiKey(apiKey)}
+                          disabled={!apiKey || apiKeyStatus.testing}
+                        >
+                          {apiKeyStatus.testing ? 'Testing...' : 'Test'}
+                        </Button>
+                      </div>
+                      
+                      {apiKeyStatus.message && (
+                        <p className={`text-sm ${apiKeyStatus.isValid ? 'text-green-600' : 'text-red-600'}`}>
+                          {apiKeyStatus.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={saveApiKey}
+                        disabled={!apiKey || !apiKeyStatus.isValid || saving}
+                        className="flex items-center gap-2"
+                      >
+                        {saved ? <Check className="h-4 w-4" /> : null}
+                        {saving ? 'Saving...' : saved ? 'Saved!' : 'Save API Key'}
+                      </Button>
+                      
+                      {currentApiKey && (
+                        <Button
+                          variant="outline"
+                          onClick={removeApiKey}
+                          disabled={saving}
+                        >
+                          Remove Key
+                        </Button>
+                      )}
+                    </div>
+
+                    <Alert>
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        <strong>How to get your API key:</strong>
+                        <br />
+                        1. Go to{' '}
+                        <a 
+                          href="https://dev.are.na" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline"
+                        >
+                          dev.are.na
+                        </a>
+                        <br />
+                        2. Sign in with your Are.na account
+                        <br />
+                        3. Create a new application or use an existing one
+                        <br />
+                        4. Copy your Personal Access Token
+                      </AlertDescription>
+                    </Alert>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Upgrade CTA for Free Users */}
             {stats.tier === 'free' && (

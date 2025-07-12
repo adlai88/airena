@@ -16,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ChevronDown, Cog, MessageSquare, Wand2, BarChart3, Settings, CreditCard } from 'lucide-react';
+import { ChevronDown, Cog, MessageSquare, Wand2, BarChart3, CreditCard } from 'lucide-react';
 import { SignInButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs';
 
 interface NavigationProps {
@@ -79,7 +79,6 @@ export function Navigation({ homeNav = false }: NavigationProps) {
     if (isActivePage('/chat')) return { name: 'Chat', icon: MessageSquare };
     if (isActivePage('/generate')) return { name: 'Generate', icon: Wand2 };
     if (isActivePage('/usage')) return { name: 'Usage', icon: BarChart3 };
-    if (isActivePage('/settings')) return { name: 'Settings', icon: Settings };
     return { name: 'Channel', icon: Cog }; // default
   };
 
@@ -142,15 +141,6 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                       <BarChart3 className="mr-2 h-4 w-4" />
                       Usage
                     </DropdownMenuItem>
-                    {isSignedIn && (
-                      <DropdownMenuItem 
-                        onClick={() => navigateWithParams('/settings')}
-                        className={isActivePage('/settings') ? 'bg-accent text-accent-foreground' : ''}
-                      >
-                        <Settings className="mr-2 h-4 w-4" />
-                        Settings
-                      </DropdownMenuItem>
-                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
