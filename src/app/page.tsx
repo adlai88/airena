@@ -10,7 +10,7 @@ export default function HomePage() {
       <div className="py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-4xl font-bold mb-6 text-foreground">
-            Turn your{' '}
+            AI for{' '}
             <Link
               href="https://www.are.na/"
               target="_blank"
@@ -18,37 +18,37 @@ export default function HomePage() {
               className="text-orange-500 dark:text-orange-400 hover:text-orange-600 dark:hover:text-orange-300 no-underline hover:no-underline transition-colors"
             >
               Are.na
-            </Link>{' '}
-            channels into a personal intelligence agent
+            </Link>
           </h1>
           <p className="text-xl mb-12 text-foreground">
-            Airena transforms your curated inspiration into actionable insights, answers, and content—powered by your unique taste.
+            Turn your curation into instant intelligence. Chat with your channels, generate content, and discover patterns across everything you've saved.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 mb-16">
             <Button variant="outline" size="lg" className="font-medium min-h-[52px] px-8" asChild>
-              <Link href="/setup">Try Demo</Link>
+              <Link href="/setup">Try Demo (No signup required)</Link>
             </Button>
           </div>
 
           <div className="mb-16">
             <h2 className="text-2xl font-bold mb-4 text-foreground">Features</h2>
             <ul className="list-disc pl-6 space-y-2 text-foreground">
-              <li>Chat with your Are.na channels to surface hidden connections and patterns</li>
-              <li>Generate newsletters, summaries, and reports from your saved content</li>
-              <li>Unlock a knowledge base that thinks like you do</li>
+              <li>Ask anything about your channels and get intelligent answers with sources</li>
+              <li>Generate content in seconds: newsletters, research reports, creative briefs</li>
+              <li>Works with everything: websites, PDFs, images, videos, and tweets</li>
             </ul>
           </div>
 
+          {/* Replace 'Airena is:' and numbered list with 'Why Airena?' and new bullets */}
           <div className="border-t border-border pt-8">
-            <p className="text-foreground">Airena is:</p>
-            <ol className="list-decimal pl-6 space-y-2 mt-4 text-foreground">
-              <li>software 3.0 for transforming your curated content into AI insights</li>
-              <li>a toolkit for generating new knowledge from the scraps of your Are.na world</li>
-            </ol>
-
-            <p className="mt-8 text-foreground">
-              People describe Airena as <span className="font-bold">&ldquo;your personal research assistant&rdquo;</span> or an <span className="font-bold">&ldquo;intelligence amplifier.&rdquo;</span>
+            <h2 className="text-2xl font-bold mb-4 text-foreground">Why Airena?</h2>
+            <ul className="list-disc pl-6 space-y-2 text-foreground">
+              <li>Your taste, amplified: Every answer is informed by your personally curated knowledge</li>
+              <li>Zero setup: Just connect an Are.na channel and start chatting</li>
+              <li>Open source: Self-host for free or use our hosted service for $5/month</li>
+            </ul>
+            <p className="mt-6 text-foreground text-base font-medium">
+              Join researchers, designers, and strategists who are turning their Are.na channels into competitive intelligence.
             </p>
           </div>
         </div>
