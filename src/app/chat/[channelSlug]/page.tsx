@@ -536,7 +536,7 @@ function ChatContent() {
                               className="ml-2 flex items-center justify-center w-24 h-20 border border-border bg-transparent hover:bg-primary/5 transition-colors cursor-pointer text-xs font-medium text-muted-foreground rounded-none"
                               title="View Are.na Channel"
                             >
-                              <span className="mr-1">View All</span>
+                              <span className="mr-1">View Channel</span>
                               <ArrowUpRight className="w-4 h-4 text-muted-foreground" />
                             </a>
                           </div>
