@@ -507,9 +507,11 @@ export default function UsagePage() {
                       Email support
                     </div>
                   </div>
-                  <Button className="mt-4" disabled>
+                  <Button 
+                    className="mt-4" 
+                    onClick={() => window.location.href = '/pricing'}
+                  >
                     Upgrade to Starter - $5/month
-                    <span className="ml-2 text-xs">(Coming Soon)</span>
                   </Button>
                 </CardContent>
               </Card>
