@@ -106,7 +106,7 @@ export class UsageTracker {
   /**
    * Get user tier from API route (for server-side usage)
    */
-  private static async getUserTier(userId?: string): Promise<UserTier> {
+  static async getUserTier(userId?: string): Promise<UserTier> {
     if (!userId) {
       return 'free';
     }
@@ -569,13 +569,16 @@ export class UsageTracker {
       }
 
       // Flatten the channel data from the join
-      return (data || []).map((record: any) => ({
-        ...record,
-        channel_title: record.channels?.title,
-        channel_slug: record.channels?.slug,
-        channel_thumbnail_url: record.channels?.thumbnail_url,
-        channels: undefined // Remove the nested object
-      }));
+      return (data || []).map((record: Record<string, unknown>) => {
+        const channels = record.channels as { title?: string; slug?: string; thumbnail_url?: string } | undefined;
+        return {
+          ...record,
+          channel_title: channels?.title,
+          channel_slug: channels?.slug,
+          channel_thumbnail_url: channels?.thumbnail_url,
+          channels: undefined // Remove the nested object
+        } as UsageRecord;
+      });
 
     } catch (error) {
       console.error('Error in getUserUsage:', error);

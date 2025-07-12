@@ -106,7 +106,7 @@ export class SyncService {
     if (existingChannel) {
       // Update existing channel with all fields including username and thumbnail
       console.log(`Updating existing channel ${channel.slug} with username: ${channel.user.username}`);
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         title: channel.title,
         slug: channel.slug,
         username: channel.user.username,
@@ -133,7 +133,7 @@ export class SyncService {
     } else {
       // Insert new channel
       console.log(`Inserting new channel ${channel.slug} with username: ${channel.user.username}`);
-      const insertData: any = {
+      const insertData: Record<string, unknown> = {
         arena_id: channel.id,
         title: channel.title,
         slug: channel.slug,
