@@ -534,11 +534,11 @@ function ChatContent() {
                               : `https://www.are.na/${channelSlug}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="mt-3 flex items-center justify-start block ml-0 w-24 h-20 border border-border bg-transparent hover:bg-primary/5 transition-colors cursor-pointer text-xs font-medium text-muted-foreground rounded-none px-3 gap-1 text-left"
+                            className="block w-full max-w-xs mx-auto mt-6 py-3 px-4 bg-muted border border-border rounded-none text-center text-base font-medium text-foreground hover:bg-primary/10 transition flex items-center justify-center gap-2"
                             title="View Are.na Channel"
                           >
-                            <span className="mr-1">View Channel</span>
-                            <ArrowUpRight className="w-4 h-4 text-muted-foreground inline-block" />
+                            <span>View Channel</span>
+                            <ArrowUpRight className="w-5 h-5" />
                           </a>
                         </div>
                       )}
