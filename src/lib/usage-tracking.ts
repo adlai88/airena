@@ -12,6 +12,10 @@ export interface UsageRecord {
   is_free_tier: boolean;
   created_at: string;
   updated_at: string;
+  // Channel information (from join)
+  channel_title?: string;
+  channel_slug?: string;
+  channel_thumbnail_url?: string;
 }
 
 export interface MonthlyUsageRecord {
@@ -541,7 +545,14 @@ export class UsageTracker {
     try {
       const query = supabase
         .from('channel_usage')
-        .select('*')
+        .select(`
+          *,
+          channels!inner(
+            title,
+            slug,
+            thumbnail_url
+          )
+        `)
         .order('last_processed_at', { ascending: false });
 
       if (userId) {
@@ -557,7 +568,14 @@ export class UsageTracker {
         throw new Error(`Failed to get usage: ${error.message}`);
       }
 
-      return data as unknown as UsageRecord[];
+      // Flatten the channel data from the join
+      return (data || []).map((record: any) => ({
+        ...record,
+        channel_title: record.channels?.title,
+        channel_slug: record.channels?.slug,
+        channel_thumbnail_url: record.channels?.thumbnail_url,
+        channels: undefined // Remove the nested object
+      }));
 
     } catch (error) {
       console.error('Error in getUserUsage:', error);

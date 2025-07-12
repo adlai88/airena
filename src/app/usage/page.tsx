@@ -356,13 +356,36 @@ export default function UsagePage() {
                         key={channel.id}
                         className="flex items-center justify-between p-3 border rounded-md"
                       >
-                        <div>
-                          <p className="font-medium text-sm">Channel #{channel.channel_id}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Last processed: {new Date(channel.last_processed_at).toLocaleDateString()}
-                          </p>
+                        <div className="flex items-center flex-1 min-w-0 pr-2">
+                          {/* Thumbnail */}
+                          {channel.channel_thumbnail_url ? (
+                            <img 
+                              src={channel.channel_thumbnail_url} 
+                              alt={`${channel.channel_title || channel.channel_slug} thumbnail`}
+                              className="w-10 h-10 rounded-md object-cover flex-shrink-0 mr-3"
+                              onError={(e) => {
+                                // Hide image on load error
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center flex-shrink-0 mr-3">
+                              <span className="text-xs text-muted-foreground font-medium">
+                                {(channel.channel_title || channel.channel_slug || `Channel ${channel.channel_id}`).charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                          )}
+                          
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">
+                              {channel.channel_title || channel.channel_slug || `Channel #${channel.channel_id}`}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Last processed: {new Date(channel.last_processed_at).toLocaleDateString()}
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right flex-shrink-0">
                           <p className="text-sm font-medium">{channel.total_blocks_processed} blocks</p>
                           <Badge variant={channel.is_free_tier ? "secondary" : "default"} className="text-xs">
                             {channel.is_free_tier ? "Free" : "Paid"}
