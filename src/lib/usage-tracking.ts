@@ -577,7 +577,7 @@ export class UsageTracker {
           channel_slug: channels?.slug,
           channel_thumbnail_url: channels?.thumbnail_url,
           channels: undefined // Remove the nested object
-        } as UsageRecord;
+        } as unknown as UsageRecord;
       });
 
     } catch (error) {
