@@ -115,7 +115,7 @@ Discover amazing examples of Airena's multimodal intelligence with these careful
 ## How to Use These Examples
 
 ### 1. **Try the Live Demo**
-Visit [Airena](https://airena-e6f38mhub-adlai88s-projects.vercel.app/) and paste any channel URL
+Visit [Airena](https://www.airena.io/) and paste any channel URL
 
 ### 2. **Self-Host for Full Access**
 Clone the repository and process these channels locally for unlimited exploration

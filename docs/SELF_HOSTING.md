@@ -94,7 +94,7 @@ YOUTUBE_API_KEY="your-youtube-api-key"
 JINA_API_KEY="your-jina-api-key"
 
 # Optional - Application URL (for production)
-NEXT_PUBLIC_APP_URL="https://your-domain.com"
+NEXT_PUBLIC_APP_URL="https://www.airena.io"
 ```
 
 ### 4. Database Migration

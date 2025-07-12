@@ -5,7 +5,7 @@ Transform any Are.na channel into an intelligent knowledge base. Experience mult
 ## ✨ Try It Now (No Signup Required)
 Paste any public Are.na channel URL → Instant AI intelligence
 
-**Live Demo**: https://airena-e6f38mhub-adlai88s-projects.vercel.app/
+**Live Demo**: https://www.airena.io/
 
 ## 🎯 Perfect For
 
@@ -36,7 +36,7 @@ Paste any public Are.na channel URL → Instant AI intelligence
 ## 💡 Quick Start
 
 ### Option 1: Try the Hosted Service
-Visit [airena-e6f38mhub-adlai88s-projects.vercel.app](https://airena-e6f38mhub-adlai88s-projects.vercel.app/) and paste any public Are.na channel URL.
+Visit [www.airena.io](https://www.airena.io/) and paste any public Are.na channel URL.
 
 ### Option 2: Self-Host (Open Source)
 ```bash
