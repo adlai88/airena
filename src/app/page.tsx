@@ -24,10 +24,13 @@ export default function HomePage() {
             Turn years of curation into instant intelligence. Chat with your channels, generate content, and discover patterns across everything you&apos;ve saved.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 mb-16">
-            <Button variant="outline" size="lg" className="font-medium min-h-[52px] px-8" asChild>
-              <Link href="/setup">Try Demo (No signup required)</Link>
-            </Button>
+          <div className="mb-16">
+            <div className="inline-flex flex-col">
+              <Button variant="outline" size="lg" className="font-medium min-h-[52px] px-8 min-w-[220px]" asChild>
+                <Link href="/setup">Try Demo</Link>
+              </Button>
+              <p className="text-xs text-muted-foreground text-center mt-2">No signup required</p>
+            </div>
           </div>
 
           <div className="mb-16">

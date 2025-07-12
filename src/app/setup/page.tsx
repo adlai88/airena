@@ -62,6 +62,16 @@ export default function SetupPage() {
     userTier: string;
     canAddMoreChannels: boolean;
   } | null>(null);
+  const [largeChannelWarning, setLargeChannelWarning] = useState<{
+    show: boolean;
+    channelSlug: string;
+    channelBlocks: number;
+    monthlyUsed: number;
+    monthlyLimit: number;
+    monthlyRemaining: number;
+    wouldExceedLimit: boolean;
+    message: string;
+  } | null>(null);
   const router = useRouter();
 
   // Load recent channels and channel limits on mount
@@ -98,6 +108,47 @@ export default function SetupPage() {
   const handleSync = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!channelSlug.trim()) return;
+
+    // Check if we should show large channel warning first
+    if (largeChannelWarning && !largeChannelWarning.show) {
+      // Warning was already checked but dialog was dismissed, proceed with sync
+    } else if (channelLimits?.userTier !== 'free') {
+      // For paid users, check if this might trigger a warning
+      try {
+        const info = await arenaClient.getChannel(channelSlug);
+        if (info.length > 50) {
+          const response = await fetch('/api/large-channel-check', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-session-id': sessionId
+            },
+            body: JSON.stringify({ channelBlocks: info.length })
+          });
+          
+          if (response.ok) {
+            const warningData = await response.json();
+            if (warningData.showWarning && !largeChannelWarning) {
+              // Show warning instead of proceeding
+              setLargeChannelWarning({
+                show: true,
+                channelSlug,
+                channelBlocks: info.length,
+                monthlyUsed: warningData.monthlyUsed,
+                monthlyLimit: warningData.monthlyLimit,
+                monthlyRemaining: warningData.monthlyRemaining,
+                wouldExceedLimit: warningData.wouldExceedLimit,
+                message: warningData.message
+              });
+              return; // Stop here, let user confirm
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error checking channel size:', error);
+        // Continue with sync if check fails
+      }
+    }
 
     setIsLoading(true);
     setError(null);
@@ -319,12 +370,45 @@ export default function SetupPage() {
     const slug = extractSlugFromUrl(value);
     setChannelSlug(slug);
     setBlockLimitWarning(null);
+    setLargeChannelWarning(null);
+    
     if (slug) {
       try {
         // Fetch channel info to get block count
         const info = await arenaClient.getChannel(slug);
-        if (info.length > 25) {
+        
+        // Check for free tier block limit warning
+        if (channelLimits?.userTier === 'free' && info.length > 25) {
           setBlockLimitWarning(`This channel has ${info.length} blocks. Only the first 25 will be processed.`);
+        }
+        
+        // Check for paid tier large channel warning
+        if (channelLimits?.userTier !== 'free' && info.length > 50) {
+          // Call the large channel warning API
+          const response = await fetch('/api/large-channel-check', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-session-id': sessionId
+            },
+            body: JSON.stringify({ channelBlocks: info.length })
+          });
+          
+          if (response.ok) {
+            const warningData = await response.json();
+            if (warningData.showWarning) {
+              setLargeChannelWarning({
+                show: true,
+                channelSlug: slug,
+                channelBlocks: info.length,
+                monthlyUsed: warningData.monthlyUsed,
+                monthlyLimit: warningData.monthlyLimit,
+                monthlyRemaining: warningData.monthlyRemaining,
+                wouldExceedLimit: warningData.wouldExceedLimit,
+                message: warningData.message
+              });
+            }
+          }
         }
       } catch {
         // Ignore errors for now (invalid slug, etc.)
@@ -650,6 +734,71 @@ export default function SetupPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Large Channel Warning Modal */}
+      <Dialog open={largeChannelWarning?.show || false} onOpenChange={(open) => {
+        if (!open) {
+          setLargeChannelWarning(null);
+        }
+      }}>
+        <DialogContent className="w-[calc(100%-2rem)] max-w-sm sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl sm:text-2xl">
+              ⚠️ Large Channel Detected
+            </DialogTitle>
+            <DialogDescription className="mt-2 text-sm sm:text-base">
+              {largeChannelWarning?.message}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 pt-4">
+            <div className="p-3 bg-muted rounded-md text-sm">
+              <div className="flex justify-between mb-1">
+                <span>Monthly Usage:</span>
+                <span className="font-medium">
+                  {largeChannelWarning?.monthlyUsed}/{largeChannelWarning?.monthlyLimit} blocks
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Remaining:</span>
+                <span className="font-medium">
+                  {largeChannelWarning?.monthlyRemaining} blocks
+                </span>
+              </div>
+            </div>
+
+            {largeChannelWarning?.wouldExceedLimit && (
+              <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md text-sm text-destructive">
+                <strong>Warning:</strong> This would use up your entire monthly block allowance and prevent you from processing other channels this month.
+              </div>
+            )}
+            
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <Button 
+                onClick={() => setLargeChannelWarning(null)}
+                variant="outline"
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  setLargeChannelWarning(null);
+                  // Proceed with sync
+                  const form = document.querySelector('form') as HTMLFormElement;
+                  if (form) {
+                    form.requestSubmit();
+                  }
+                }}
+                className="flex-1"
+                variant={largeChannelWarning?.wouldExceedLimit ? "destructive" : "default"}
+              >
+                {largeChannelWarning?.wouldExceedLimit ? 'Process Anyway' : 'Continue'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Success Modal */}
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>

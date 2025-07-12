@@ -603,6 +603,80 @@ export class UsageTracker {
   }
 
   /**
+   * Check for large channel warnings on paid tiers
+   */
+  static async checkLargeChannelWarning(
+    channelBlocks: number,
+    sessionId: string,
+    userId?: string
+  ): Promise<{
+    showWarning: boolean;
+    monthlyUsed: number;
+    monthlyLimit: number;
+    monthlyRemaining: number;
+    wouldExceedLimit: boolean;
+    overageBlocks?: number;
+    message?: string;
+  }> {
+    try {
+      const userTier = await this.getUserTier(userId);
+      
+      // Only show warnings for paid tiers (they have monthly limits)
+      if (userTier === 'free') {
+        return {
+          showWarning: false,
+          monthlyUsed: 0,
+          monthlyLimit: 0,
+          monthlyRemaining: 0,
+          wouldExceedLimit: false
+        };
+      }
+
+      const tierConfig = this.TIER_LIMITS[userTier];
+      const currentMonth = this.getCurrentMonth();
+      
+      // Get current monthly usage
+      const monthlyUsage = await this.getMonthlyUsage(userId || sessionId, sessionId, currentMonth);
+      const monthlyUsed = monthlyUsage ? monthlyUsage.total_blocks_processed : 0;
+      const monthlyRemaining = Math.max(0, tierConfig.blocks - monthlyUsed);
+      
+      // Determine if we should show warning
+      const wouldExceedLimit = channelBlocks > monthlyRemaining;
+      const showWarning = channelBlocks > 50; // Show warning for channels > 50 blocks
+      
+      let message = '';
+      if (wouldExceedLimit) {
+        const overageBlocks = channelBlocks - monthlyRemaining;
+        message = `This channel has ${channelBlocks} blocks. You only have ${monthlyRemaining} blocks remaining this month, so ${overageBlocks} blocks won't be processed.`;
+      } else if (channelBlocks > monthlyRemaining * 0.8) {
+        message = `This channel has ${channelBlocks} blocks, which will use most of your remaining ${monthlyRemaining} blocks this month.`;
+      } else {
+        message = `This channel has ${channelBlocks} blocks. You have ${monthlyRemaining} blocks remaining this month.`;
+      }
+
+      return {
+        showWarning,
+        monthlyUsed,
+        monthlyLimit: tierConfig.blocks,
+        monthlyRemaining,
+        wouldExceedLimit,
+        overageBlocks: wouldExceedLimit ? channelBlocks - monthlyRemaining : undefined,
+        message
+      };
+    } catch (error) {
+      console.error('Error checking large channel warning:', error);
+      return {
+        showWarning: false,
+        monthlyUsed: 0,
+        monthlyLimit: 0,
+        monthlyRemaining: 0,
+        wouldExceedLimit: false,
+        message: 'Error checking usage limits'
+      };
+    }
+  }
+
+  /**
    * Check if user has reached their channel limit based on tier
    */
   static async checkChannelLimit(
