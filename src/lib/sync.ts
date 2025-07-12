@@ -288,7 +288,7 @@ export class SyncService {
       });
       
       const thumbnailUrl = await this.generateChannelThumbnail(channelSlug);
-      const dbChannelId = await this.upsertChannel(channel, thumbnailUrl);
+      const dbChannelId = await this.upsertChannel(channel, thumbnailUrl || undefined);
 
       const allBlocks = await client.getAllChannelContents(channelSlug);
       
