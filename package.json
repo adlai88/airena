@@ -7,12 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "db:setup": "psql $DATABASE_URL -f scripts/db-setup.sql",
     "test:setup": "npx tsx lib/test-setup.ts",
     "test:arena": "npx tsx lib/test-arena.ts",
     "test:pipeline": "npx tsx lib/test-pipeline.ts",
     "test:channel": "npx tsx lib/test-specific.ts",
-    "debug:channel": "npx tsx lib/debug-channel.ts",
-    "type-check": "tsc --noEmit"
+    "debug:channel": "npx tsx lib/debug-channel.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.3.22",

@@ -1,160 +1,192 @@
-# Airena v2
+# Airena: AI Intelligence for Are.na Channels
 
-Transform your curated Are.na channels into an intelligence AI agent that generates content from your own research.
+Transform any Are.na channel into an intelligent knowledge base. Experience multimodal AI across websites, PDFs, images, and videos.
 
-## Overview
+## ✨ Try It Now (No Signup Required)
+Paste any public Are.na channel URL → Instant AI intelligence
 
-Airena enables you to:
-- 🔗 **Connect** your Are.na channels  
-- 🧠 **Transform** curated content into searchable knowledge
-- ✍️ **Generate** AI-powered newsletters from your research
-- 💬 **Chat** with your content to discover insights
+**Live Demo**: https://airena-e6f38mhub-adlai88s-projects.vercel.app/
 
-**Core Value**: Your curation advantage becomes your intelligence advantage.
+## 🎯 Perfect For
 
-## Features
+- **Designers** discovering patterns in visual research
+- **Researchers** extracting insights from academic collections  
+- **Creators** exploring connections across curated content
+- **Teams** building intelligence from shared knowledge
 
-- **Newsletter Generation**: Create AI-powered content digests from your curated research
-- **Intelligent Chat**: Ask questions and get contextual answers from your Are.na content
-- **Vector Search**: Semantic search through your curated content using embeddings
-- **Real-time Streaming**: See AI responses generate in real-time
-- **Source Attribution**: Every insight includes links back to original sources
+## 🚀 Features
 
-## Tech Stack
+### Complete Multimodal Intelligence
+- **Websites**: Extract and analyze web content using Jina AI
+- **PDFs**: Process documents and research papers
+- **Images**: Visual analysis with GPT-4V
+- **Videos**: YouTube content extraction with official API
+- **Text blocks**: Index user annotations and thoughts
 
-- **Frontend**: Next.js 15 + React + Tailwind CSS
-- **Backend**: Next.js API Routes + Vercel Edge Functions  
-- **Database**: Supabase with pgvector for vector storage
-- **AI**: OpenAI GPT-4o-mini + text-embedding-3-small
-- **Content Extraction**: Jina AI Reader API
-- **Deployment**: Vercel + Supabase
+### Intelligent Chat Interface
+- **Hybrid knowledge mode**: Prioritizes your curated content while providing helpful general knowledge
+- **Visual context**: See thumbnails of referenced content
+- **Source attribution**: Direct links to original Are.na blocks
 
-## Getting Started
+### Content Generation
+- **Newsletter creation**: Transform research into readable insights
+- **Research summaries**: Extract key patterns and themes
+- **Custom templates**: Generate content tailored to your needs
 
-### Prerequisites
+## 💡 Quick Start
 
-- Node.js 18+ 
-- npm or yarn
-- Supabase account
-- OpenAI API key
-- Are.na account (free)
-- Jina AI API key (optional, has free tier)
+### Option 1: Try the Hosted Service
+Visit [airena-e6f38mhub-adlai88s-projects.vercel.app](https://airena-e6f38mhub-adlai88s-projects.vercel.app/) and paste any public Are.na channel URL.
 
-### Installation
+### Option 2: Self-Host (Open Source)
+```bash
+# Clone the repository
+git clone https://github.com/your-username/airena.git
+cd airena
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/airena.git
-   cd airena
-   ```
+# Install dependencies
+npm install
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your API keys
 
-3. **Set up environment variables**
-   ```bash
-   cp .env.example .env.local
-   ```
-   
-   Fill in your API keys in `.env.local`:
-   ```env
-   ARENA_API_KEY=your_arena_api_key
-   OPENAI_API_KEY=your_openai_api_key
-   SUPABASE_URL=your_supabase_project_url
-   SUPABASE_ANON_KEY=your_supabase_anon_key
-   JINA_API_KEY=your_jina_api_key
-   ```
+# Set up database
+npm run db:setup
 
-4. **Set up Supabase database**
-   ```bash
-   # Run database migrations
-   psql $SUPABASE_URL < supabase/schema.sql
-   psql $SUPABASE_URL < supabase/functions.sql
-   ```
-
-5. **Start development server**
-   ```bash
-   npm run dev
-   ```
-
-6. **Open your browser**
-   Navigate to `http://localhost:3000`
-
-## Usage
-
-### 1. Connect Your Are.na Channel
-- Go to the Setup page
-- Enter your Are.na channel slug (e.g., "my-research-channel")
-- Click "Sync Channel" to process and embed your content
-
-### 2. Generate Newsletters
-- Visit the Generate page
-- Configure tone, length, and focus
-- Click "Generate Newsletter" for AI-powered insights
-
-### 3. Chat with Your Content
-- Go to the Chat page
-- Ask questions about your research
-- Get contextual answers with source links
-
-## Project Structure
-
-```
-airena/
-├── src/
-│   ├── app/                 # Next.js app router pages
-│   │   ├── api/            # API routes
-│   │   ├── chat/           # Chat interface
-│   │   ├── generate/       # Newsletter generation
-│   │   └── setup/          # Channel setup
-│   └── lib/                # Core libraries
-│       ├── arena.ts        # Are.na API client
-│       ├── embeddings.ts   # OpenAI embeddings
-│       ├── extraction.ts   # Content extraction
-│       ├── supabase.ts     # Database client
-│       ├── sync.ts         # Channel sync service
-│       └── templates.ts    # AI prompt templates
-├── supabase/               # Database schema & functions
-└── public/                 # Static assets
+# Start development server
+npm run dev
 ```
 
-## Development
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### Available Scripts
+## 📋 Prerequisites
+
+- Node.js 18+ and npm
+- PostgreSQL database with pgvector extension
+- OpenAI API key (for embeddings and GPT-4)
+- Are.na API key (optional, for private channels)
+
+## 🔧 Environment Setup
+
+Required environment variables for self-hosting:
 
 ```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run lint         # Run ESLint
-npm run type-check   # Run TypeScript checks
+# Core Configuration
+DATABASE_URL="postgresql://..."
+OPENAI_API_KEY="sk-..."
 
-# Testing utilities
-npm run test:setup   # Test API integrations
-npm run test:arena   # Test Are.na API client
-npm run test:pipeline # Test full sync pipeline
+# Optional (for private channels)
+ARENA_API_KEY="your-arena-api-key"
+
+# Optional (for video processing)
+YOUTUBE_API_KEY="your-youtube-api-key"
+
+# Optional (for enhanced web extraction)
+JINA_API_KEY="your-jina-api-key"
 ```
 
-## Security
+See [docs/SELF_HOSTING.md](docs/SELF_HOSTING.md) for detailed setup instructions.
 
-- All API keys are stored in environment variables
-- `.env.local` is automatically ignored by git
-- No sensitive data is committed to the repository
-- Database uses Supabase Row Level Security (when configured)
+## 🏗️ Architecture
 
-## Contributing
+```
+src/
+├── app/              # Next.js app router pages
+├── components/       # React UI components  
+├── lib/              # Core intelligence layer
+│   ├── arena.ts      # Are.na API client
+│   ├── extraction.ts # Content processing pipeline
+│   ├── embeddings.ts # Vector similarity search
+│   └── chat.ts       # AI conversation interface
+└── hooks/           # React state management
+```
 
+**Open Source Core**: Complete multimodal intelligence pipeline
+**Hosted Service**: Adds user accounts, private channels, higher limits
+
+## 📊 Supported Content Types
+
+| Type | Source | Processing | Status |
+|------|--------|------------|--------|
+| **Websites** | Link blocks | Jina AI extraction | ✅ Complete |
+| **PDFs** | Attachment blocks | Jina AI processing | ✅ Complete |
+| **Images** | Image blocks | GPT-4V analysis | ✅ Complete |
+| **Videos** | Media/Link blocks | YouTube API extraction | ✅ Complete |
+| **Text** | Text blocks | Direct indexing | ✅ Complete |
+
+## 🎨 Built With
+
+- **Frontend**: Next.js 15, React, TypeScript, Tailwind CSS
+- **UI Components**: shadcn/ui design system
+- **Backend**: Vercel Edge Functions, Supabase (PostgreSQL + pgvector)
+- **AI**: OpenAI (embeddings + GPT-4 + GPT-4V), YouTube Data API v3
+- **Content**: Are.na API, Jina AI Reader
+
+## 🤝 Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+### Development Workflow
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes and test locally
+4. Commit with clear messages: `git commit -m 'Add amazing feature'`
+5. Push to your fork: `git push origin feature/amazing-feature`
+6. Open a Pull Request
 
-## License
+### Areas for Contribution
+- **Templates**: New content generation templates
+- **Integrations**: Additional content sources and APIs
+- **UI/UX**: Design improvements and accessibility
+- **Documentation**: Setup guides and tutorials
+- **Testing**: Expanded test coverage
 
-This project is licensed under the MIT License.
+## 📚 Documentation
+
+- [Self-Hosting Guide](docs/SELF_HOSTING.md)
+- [API Documentation](docs/API.md)
+- [Architecture Overview](docs/ARCHITECTURE.md)
+- [Contributing Guidelines](CONTRIBUTING.md)
+
+## 💰 Hosted Service vs Self-Hosting
+
+### Open Source (Self-Hosted)
+- ✅ Complete multimodal intelligence
+- ✅ Public channel processing
+- ✅ Unlimited usage
+- ✅ Full source code access
+- ❌ Requires technical setup
+- ❌ Public channels only
+
+### Hosted Service
+- ✅ Zero setup required
+- ✅ Private channel access
+- ✅ User account management
+- ✅ Professional support
+- 💰 **Starter**: $5/month (200 blocks, private channels)
+- 💰 **Pro**: $14/month (500 blocks, advanced features)
+
+## 🌟 Community & Support
+
+- **GitHub Discussions**: Community support and feature requests
+- **Issues**: Bug reports and technical problems
+- **Are.na**: Follow our [Are.na channel](https://www.are.na/airena) for updates
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **Are.na** for creating an incredible platform for thoughtful curation
+- **The Are.na community** for inspiration and feedback
+- **OpenAI** for GPT-4 and embedding capabilities
+- **Jina AI** for excellent content extraction
+- **shadcn/ui** for the beautiful component system
 
 ---
 
-Built with ❤️ for the Are.na community
+**Made with 🧠 for the Are.na community**
+
+Transform your curation advantage into your intelligence advantage.
