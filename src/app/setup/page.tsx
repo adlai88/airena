@@ -72,6 +72,7 @@ export default function SetupPage() {
     wouldExceedLimit: boolean;
     message: string;
   } | null>(null);
+  const [userConfirmedLargeChannel, setUserConfirmedLargeChannel] = useState(false);
   const router = useRouter();
 
   // Load recent channels and channel limits on mount
@@ -110,9 +111,7 @@ export default function SetupPage() {
     if (!channelSlug.trim()) return;
 
     // Check if we should show large channel warning first
-    if (largeChannelWarning && !largeChannelWarning.show) {
-      // Warning was already checked but dialog was dismissed, proceed with sync
-    } else if (channelLimits?.userTier !== 'free') {
+    if (channelLimits?.userTier !== 'free' && !userConfirmedLargeChannel) {
       // For paid users, check if this might trigger a warning
       try {
         const info = await arenaClient.getChannel(channelSlug);
@@ -128,7 +127,7 @@ export default function SetupPage() {
           
           if (response.ok) {
             const warningData = await response.json();
-            if (warningData.showWarning && !largeChannelWarning) {
+            if (warningData.showWarning) {
               // Show warning instead of proceeding
               setLargeChannelWarning({
                 show: true,
@@ -371,6 +370,7 @@ export default function SetupPage() {
     setChannelSlug(slug);
     setBlockLimitWarning(null);
     setLargeChannelWarning(null);
+    setUserConfirmedLargeChannel(false);
     
     if (slug) {
       try {
@@ -773,25 +773,60 @@ export default function SetupPage() {
               </div>
             )}
             
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
-              <Button 
-                onClick={() => setLargeChannelWarning(null)}
-                variant="outline"
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              {largeChannelWarning?.wouldExceedLimit ? (
+            {largeChannelWarning?.wouldExceedLimit ? (
+              // When would exceed limit: Show Cancel, Upgrade, and Process Anyway
+              <div className="space-y-3 pt-2">
                 <Button 
                   onClick={() => window.location.href = isSignedIn ? '/pricing' : '/sign-up?redirect=/pricing'}
-                  className="flex-1"
+                  className="w-full"
                   variant="default"
                 >
                   {isSignedIn ? 'Upgrade Now' : 'Create Account'}
                 </Button>
-              ) : (
+                <div className="flex gap-3">
+                  <Button 
+                    onClick={() => {
+                      setLargeChannelWarning(null);
+                      setUserConfirmedLargeChannel(false);
+                    }}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      setUserConfirmedLargeChannel(true);
+                      setLargeChannelWarning(null);
+                      // Proceed with sync
+                      const form = document.querySelector('form') as HTMLFormElement;
+                      if (form) {
+                        form.requestSubmit();
+                      }
+                    }}
+                    className="flex-1"
+                    variant="destructive"
+                  >
+                    Process Anyway
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              // When large but won't exceed limit: Show Cancel and Continue
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <Button 
                   onClick={() => {
+                    setLargeChannelWarning(null);
+                    setUserConfirmedLargeChannel(false);
+                  }}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setUserConfirmedLargeChannel(true);
                     setLargeChannelWarning(null);
                     // Proceed with sync
                     const form = document.querySelector('form') as HTMLFormElement;
@@ -804,8 +839,8 @@ export default function SetupPage() {
                 >
                   Continue
                 </Button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>

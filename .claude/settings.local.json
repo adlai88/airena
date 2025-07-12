@@ -11,7 +11,8 @@
       "WebFetch(domain:clerk.com)",
       "Bash(find:*)",
       "mcp__supabase__list_tables",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   },
