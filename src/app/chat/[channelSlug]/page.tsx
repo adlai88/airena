@@ -548,8 +548,8 @@ function ChatContent() {
               </div>
             ))}
             {isLoading && (
-              <div className="flex items-center">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-neutral-900 flex items-center justify-center mr-3 overflow-hidden border border-border">
+              <div className="flex justify-start items-start">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-neutral-900 flex items-center justify-center mr-3 mt-1 overflow-hidden border border-border">
                   <Image
                     src="/favicon-32x32.png"
                     alt="AI"
@@ -559,8 +559,9 @@ function ChatContent() {
                     draggable={false}
                   />
                 </div>
-                <Spinner size={20} />
-                <span className="ml-2 text-muted-foreground text-sm">Thinking...</span>
+                <div className="mt-1">
+                  <span className="text-muted-foreground text-sm">Thinking...</span>
+                </div>
               </div>
             )}
             {/* Scroll anchor */}
