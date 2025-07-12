@@ -35,8 +35,40 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 ✅ **Phase 10.0: Tier-Optimized Performance** (COMPLETED - Usage dashboard + overage pricing)
 ✅ **Phase 10.1: Complete Monetization Platform** (COMPLETED - Popup checkout + Polar.sh billing + Dark mode UI)
 ✅ **Phase 10.2: Open Source Preparation** (COMPLETED - Repository structure + Documentation + Self-hosting guides)
-✅ **Latest Status Update**: Complete production-ready platform with comprehensive feature set
+✅ **Phase 10.3: Visual Enhancement & Channel Limits** (COMPLETED - Channel thumbnails + 3-channel free tier limit)
+✅ **Latest Status Update**: Enhanced UX with visual channel identification and proper freemium incentive structure
 
 **Live Application**: https://www.airena.io/
+
+## Latest Updates (Phase 10.3: Visual Enhancement & Channel Limits)
+
+### ✅ Channel Thumbnails Feature
+- **Database**: Added `thumbnail_url` column to channels table
+- **Backend**: Automatic thumbnail generation from first image block during sync
+- **Frontend**: Visual 40x40px thumbnails in channel selectors with fallback design
+- **UX**: Letter-based placeholders for channels without images
+- **Coverage**: Applied to both setup page and usage dashboard
+
+### ✅ 3-Channel Limit for Free Tier
+- **Business Model Fix**: Prevents free users from getting more blocks than paid users
+- **Implementation**: Server-side validation with proper error handling
+- **UX Flow**: Authentication-aware upgrade messaging
+  - Authenticated: "Upgrade to Starter" → `/pricing`
+  - Unauthenticated: "Create free account" → `/sign-up?redirect=/pricing`
+- **Grandfathering**: Existing users unaffected, only applies to new channel additions
+- **Re-sync Support**: Can always refresh existing channels regardless of limit
+
+### 🔧 Technical Infrastructure
+- **Migration**: `20250712_add_channel_thumbnails.sql` 
+- **API Endpoints**: `/api/channel-limits` for limit checking
+- **Type Safety**: Enhanced TypeScript interfaces for channel data
+- **Error Handling**: Proper build fixes for Vercel deployment
+
+### 📊 Updated Tier Structure
+**Free Tier**: 25 blocks/channel × 3 channels max = 75 blocks total
+**Starter Tier**: 200 blocks/month × unlimited channels  
+**Pro Tier**: 500 blocks/month × unlimited channels
+
+This creates a logical upgrade path and fixes the incentive structure where free users could theoretically process unlimited blocks.
 
 [Rest of the file remains unchanged]
