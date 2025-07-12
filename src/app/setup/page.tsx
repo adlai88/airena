@@ -781,20 +781,30 @@ export default function SetupPage() {
               >
                 Cancel
               </Button>
-              <Button 
-                onClick={() => {
-                  setLargeChannelWarning(null);
-                  // Proceed with sync
-                  const form = document.querySelector('form') as HTMLFormElement;
-                  if (form) {
-                    form.requestSubmit();
-                  }
-                }}
-                className="flex-1"
-                variant={largeChannelWarning?.wouldExceedLimit ? "destructive" : "default"}
-              >
-                {largeChannelWarning?.wouldExceedLimit ? 'Process Anyway' : 'Continue'}
-              </Button>
+              {largeChannelWarning?.wouldExceedLimit ? (
+                <Button 
+                  onClick={() => window.location.href = isSignedIn ? '/pricing' : '/sign-up?redirect=/pricing'}
+                  className="flex-1"
+                  variant="default"
+                >
+                  {isSignedIn ? 'Upgrade Now' : 'Create Account'}
+                </Button>
+              ) : (
+                <Button 
+                  onClick={() => {
+                    setLargeChannelWarning(null);
+                    // Proceed with sync
+                    const form = document.querySelector('form') as HTMLFormElement;
+                    if (form) {
+                      form.requestSubmit();
+                    }
+                  }}
+                  className="flex-1"
+                  variant="default"
+                >
+                  Continue
+                </Button>
+              )}
             </div>
           </div>
         </DialogContent>
