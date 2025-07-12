@@ -560,7 +560,7 @@ function ChatContent() {
                   />
                 </div>
                 <div className="mt-1">
-                  <span className="text-muted-foreground text-sm">Thinking...</span>
+                  <span className="text-muted-foreground text-sm animate-pulse">Thinking...</span>
                 </div>
               </div>
             )}
