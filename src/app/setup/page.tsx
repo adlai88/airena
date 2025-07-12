@@ -425,7 +425,13 @@ export default function SetupPage() {
               Channels: <span className="font-medium">{channelLimits.channelCount}/{channelLimits.channelLimit}</span>
               {!channelLimits.canAddMoreChannels && (
                 <span className="text-orange-600 dark:text-orange-400 ml-2">
-                  ({isSignedIn ? 'Upgrade for unlimited channels' : 'Create account to upgrade'})
+                  (<Button 
+                    variant="link" 
+                    className="p-0 h-auto font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 text-sm"
+                    onClick={() => window.location.href = isSignedIn ? '/pricing' : '/sign-up?redirect=/pricing'}
+                  >
+                    {isSignedIn ? 'Upgrade for unlimited channels' : 'Create account to upgrade'}
+                  </Button>)
                 </span>
               )}
             </div>
