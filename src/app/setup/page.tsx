@@ -13,9 +13,11 @@ import { PageHeader } from '@/components/page-header';
 import { useChannel } from '@/hooks/useChannel';
 import { arenaClient } from '@/lib/arena';
 import { Spinner } from '@/components/ui/spinner';
+import { useUser } from '@clerk/nextjs';
 
 export default function SetupPage() {
   const { channelSlug: connectedChannel, username: connectedUsername, isDefault: isDefaultChannel, refresh: refreshChannel } = useChannel();
+  const { isSignedIn } = useUser();
   const [channelSlug, setChannelSlug] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [switchingToChannel, setSwitchingToChannel] = useState<string | null>(null);
@@ -423,7 +425,7 @@ export default function SetupPage() {
               Channels: <span className="font-medium">{channelLimits.channelCount}/{channelLimits.channelLimit}</span>
               {!channelLimits.canAddMoreChannels && (
                 <span className="text-orange-600 dark:text-orange-400 ml-2">
-                  (Upgrade for unlimited channels)
+                  ({isSignedIn ? 'Upgrade for unlimited channels' : 'Create account to upgrade'})
                 </span>
               )}
             </div>
@@ -479,13 +481,27 @@ export default function SetupPage() {
               {channelSlug && !canAddChannel(channelSlug) && (
                 <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded text-orange-800 text-xs">
                   Channel limit reached ({channelLimits?.channelCount}/{channelLimits?.channelLimit}). 
-                  <Button 
-                    variant="link" 
-                    className="p-0 h-auto font-semibold text-orange-600 hover:text-orange-700 ml-1"
-                    onClick={() => window.location.href = '/pricing'}
-                  >
-                    Upgrade to Starter
-                  </Button> for unlimited channels.
+                  {isSignedIn ? (
+                    <>
+                      <Button 
+                        variant="link" 
+                        className="p-0 h-auto font-semibold text-orange-600 hover:text-orange-700 ml-1"
+                        onClick={() => window.location.href = '/pricing'}
+                      >
+                        Upgrade to Starter
+                      </Button> for unlimited channels.
+                    </>
+                  ) : (
+                    <>
+                      <Button 
+                        variant="link" 
+                        className="p-0 h-auto font-semibold text-orange-600 hover:text-orange-700 ml-1"
+                        onClick={() => window.location.href = '/sign-up?redirect=/pricing'}
+                      >
+                        Create free account
+                      </Button> to upgrade for unlimited channels.
+                    </>
+                  )}
                 </div>
               )}
             </form>
