@@ -38,7 +38,7 @@ export default function SetupPage() {
   useEffect(() => {
     let storedSessionId = typeof window !== 'undefined' ? localStorage.getItem('airena_session_id') : null;
     if (!storedSessionId) {
-      storedSessionId = `anon_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      storedSessionId = `anon_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
       if (typeof window !== 'undefined') {
         localStorage.setItem('airena_session_id', storedSessionId);
       }

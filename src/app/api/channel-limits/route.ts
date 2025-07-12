@@ -14,13 +14,22 @@ export async function GET(req: NextRequest) {
       userId = undefined;
     }
     
-    // Get or use session ID for usage tracking
+    // Get session ID for usage tracking - don't generate new one  
     const sessionId = req.headers.get('x-session-id') || 
-                     req.cookies.get('airena_session_id')?.value ||
-                     `anon_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                     req.cookies.get('airena_session_id')?.value;
+    
+    if (!sessionId && !userId) {
+      // No session ID and no user ID - return default limits without counting
+      return NextResponse.json({
+        channelCount: 0,
+        channelLimit: 3,
+        userTier: 'free',
+        canAddMoreChannels: true
+      });
+    }
 
-    // Get channel count and limits
-    const channelCount = await UsageTracker.getUserChannelCount(sessionId, userId);
+    // Get channel count and limits (sessionId could be undefined for authenticated users)
+    const channelCount = await UsageTracker.getUserChannelCount(sessionId || '', userId);
     const userTier = await UsageTracker.getUserTier(userId);
     
     const response = {

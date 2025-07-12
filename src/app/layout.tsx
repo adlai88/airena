@@ -19,9 +19,10 @@ export const metadata: Metadata = {
   title: "Airena – Turn your are.na channels into a personal intelligence agent",
   description: "Airena transforms your Are.na channels into a personal intelligence agent. Generate insights, chat with your research, and create content powered by your unique curation.",
   icons: [
-    { rel: "icon", url: "/favicon.ico", sizes: "any" },
-    { rel: "icon", url: "/favicon.png", type: "image/png", sizes: "32x32" },
-    { rel: "icon", url: "/favicon.svg", type: "image/svg+xml" },
+    { rel: "icon", url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+    { rel: "icon", url: "/favicon.png", type: "image/png", sizes: "any" },
+    // { rel: "icon", url: "/favicon.ico", sizes: "any" }, // deprioritized
+    // { rel: "icon", url: "/favicon.svg", type: "image/svg+xml" }, // deprioritized
   ],
   other: {
     'mobile-web-app-capable': 'yes',

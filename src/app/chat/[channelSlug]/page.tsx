@@ -526,20 +526,20 @@ function ChatContent() {
                                 </div>
                               ))}
                             </div>
-                            {/* 'View Channel' block below thumbnails */}
-                            <a
-                              href={username
-                                ? `https://www.are.na/${username.toLowerCase().replace(/[^a-z0-9]/g, '')}/${channelSlug}`
-                                : `https://www.are.na/${channelSlug}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="mt-3 block mx-auto w-24 h-20 border border-border bg-transparent hover:bg-primary/5 transition-colors cursor-pointer text-xs font-medium text-muted-foreground rounded-none px-3 gap-1 text-center"
-                              title="View Are.na Channel"
-                            >
-                              <span className="mr-1">View Channel</span>
-                              <ArrowUpRight className="w-4 h-4 text-muted-foreground inline-block" />
-                            </a>
                           </div>
+                          {/* 'View Channel' block below thumbnails, outside flex container */}
+                          <a
+                            href={username
+                              ? `https://www.are.na/${username.toLowerCase().replace(/[^a-z0-9]/g, '')}/${channelSlug}`
+                              : `https://www.are.na/${channelSlug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-3 block mx-auto w-24 h-20 border border-border bg-transparent hover:bg-primary/5 transition-colors cursor-pointer text-xs font-medium text-muted-foreground rounded-none px-3 gap-1 text-center"
+                            title="View Are.na Channel"
+                          >
+                            <span className="mr-1">View Channel</span>
+                            <ArrowUpRight className="w-4 h-4 text-muted-foreground inline-block" />
+                          </a>
                         </div>
                       )}
                     </div>

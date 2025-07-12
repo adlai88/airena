@@ -594,7 +594,54 @@ export class UsageTracker {
     userId?: string
   ): Promise<number> {
     try {
-      const usage = await this.getUserUsage(sessionId, userId);
+      // For authenticated users, use the standard logic
+      if (userId) {
+        const usage = await this.getUserUsage(sessionId, userId);
+        return usage.length;
+      }
+      
+      // For unauthenticated users, try multiple approaches to get accurate count
+      // 1. First try exact session ID match
+      let usage = await this.getUserUsage(sessionId, userId);
+      
+      // 2. If no results and session ID looks like our pattern, try fuzzy matching
+      if (usage.length === 0 && sessionId.startsWith('anon_')) {
+        // Extract timestamp from session ID for fuzzy matching
+        const timestampMatch = sessionId.match(/anon_(\d+)_/);
+        if (timestampMatch) {
+          const timestamp = timestampMatch[1];
+          
+          // Look for session IDs with the same timestamp (likely from same browser session)
+          const { data: fuzzyData, error: fuzzyError } = await supabase
+            .from('channel_usage')
+            .select(`
+              *,
+              channels!inner(
+                title,
+                slug,
+                thumbnail_url
+              )
+            `)
+            .like('session_id', `anon_${timestamp}_%`)
+            .is('user_id', null)
+            .order('last_processed_at', { ascending: false });
+
+          if (!fuzzyError && fuzzyData && fuzzyData.length > 0) {
+            // Flatten the channel data from the join
+            usage = fuzzyData.map((record: Record<string, unknown>) => {
+              const channels = record.channels as { title?: string; slug?: string; thumbnail_url?: string } | undefined;
+              return {
+                ...record,
+                channel_title: channels?.title,
+                channel_slug: channels?.slug,
+                channel_thumbnail_url: channels?.thumbnail_url,
+                channels: undefined // Remove the nested object
+              } as unknown as UsageRecord;
+            });
+          }
+        }
+      }
+      
       return usage.length;
     } catch (error) {
       console.error('Error getting user channel count:', error);
