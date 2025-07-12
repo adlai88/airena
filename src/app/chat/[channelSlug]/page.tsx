@@ -538,7 +538,7 @@ function ChatContent() {
                             title="View Are.na Channel"
                           >
                             <span>View Channel</span>
-                            <ArrowUpRight className="w-5 h-5" />
+                            <ArrowUpRight className="w-4 h-4" />
                           </a>
                         </div>
                       )}
