@@ -1,5 +1,6 @@
 -- Airena Database Setup Script
 -- This script creates the complete database schema for self-hosting
+-- Schema matches production database exactly
 
 -- Enable pgvector extension
 CREATE EXTENSION IF NOT EXISTS vector;
@@ -7,14 +8,15 @@ CREATE EXTENSION IF NOT EXISTS vector;
 -- Channels table - stores Are.na channel information
 CREATE TABLE IF NOT EXISTS channels (
   id SERIAL PRIMARY KEY,
-  arena_id INTEGER UNIQUE NOT NULL,
+  arena_id INTEGER NOT NULL,
+  title TEXT NOT NULL,
   slug TEXT NOT NULL,
-  title TEXT,
+  user_id TEXT,
+  last_sync TIMESTAMP WITHOUT TIME ZONE,
+  created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
   username TEXT,
-  user_id TEXT, -- For authenticated users (hosted service)
-  last_sync TIMESTAMP WITH TIME ZONE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  thumbnail_url TEXT
 );
 
 -- Blocks table - stores processed content from Are.na blocks
@@ -23,55 +25,128 @@ CREATE TABLE IF NOT EXISTS blocks (
   arena_id INTEGER NOT NULL,
   channel_id INTEGER NOT NULL REFERENCES channels(id) ON DELETE CASCADE,
   title TEXT,
+  description TEXT,
   content TEXT,
-  source_url TEXT,
-  block_type TEXT NOT NULL, -- 'Link', 'Image', 'Video', 'PDF', 'Text'
-  embedding vector(1536), -- OpenAI text-embedding-3-small dimension
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  url TEXT,
+  block_type TEXT,
+  created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
+  embedding vector(1536)
 );
 
 -- Channel usage table - tracks usage for free tier limits
 CREATE TABLE IF NOT EXISTS channel_usage (
   id SERIAL PRIMARY KEY,
   channel_id INTEGER NOT NULL REFERENCES channels(id) ON DELETE CASCADE,
-  session_id TEXT NOT NULL,
+  user_id TEXT,
+  session_id TEXT,
   ip_address INET,
-  total_blocks_processed INTEGER DEFAULT 0,
-  is_free_tier BOOLEAN DEFAULT true,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  total_blocks_processed INTEGER NOT NULL DEFAULT 0,
+  first_processed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  last_processed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  is_free_tier BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- Monthly usage table - for paid tier tracking (hosted service)
+-- Monthly usage table - for paid tier tracking
 CREATE TABLE IF NOT EXISTS monthly_usage (
   id SERIAL PRIMARY KEY,
-  user_id TEXT NOT NULL,
-  month TEXT NOT NULL, -- Format: YYYY-MM
-  total_blocks_processed INTEGER DEFAULT 0,
-  tier TEXT DEFAULT 'free', -- 'free', 'starter', 'pro'
-  limit_blocks INTEGER DEFAULT 25,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(user_id, month)
+  user_id TEXT,
+  session_id TEXT,
+  month TEXT NOT NULL,
+  total_blocks_processed INTEGER NOT NULL DEFAULT 0,
+  tier TEXT NOT NULL DEFAULT 'free'::text,
+  limit_blocks INTEGER NOT NULL DEFAULT 25,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- Indexes for performance
+-- Channel limits table - tracks chat and generation usage per channel
+CREATE TABLE IF NOT EXISTS channel_limits (
+  id SERIAL PRIMARY KEY,
+  channel_id INTEGER NOT NULL REFERENCES channels(id) ON DELETE CASCADE,
+  user_id TEXT,
+  session_id TEXT,
+  month TEXT NOT NULL,
+  chat_messages_used INTEGER NOT NULL DEFAULT 0,
+  generations_used INTEGER NOT NULL DEFAULT 0,
+  chat_messages_limit INTEGER NOT NULL DEFAULT 10,
+  generations_limit INTEGER NOT NULL DEFAULT 2,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+-- ============================================================================
+-- UNIQUE CONSTRAINTS
+-- ============================================================================
+
+-- Channels unique constraints
+CREATE UNIQUE INDEX IF NOT EXISTS channels_arena_id_key ON channels(arena_id);
+
+-- Blocks unique constraints  
+CREATE UNIQUE INDEX IF NOT EXISTS blocks_arena_id_key ON blocks(arena_id);
+
+-- ============================================================================
+-- PERFORMANCE INDEXES
+-- ============================================================================
+
+-- Blocks indexes
 CREATE INDEX IF NOT EXISTS idx_blocks_channel_id ON blocks(channel_id);
-CREATE INDEX IF NOT EXISTS idx_blocks_arena_id ON blocks(arena_id);
-CREATE INDEX IF NOT EXISTS idx_channels_arena_id ON channels(arena_id);
+CREATE INDEX IF NOT EXISTS idx_blocks_block_type ON blocks(block_type);
+
+-- Channels indexes
 CREATE INDEX IF NOT EXISTS idx_channels_slug ON channels(slug);
+CREATE INDEX IF NOT EXISTS idx_channels_user_id ON channels(user_id);
+CREATE INDEX IF NOT EXISTS idx_channels_username ON channels(username);
+
+-- Channel usage indexes
 CREATE INDEX IF NOT EXISTS idx_channel_usage_channel_id ON channel_usage(channel_id);
 CREATE INDEX IF NOT EXISTS idx_channel_usage_session_id ON channel_usage(session_id);
-CREATE INDEX IF NOT EXISTS idx_monthly_usage_user_month ON monthly_usage(user_id, month);
+CREATE INDEX IF NOT EXISTS idx_channel_usage_ip_address ON channel_usage(ip_address);
+CREATE INDEX IF NOT EXISTS idx_channel_usage_user_id ON channel_usage(user_id) WHERE (user_id IS NOT NULL);
 
--- Vector similarity search index
--- Note: This may take time on large datasets
-CREATE INDEX IF NOT EXISTS idx_blocks_embedding ON blocks 
-USING ivfflat (embedding vector_cosine_ops)
-WITH (lists = 100);
+-- Monthly usage indexes
+CREATE INDEX IF NOT EXISTS idx_monthly_usage_month ON monthly_usage(month);
+CREATE INDEX IF NOT EXISTS idx_monthly_usage_session_id ON monthly_usage(session_id) WHERE (session_id IS NOT NULL);
+CREATE INDEX IF NOT EXISTS idx_monthly_usage_tier ON monthly_usage(tier);
+CREATE INDEX IF NOT EXISTS idx_monthly_usage_user_id ON monthly_usage(user_id) WHERE (user_id IS NOT NULL);
 
--- Triggers for updated_at timestamps
+-- Channel limits indexes
+CREATE INDEX IF NOT EXISTS idx_channel_limits_channel_id ON channel_limits(channel_id);
+CREATE INDEX IF NOT EXISTS idx_channel_limits_month ON channel_limits(month);
+CREATE INDEX IF NOT EXISTS idx_channel_limits_session_id ON channel_limits(session_id) WHERE (session_id IS NOT NULL);
+CREATE INDEX IF NOT EXISTS idx_channel_limits_user_id ON channel_limits(user_id) WHERE (user_id IS NOT NULL);
+
+-- ============================================================================
+-- UNIQUE CONSTRAINTS FOR USER/SESSION HANDLING
+-- ============================================================================
+
+-- Channel usage unique constraints
+CREATE UNIQUE INDEX IF NOT EXISTS idx_channel_usage_unique_user ON channel_usage(channel_id, user_id) WHERE (user_id IS NOT NULL);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_channel_usage_unique_session ON channel_usage(channel_id, session_id) WHERE (user_id IS NULL);
+
+-- Monthly usage unique constraints
+CREATE UNIQUE INDEX IF NOT EXISTS idx_monthly_usage_unique_user_month ON monthly_usage(user_id, month) WHERE (user_id IS NOT NULL);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_monthly_usage_unique_session_month ON monthly_usage(session_id, month) WHERE ((user_id IS NULL) AND (session_id IS NOT NULL));
+
+-- Channel limits unique constraints
+CREATE UNIQUE INDEX IF NOT EXISTS idx_channel_limits_unique_user_channel_month ON channel_limits(user_id, channel_id, month) WHERE (user_id IS NOT NULL);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_channel_limits_unique_session_channel_month ON channel_limits(session_id, channel_id, month) WHERE ((user_id IS NULL) AND (session_id IS NOT NULL));
+
+-- ============================================================================
+-- VECTOR SIMILARITY SEARCH INDEX
+-- ============================================================================
+
+-- Vector similarity search index (may take time on large datasets)
+CREATE INDEX IF NOT EXISTS blocks_embedding_idx ON blocks 
+USING ivfflat (embedding vector_cosine_ops);
+
+-- ============================================================================
+-- TRIGGERS FOR UPDATED_AT TIMESTAMPS
+-- ============================================================================
+
+-- Function for updating updated_at column
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -80,21 +155,30 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
-CREATE TRIGGER update_channels_updated_at 
+-- Triggers for automatic updated_at
+CREATE TRIGGER IF NOT EXISTS update_channels_updated_at 
     BEFORE UPDATE ON channels 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_blocks_updated_at 
+CREATE TRIGGER IF NOT EXISTS update_blocks_updated_at 
     BEFORE UPDATE ON blocks 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_channel_usage_updated_at 
+CREATE TRIGGER IF NOT EXISTS update_channel_usage_updated_at 
     BEFORE UPDATE ON channel_usage 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_monthly_usage_updated_at 
+CREATE TRIGGER IF NOT EXISTS update_monthly_usage_updated_at 
     BEFORE UPDATE ON monthly_usage 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER IF NOT EXISTS update_channel_limits_updated_at 
+    BEFORE UPDATE ON channel_limits 
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================================
+-- UTILITY FUNCTIONS
+-- ============================================================================
 
 -- Function for vector similarity search
 CREATE OR REPLACE FUNCTION search_blocks(
@@ -108,7 +192,7 @@ RETURNS TABLE (
   arena_id integer,
   title text,
   content text,
-  source_url text,
+  url text,
   block_type text,
   similarity float
 )
@@ -119,7 +203,7 @@ AS $$
     b.arena_id,
     b.title,
     b.content,
-    b.source_url,
+    b.url,
     b.block_type,
     1 - (b.embedding <=> query_embedding) AS similarity
   FROM blocks b
@@ -137,7 +221,7 @@ RETURNS TABLE (
   total_blocks bigint,
   embedded_blocks bigint,
   block_types json,
-  last_updated timestamp with time zone
+  last_updated timestamp without time zone
 )
 LANGUAGE sql
 AS $$
@@ -158,22 +242,23 @@ AS $$
   ) block_stats;
 $$;
 
--- Sample data for development (optional)
--- Uncomment to insert test channel
+-- ============================================================================
+-- COMPLETION MESSAGE
+-- ============================================================================
 
-/*
-INSERT INTO channels (arena_id, slug, title, username) 
-VALUES (123456, 'test-channel', 'Test Channel', 'testuser')
-ON CONFLICT (arena_id) DO NOTHING;
-*/
-
--- Display setup completion
 DO $$
 BEGIN
+  RAISE NOTICE '============================================================================';
   RAISE NOTICE 'Airena database setup completed successfully!';
-  RAISE NOTICE 'Tables created: channels, blocks, channel_usage, monthly_usage';
-  RAISE NOTICE 'Indexes created for performance optimization';
+  RAISE NOTICE '============================================================================';
+  RAISE NOTICE 'Tables created: channels, blocks, channel_usage, monthly_usage, channel_limits';
+  RAISE NOTICE 'Unique constraints: arena_id uniqueness for channels and blocks';
+  RAISE NOTICE 'Performance indexes: All production indexes created';
+  RAISE NOTICE 'User/Session handling: Conditional unique constraints created';
   RAISE NOTICE 'Functions created: search_blocks, get_channel_stats';
+  RAISE NOTICE 'Triggers created: Automatic updated_at handling';
+  RAISE NOTICE '============================================================================';
   RAISE NOTICE 'Ready for Airena deployment!';
+  RAISE NOTICE '============================================================================';
 END
 $$;
