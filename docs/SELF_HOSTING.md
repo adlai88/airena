@@ -29,7 +29,7 @@ Airena consists of:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/airena.git
+git clone https://github.com/adlai88/airena.git
 cd airena
 
 # Install dependencies
@@ -61,7 +61,11 @@ CREATE EXTENSION IF NOT EXISTS vector;
 **Supabase (Recommended)**:
 1. Create project at [supabase.com](https://supabase.com)
 2. pgvector is pre-installed
-3. Get connection string from project settings
+3. Get connection string:
+   - Click the **"Connect"** button at the top of your project dashboard
+   - Choose **"Session mode"** connection type
+   - Copy the connection string: `postgres://postgres.xxx:[YOUR-PASSWORD]@aws-0-[REGION].pooler.supabase.com:5432/postgres`
+   - Replace `[YOUR-PASSWORD]` with your actual database password
 
 **Alternative providers**:
 - **Neon**: Supports pgvector
@@ -101,7 +105,8 @@ NEXT_PUBLIC_APP_URL="https://www.airena.io"
 
 Run the database setup script:
 ```bash
-npm run db:setup
+# Load environment variables and run setup
+source .env.local && npm run db:setup
 ```
 
 Or manually run migrations:
