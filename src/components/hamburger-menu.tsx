@@ -53,24 +53,14 @@ export function HamburgerMenu({ homeNav = false }: HamburgerMenuProps) {
                 </div>
               </DropdownMenuItem>
             ) : (
-              <>
-                <DropdownMenuItem asChild>
-                  <SignInButton mode="modal">
-                    <div className="flex items-center cursor-pointer">
-                      <User className="mr-2 h-4 w-4" />
-                      Log in
-                    </div>
-                  </SignInButton>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <SignUpButton mode="modal">
-                    <div className="flex items-center cursor-pointer">
-                      <User className="mr-2 h-4 w-4" />
-                      Sign up
-                    </div>
-                  </SignUpButton>
-                </DropdownMenuItem>
-              </>
+              <DropdownMenuItem asChild>
+                <SignUpButton mode="modal">
+                  <div className="flex items-center cursor-pointer">
+                    <User className="mr-2 h-4 w-4" />
+                    Sign up
+                  </div>
+                </SignUpButton>
+              </DropdownMenuItem>
             )}
           </>
         ) : (

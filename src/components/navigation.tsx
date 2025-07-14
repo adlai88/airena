@@ -228,18 +228,11 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                     </UserButton.MenuItems>
                   </UserButton>
                 ) : (
-                  <>
-                    <SignInButton mode="modal">
-                      <Button variant="ghost" size="sm" className="font-medium min-h-[44px] sm:min-h-auto text-sm">
-                        Log in
-                      </Button>
-                    </SignInButton>
-                    <SignUpButton mode="modal">
-                      <Button variant="ghost" size="sm" className="font-medium min-h-[44px] sm:min-h-auto text-sm">
-                        Sign up
-                      </Button>
-                    </SignUpButton>
-                  </>
+                  <SignUpButton mode="modal">
+                    <Button variant="ghost" size="sm" className="font-medium min-h-[44px] sm:min-h-auto text-sm cursor-pointer">
+                      Sign up
+                    </Button>
+                  </SignUpButton>
                 )}
               </div>
             </>
