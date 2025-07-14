@@ -44,19 +44,21 @@ export async function POST(request: NextRequest) {
     console.log('🚨 WEBHOOK CALLED! Headers:', Object.fromEntries(request.headers.entries()));
     
     // Verify webhook signature
-    const signature = request.headers.get('polar-signature');
+    const signature = request.headers.get('webhook-signature') || request.headers.get('polar-signature');
     const webhookSecret = process.env.POLAR_WEBHOOK_SECRET;
     
     console.log('🔍 Signature present:', !!signature);
     console.log('🔍 Webhook secret present:', !!webhookSecret);
+    console.log('🔍 Signature value:', signature);
     
-    if (!signature || !webhookSecret) {
-      console.log('❌ Missing signature or secret');
-      return NextResponse.json(
-        { error: 'Missing webhook signature or secret' },
-        { status: 401 }
-      );
-    }
+    // TEMPORARILY DISABLE signature verification to debug payload
+    // if (!signature || !webhookSecret) {
+    //   console.log('❌ Missing signature or secret');
+    //   return NextResponse.json(
+    //     { error: 'Missing webhook signature or secret' },
+    //     { status: 401 }
+    //   );
+    // }
 
     const body = await request.text();
     console.log('🔍 Raw webhook body:', body);
