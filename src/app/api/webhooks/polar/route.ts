@@ -13,6 +13,7 @@ interface PolarWebhookEvent {
     subscription_id?: string;
     status: string;
     metadata?: Record<string, unknown>;
+    customer_metadata?: Record<string, unknown>;
   };
 }
 
@@ -38,6 +39,16 @@ export async function POST(request: NextRequest) {
     // }
 
     const event: PolarWebhookEvent = JSON.parse(body);
+    
+    // Debug logging to see what Polar actually sends
+    console.log('🔍 Webhook event received:', {
+      type: event.type,
+      productId: event.data.product_id,
+      metadata: event.data.metadata,
+      customerMetadata: event.data.customer_metadata,
+      customerId: event.data.customer_id,
+      status: event.data.status
+    });
 
     // Handle different event types
     switch (event.type) {
@@ -78,16 +89,18 @@ export async function POST(request: NextRequest) {
 
 async function handleSubscriptionCreated(event: PolarWebhookEvent) {
   try {
-    const { metadata, subscription_id } = event.data;
-    const userId = metadata?.userId as string;
+    const { subscription_id } = event.data;
+    const userId = extractUserId(event);
+    const metadata = extractMetadata(event);
     
     if (!userId) {
-      console.error('No userId in subscription metadata');
+      console.error('❌ No userId in subscription metadata');
       return;
     }
 
     // Determine tier from product/metadata
     const tier = determineTierFromProduct(event.data.product_id, metadata);
+    console.log('🔍 Subscription created - userId:', userId, 'tier:', tier);
     
     // Update user subscription in Clerk
     await UserService.updateUserTier(userId, tier, {
@@ -104,15 +117,17 @@ async function handleSubscriptionCreated(event: PolarWebhookEvent) {
 
 async function handleSubscriptionUpdated(event: PolarWebhookEvent) {
   try {
-    const { metadata, subscription_id, status } = event.data;
-    const userId = metadata?.userId as string;
+    const { subscription_id, status } = event.data;
+    const userId = extractUserId(event);
+    const metadata = extractMetadata(event);
     
     if (!userId) {
-      console.error('No userId in subscription metadata');
+      console.error('❌ No userId in subscription metadata');
       return;
     }
 
     const tier = determineTierFromProduct(event.data.product_id, metadata);
+    console.log('🔍 Subscription updated - userId:', userId, 'tier:', tier, 'status:', status);
     
     await UserService.updateUserTier(userId, tier, {
       polarCustomerId: event.data.customer_id,
@@ -128,13 +143,15 @@ async function handleSubscriptionUpdated(event: PolarWebhookEvent) {
 
 async function handleSubscriptionCanceled(event: PolarWebhookEvent) {
   try {
-    const { metadata, subscription_id } = event.data;
-    const userId = metadata?.userId as string;
+    const { subscription_id } = event.data;
+    const userId = extractUserId(event);
     
     if (!userId) {
-      console.error('No userId in subscription metadata');
+      console.error('❌ No userId in subscription metadata');
       return;
     }
+    
+    console.log('🔍 Subscription canceled - userId:', userId);
 
     // Downgrade to free tier
     await UserService.updateUserTier(userId, 'free', {
@@ -150,16 +167,17 @@ async function handleSubscriptionCanceled(event: PolarWebhookEvent) {
 
 async function handlePaymentSucceeded(event: PolarWebhookEvent) {
   try {
-    const { metadata } = event.data;
-    const userId = metadata?.userId as string;
+    const userId = extractUserId(event);
+    const metadata = extractMetadata(event);
     
     if (!userId) {
-      console.error('No userId in payment metadata');
+      console.error('❌ No userId in payment metadata');
       return;
     }
 
     // Payment succeeded - ensure subscription is active
     const tier = determineTierFromProduct(event.data.product_id, metadata);
+    console.log('🔍 Payment succeeded - userId:', userId, 'tier:', tier);
     
     await UserService.updateUserTier(userId, tier, {
       polarCustomerId: event.data.customer_id,
@@ -174,13 +192,14 @@ async function handlePaymentSucceeded(event: PolarWebhookEvent) {
 
 async function handlePaymentFailed(event: PolarWebhookEvent) {
   try {
-    const { metadata } = event.data;
-    const userId = metadata?.userId as string;
+    const userId = extractUserId(event);
     
     if (!userId) {
-      console.error('No userId in payment metadata');
+      console.error('❌ No userId in payment metadata');
       return;
     }
+    
+    console.log('🔍 Payment failed - userId:', userId);
 
     // Payment failed - mark subscription as past due
     await UserService.updateUserTier(userId, 'free', {
@@ -192,6 +211,18 @@ async function handlePaymentFailed(event: PolarWebhookEvent) {
   } catch (error) {
     console.error('Error handling payment failed:', error);
   }
+}
+
+// Helper function to extract userId from either metadata location
+function extractUserId(event: PolarWebhookEvent): string | null {
+  const userId = event.data.metadata?.userId || event.data.customer_metadata?.userId;
+  console.log('🔍 Extracted userId:', userId);
+  return userId as string | null;
+}
+
+// Helper function to extract metadata (prioritize customer_metadata)
+function extractMetadata(event: PolarWebhookEvent): Record<string, unknown> {
+  return event.data.customer_metadata || event.data.metadata || {};
 }
 
 function determineTierFromProduct(productId: string, metadata?: Record<string, unknown>): UserTier {
