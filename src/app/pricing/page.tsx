@@ -280,6 +280,19 @@ function PricingContent() {
                       <ArrowRight className="h-4 w-4 ml-1" />
                     )}
                   </Button>
+                  {/* Show manage subscription link for current plan */}
+                  {isSignedIn && currentTier === plan.id && plan.id !== 'free' && (
+                    <p className="mt-2 text-xs text-muted-foreground text-center">
+                      <a
+                        href="/portal"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline hover:text-primary"
+                      >
+                        Manage subscription
+                      </a>
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             ))}
@@ -287,37 +300,6 @@ function PricingContent() {
 
           {/* Comparison Section */}
           {/* Removed 'Why choose Airena?' section and its columns */}
-
-          {/* Subscription Management */}
-          {isSignedIn && currentTier !== 'free' && (
-            <div className="mt-12 text-center">
-              <Card className="max-w-md mx-auto">
-                <CardHeader>
-                  <CardTitle className="text-lg">Manage Subscription</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    View billing history, update payment method, or manage your subscription.
-                  </p>
-                  <Button
-                    variant="outline"
-                    onClick={async () => {
-                      try {
-                        window.open('/api/customer-portal', '_blank');
-                      } catch (error) {
-                        console.error('Failed to open customer portal:', error);
-                        // Fallback to direct portal link
-                        window.open(`https://polar.sh/${process.env.NEXT_PUBLIC_POLAR_ORGANIZATION_ID || '9868d684-1b6c-4479-bab1-0fef92b5cd71'}/portal`, '_blank');
-                      }
-                    }}
-                    className="w-full"
-                  >
-                    Customer Portal
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          )}
 
           {/* Overage Pricing */}
           <div className="mt-12 text-center">
