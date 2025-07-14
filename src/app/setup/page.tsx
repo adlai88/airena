@@ -686,8 +686,25 @@ export default function SetupPage() {
 
             {/* Success Status */}
             {status && !error && (
-              <div className="p-4 bg-green-50 border border-green-200 rounded-md">
-                <p className="text-green-800 text-sm">{status}</p>
+              <div className="p-4 bg-green-50 border border-green-200 rounded-md relative">
+                <button
+                  onClick={() => setStatus(null)}
+                  className="absolute top-2 right-2 p-1 hover:bg-green-100 rounded-full transition-colors"
+                  aria-label="Close success message"
+                >
+                  <svg
+                    className="w-4 h-4 text-green-600"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+                <p className="text-green-800 text-sm pr-8">{status}</p>
                 {syncDetails.channelTitle && (
                   <div className="mt-2 text-xs text-green-700">
                     <p>Channel: {syncDetails.channelTitle}</p>
