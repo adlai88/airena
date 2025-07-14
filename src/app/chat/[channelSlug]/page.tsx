@@ -39,7 +39,7 @@ const MessageContent = React.memo(({ content }: { content: string }) => {
           href={linkUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="underline hover:no-underline transition-colors" style={{ color: '#5E6DEE' }} onMouseEnter={(e) => { (e.target as HTMLElement).style.color = '#4A5BDB'; }} onMouseLeave={(e) => { (e.target as HTMLElement).style.color = '#5E6DEE'; }}
+          className="text-indigo-500 hover:text-indigo-600 underline hover:no-underline transition-colors"
         >
           {linkText}
         </a>
@@ -53,7 +53,7 @@ const MessageContent = React.memo(({ content }: { content: string }) => {
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="underline hover:no-underline transition-colors" style={{ color: '#5E6DEE' }} onMouseEnter={(e) => { (e.target as HTMLElement).style.color = '#4A5BDB'; }} onMouseLeave={(e) => { (e.target as HTMLElement).style.color = '#5E6DEE'; }}
+          className="text-indigo-500 hover:text-indigo-600 underline hover:no-underline transition-colors"
         >
           {url}
         </a>

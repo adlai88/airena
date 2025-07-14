@@ -15,17 +15,7 @@ export default function HomePage() {
               href="https://www.are.na/"
               target="_blank"
               rel="noopener noreferrer"
-              className="no-underline hover:no-underline transition-colors"
-              style={{ 
-                color: '#5E6DEE',
-                transition: 'color 0.2s ease-in-out'
-              }}
-              onMouseEnter={(e) => {
-                (e.target as HTMLElement).style.color = '#4A5BDB';
-              }}
-              onMouseLeave={(e) => {
-                (e.target as HTMLElement).style.color = '#5E6DEE';
-              }}
+              className="text-indigo-500 hover:text-indigo-600 no-underline hover:no-underline transition-colors"
             >
               Are.na
             </Link>

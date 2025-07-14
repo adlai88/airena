@@ -66,11 +66,11 @@ export function UpgradePrompt({ type, currentUsage, limit, onDismiss, className 
   const content = getPromptContent();
 
   return (
-    <Card className={`border-border ${className}`} style={{ backgroundColor: '#5E6DEE10' }}>
+    <Card className={`border-indigo-200 bg-indigo-50 ${className}`}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
-            <Badge className="border-border" style={{ backgroundColor: '#5E6DEE20', color: '#5E6DEE' }}>
+            <Badge className="bg-indigo-100 text-indigo-800 border-indigo-200">
               <Star className="h-3 w-3 mr-1" />
               Upgrade
             </Badge>
@@ -94,13 +94,13 @@ export function UpgradePrompt({ type, currentUsage, limit, onDismiss, className 
       <CardContent className="pt-0">
         <div className="flex items-center justify-between">
           <div className="text-xs text-muted-foreground">
-            <span className="font-medium" style={{ color: '#5E6DEE' }}>{content.benefit}</span>
+            <span className="font-medium text-indigo-800">{content.benefit}</span>
             <span className="ml-1">• $5/month</span>
           </div>
           <Button
             onClick={handleUpgrade}
             size="sm"
-            className="h-7 px-3 text-xs" style={{ backgroundColor: '#5E6DEE' }} onMouseEnter={(e) => { (e.target as HTMLElement).style.backgroundColor = '#4A5BDB'; }} onMouseLeave={(e) => { (e.target as HTMLElement).style.backgroundColor = '#5E6DEE'; }}
+            className="h-7 px-3 text-xs bg-indigo-600 hover:bg-indigo-700"
           >
             {content.cta}
             <ArrowRight className="h-3 w-3 ml-1" />
