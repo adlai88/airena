@@ -123,17 +123,33 @@ export default function PricingPage() {
     }
 
     if (planId === 'free') {
-      console.log('🔍 Redirecting to home (free plan)');
-      window.location.href = '/';
+      // Handle downgrade to free tier
+      if (currentTier !== 'free') {
+        const confirmCancel = confirm('Are you sure you want to cancel your subscription and downgrade to the free tier? This will take effect immediately.');
+        if (!confirmCancel) return;
+        
+        try {
+          const response = await fetch('/api/cancel-subscription', {
+            method: 'POST'
+          });
+          
+          if (response.ok) {
+            alert('Subscription canceled successfully. You have been downgraded to the free tier.');
+            window.location.reload();
+          } else {
+            const error = await response.json();
+            alert(`Failed to cancel subscription: ${error.error}`);
+          }
+        } catch (error) {
+          console.error('❌ Cancellation error:', error);
+          alert('Failed to cancel subscription. Please try again or contact support.');
+        }
+      } else {
+        console.log('🔍 Redirecting to home (free plan)');
+        window.location.href = '/';
+      }
       return;
     }
-
-    // Allow subscriptions regardless of current tier (for upgrades/downgrades)
-    // if (planId === currentTier) {
-    //   console.log('🔍 User already on this tier');
-    //   alert('You are already on this plan!');
-    //   return;
-    // }
 
     // Find the plan details for the modal
     const plan = plans.find(p => p.id === planId);
@@ -245,6 +261,7 @@ export default function PricingPage() {
                   >
                     {plan.comingSoon ? 'Coming Soon' : 
                      isSignedIn && currentTier === plan.id ? 'Current Plan' :
+                     isSignedIn && currentTier !== 'free' && plan.id === 'free' ? 'Downgrade' :
                      isSignedIn && currentTier !== 'free' && plan.id !== 'free' ? 
                        (getTierPriority(plan.id) > getTierPriority(currentTier) ? 'Upgrade' : 'Downgrade') :
                      plan.cta}
@@ -269,15 +286,24 @@ export default function PricingPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-sm text-muted-foreground">
-                    Need to cancel or modify your subscription? Contact our support team.
+                    View billing history, update payment method, or cancel your subscription.
                   </p>
-                  <Button
-                    variant="outline"
-                    onClick={() => window.open('mailto:support@airena.io?subject=Subscription Management', '_blank')}
-                    className="w-full"
-                  >
-                    Contact Support
-                  </Button>
+                  <div className="space-y-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => window.open('https://polar.sh/dashboard/billing', '_blank')}
+                      className="w-full"
+                    >
+                      Polar Customer Portal
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={() => handleSubscribe('free')}
+                      className="w-full"
+                    >
+                      Cancel Subscription
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </div>
