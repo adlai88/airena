@@ -103,6 +103,10 @@ export async function POST(request: NextRequest) {
         await handlePaymentFailed(event);
         break;
       
+      case 'customer.updated':
+        await handleCustomerUpdated(event);
+        break;
+      
       default:
         console.log('Unhandled webhook event:', event.type);
     }
@@ -241,6 +245,46 @@ async function handlePaymentFailed(event: PolarWebhookEvent) {
     console.log(`Payment failed for user ${userId}`);
   } catch (error) {
     console.error('Error handling payment failed:', error);
+  }
+}
+
+async function handleCustomerUpdated(event: PolarWebhookEvent) {
+  try {
+    const userId = extractUserId(event);
+    
+    if (!userId) {
+      console.error('❌ No userId in customer metadata');
+      return;
+    }
+    
+    console.log('🔍 Customer updated - userId:', userId);
+    
+    // For customer.updated events, we generally don't change tiers
+    // unless there's specific tier information in the metadata
+    const metadata = extractMetadata(event);
+    
+    if (metadata.tier) {
+      const tier = metadata.tier as string;
+      // Clean up tier value (remove any suffixes like "-t")
+      const cleanTier = tier.replace(/-.*$/, '') as 'free' | 'starter' | 'pro';
+      
+      if (['free', 'starter', 'pro'].includes(cleanTier)) {
+        console.log(`🔍 Updating tier based on customer metadata: ${cleanTier}`);
+        
+        await UserService.updateUserTier(userId, cleanTier, {
+          polarCustomerId: event.data.id,
+          status: 'active'
+        });
+        
+        console.log(`Customer updated for user ${userId}, tier: ${cleanTier}`);
+      } else {
+        console.log(`⚠️ Invalid tier in customer metadata: ${tier}`);
+      }
+    } else {
+      console.log('ℹ️ Customer updated but no tier change needed');
+    }
+  } catch (error) {
+    console.error('Error handling customer updated:', error);
   }
 }
 
