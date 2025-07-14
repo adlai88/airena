@@ -58,12 +58,10 @@ const plans = [
     features: [
       '500 blocks per month',
       'Everything in Starter',
-      'MCP server generation',
-      'API access',
-      'Webhook support',
-      'Priority processing',
-      'Channel isolation',
-      'Priority support'
+      'Priority support',
+      'API access (coming soon)',
+      'Webhook support (coming soon)',
+      'MCP server generation (coming soon)'
     ],
     cta: 'Subscribe Now',
     popular: false,
