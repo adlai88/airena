@@ -309,6 +309,7 @@ function determineTierFromProduct(productId: string, metadata?: Record<string, u
 
   // Otherwise, map product ID to tier
   const productTierMap: Record<string, UserTier> = {
+    '2939287a-ef9c-41de-9d8b-e89dad1be367': 'free',
     '2d078db5-1c02-43ae-bf7a-8b763fd26140': 'starter',
     'bda6be16-5294-4b12-8973-6ccdd0bf05e7': 'pro'
   };

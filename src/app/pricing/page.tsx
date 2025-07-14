@@ -123,32 +123,13 @@ export default function PricingPage() {
     }
 
     if (planId === 'free') {
-      // Handle downgrade to free tier
-      if (currentTier !== 'free') {
-        const confirmCancel = confirm('Are you sure you want to cancel your subscription and downgrade to the free tier? This will take effect immediately.');
-        if (!confirmCancel) return;
-        
-        try {
-          const response = await fetch('/api/cancel-subscription', {
-            method: 'POST'
-          });
-          
-          if (response.ok) {
-            alert('Subscription canceled successfully. You have been downgraded to the free tier.');
-            window.location.reload();
-          } else {
-            const error = await response.json();
-            alert(`Failed to cancel subscription: ${error.error}`);
-          }
-        } catch (error) {
-          console.error('❌ Cancellation error:', error);
-          alert('Failed to cancel subscription. Please try again or contact support.');
-        }
-      } else {
+      if (currentTier === 'free') {
         console.log('🔍 Redirecting to home (free plan)');
         window.location.href = '/';
+        return;
       }
-      return;
+      // For downgrades to free, still use checkout for consistency
+      // Polar will handle this as a $0 subscription change
     }
 
     // Find the plan details for the modal
@@ -286,24 +267,15 @@ export default function PricingPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-sm text-muted-foreground">
-                    View billing history, update payment method, or cancel your subscription.
+                    View billing history, update payment method, or manage your subscription.
                   </p>
-                  <div className="space-y-3">
-                    <Button
-                      variant="outline"
-                      onClick={() => window.open('https://polar.sh/dashboard/billing', '_blank')}
-                      className="w-full"
-                    >
-                      Polar Customer Portal
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={() => handleSubscribe('free')}
-                      className="w-full"
-                    >
-                      Cancel Subscription
-                    </Button>
-                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => window.open('https://polar.sh/dashboard/billing', '_blank')}
+                    className="w-full"
+                  >
+                    Polar Customer Portal
+                  </Button>
                 </CardContent>
               </Card>
             </div>

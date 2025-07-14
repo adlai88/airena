@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     console.log('🔍 Request body:', body);
     const { tier } = body;
 
-    if (!tier || !['starter', 'pro'].includes(tier)) {
+    if (!tier || !['free', 'starter', 'pro'].includes(tier)) {
       console.log('❌ Invalid tier:', tier);
       return NextResponse.json(
         { error: 'Invalid tier' },
@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
 
     // Map tier to product ID
     const PRODUCT_IDS = {
+      free: '2939287a-ef9c-41de-9d8b-e89dad1be367',
       starter: '2d078db5-1c02-43ae-bf7a-8b763fd26140',
       pro: 'bda6be16-5294-4b12-8973-6ccdd0bf05e7'
     };
