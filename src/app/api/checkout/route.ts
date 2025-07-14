@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create checkout session using Polar.sh SDK
-    const successUrl = process.env.NEXT_PUBLIC_SUCCESS_URL || `${process.env.NEXT_PUBLIC_APP_URL}/success`;
+    const successUrl = `${process.env.NEXT_PUBLIC_APP_URL}/pricing?success=true&tier=${tier}`;
     console.log('🔍 Success URL:', successUrl);
     console.log('🔍 Product ID:', productId);
     console.log('🔍 Using Polar API Key:', process.env.POLAR_API_KEY ? 'Present' : 'Missing');

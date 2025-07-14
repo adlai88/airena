@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Layout } from '@/components/layout';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 import { CheckoutModal } from '@/components/checkout-modal';
 
@@ -78,6 +79,7 @@ const getTierPriority = (tier: string): number => {
 export default function PricingPage() {
   const [isAnnual, setIsAnnual] = useState(false);
   const [currentTier, setCurrentTier] = useState<string>('free');
+  const [showSuccess, setShowSuccess] = useState(false);
   const [checkoutModal, setCheckoutModal] = useState<{
     isOpen: boolean;
     planName: string;
@@ -90,6 +92,7 @@ export default function PricingPage() {
     tier: ''
   });
   const { isSignedIn, isLoaded } = useUser();
+  const searchParams = useSearchParams();
 
   // Fetch current user tier
   useEffect(() => {
@@ -97,6 +100,19 @@ export default function PricingPage() {
       fetchCurrentTier();
     }
   }, [isLoaded]);
+
+  // Handle success message from checkout
+  useEffect(() => {
+    const success = searchParams.get('success');
+    const tier = searchParams.get('tier');
+    
+    if (success === 'true' && tier) {
+      setShowSuccess(true);
+      // Hide success message after 5 seconds
+      const timer = setTimeout(() => setShowSuccess(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams]);
 
   const fetchCurrentTier = async () => {
     try {
@@ -157,6 +173,20 @@ export default function PricingPage() {
             title="AI intelligence for Are.na"
             subtitle="Starting at $5/month."
           />
+
+          {/* Success Message */}
+          {showSuccess && (
+            <div className="max-w-md mx-auto mb-8">
+              <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
+                <CardContent className="flex items-center space-x-3 pt-6">
+                  <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                    Subscription updated successfully! Your plan change is now active.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* Current Plan Display */}
           {/* Removed badge display here as it's redundant with the plan card indicator */}
