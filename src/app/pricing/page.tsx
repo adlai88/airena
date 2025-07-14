@@ -301,7 +301,7 @@ export default function PricingPage() {
                   </p>
                   <Button
                     variant="outline"
-                    onClick={() => window.open('https://polar.sh/dashboard/billing', '_blank')}
+                    onClick={() => window.open('https://app.polar.sh/billing', '_blank')}
                     className="w-full"
                   >
                     Polar Customer Portal

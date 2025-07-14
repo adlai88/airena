@@ -95,7 +95,7 @@ export class SyncService {
   /**
    * Store or update channel in database
    */
-  private async upsertChannel(channel: ArenaChannel, thumbnailUrl?: string): Promise<number> {
+  private async upsertChannel(channel: ArenaChannel, userId?: string, thumbnailUrl?: string, isPrivate: boolean = false): Promise<number> {
     // First try to update existing record
     const { data: existingChannel } = await supabase
       .from('channels')
@@ -138,7 +138,8 @@ export class SyncService {
         title: channel.title,
         slug: channel.slug,
         username: channel.user.username,
-        user_id: null,
+        user_id: userId,
+        is_private: isPrivate,
         last_sync: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
@@ -288,7 +289,7 @@ export class SyncService {
       });
       
       const thumbnailUrl = await this.generateChannelThumbnail(channelSlug);
-      const dbChannelId = await this.upsertChannel(channel, thumbnailUrl || undefined);
+      const dbChannelId = await this.upsertChannel(channel, userId, thumbnailUrl || undefined, accessResult.isPrivate);
 
       const allBlocks = await client.getAllChannelContents(channelSlug);
       
@@ -760,7 +761,7 @@ export class SyncService {
       console.log(`Parallel embedding complete: ${embeddedBlocks} successful, ${embeddingErrors} failed out of ${processedBlocksList.length} total`);
 
       // Update channel sync timestamp (preserve existing thumbnail)
-      await this.upsertChannel(channel);
+      await this.upsertChannel(channel, userId, undefined, accessResult.isPrivate);
 
       // Verify blocks were actually stored in database
       console.log('Verifying blocks were stored in database...');
