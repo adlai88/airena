@@ -284,7 +284,7 @@ function PricingContent() {
                   {isSignedIn && currentTier === plan.id && plan.id !== 'free' && (
                     <p className="mt-2 text-xs text-muted-foreground text-center">
                       <a
-                        href="/portal"
+                        href="/api/customer-portal"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="underline hover:text-primary"
