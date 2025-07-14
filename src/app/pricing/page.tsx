@@ -301,10 +301,10 @@ function PricingContent() {
                   </p>
                   <Button
                     variant="outline"
-                    onClick={() => window.open('https://app.polar.sh/billing', '_blank')}
+                    onClick={() => window.open('https://polar.sh/9868d684-1b6c-4479-bab1-0fef92b5cd71/portal', '_blank')}
                     className="w-full"
                   >
-                    Polar Customer Portal
+                    Customer Portal
                   </Button>
                 </CardContent>
               </Card>

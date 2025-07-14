@@ -1,15 +1,27 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
 import { createClient } from '@supabase/supabase-js';
+import { UserService } from '@/lib/user-service';
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_ANON_KEY!
 );
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    // Get recent channels with block count stats
-    const { data: channels, error } = await supabase
+    // Get user authentication and tier
+    const { userId } = await auth();
+    const userTier = userId ? await UserService.getUserTier(userId) : 'free';
+    
+    // Parse query params
+    const { searchParams } = new URL(request.url);
+    const channelType = searchParams.get('type') || 'public'; // 'public' | 'private'
+    
+    console.log('🔍 Recent channels request:', { userId, userTier, channelType });
+
+    // Build query based on user tier and requested type
+    let query = supabase
       .from('channels')
       .select(`
         id,
@@ -19,10 +31,28 @@ export async function GET() {
         last_sync,
         created_at,
         arena_id,
+        is_private,
+        user_id,
         blocks!inner(count)
       `)
       .order('last_sync', { ascending: false })
       .limit(10);
+
+    // Apply privacy filters based on user tier and requested type
+    if (channelType === 'private') {
+      if (userTier === 'free') {
+        // Free users can't access private channels - return empty
+        return NextResponse.json({ channels: [] });
+      } else {
+        // Premium users: show their own private channels only
+        query = query.eq('is_private', true).eq('user_id', userId);
+      }
+    } else {
+      // Public channels: visible to everyone
+      query = query.eq('is_private', false);
+    }
+
+    const { data: channels, error } = await query;
 
     if (error) {
       console.error('Error fetching recent channels:', error);
@@ -50,6 +80,8 @@ export async function GET() {
           lastSync: channel.last_sync,
           createdAt: channel.created_at,
           blockCount: blockCount || 0,
+          isPrivate: channel.is_private || false,
+          userId: channel.user_id,
         };
       })
     );

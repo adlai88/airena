@@ -8,12 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge'
 import { ChannelBadge } from '@/components/ui/channel-badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Layout } from '@/components/layout';
 import { PageHeader } from '@/components/page-header';
 import { useChannel } from '@/hooks/useChannel';
 import { arenaClient } from '@/lib/arena';
-import { Spinner } from '@/components/ui/spinner';
 import { useUser } from '@clerk/nextjs';
+import { Spinner } from '@/components/ui/spinner';
 
 export default function SetupPage() {
   const { channelSlug: connectedChannel, username: connectedUsername, isDefault: isDefaultChannel, refresh: refreshChannel } = useChannel();
@@ -47,13 +48,26 @@ export default function SetupPage() {
   }, []);
   
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [recentChannels, setRecentChannels] = useState<{
+  const [activeTab, setActiveTab] = useState<'public' | 'private'>('public');
+  const [publicChannels, setPublicChannels] = useState<{
     slug: string;
     title: string;
     thumbnailUrl?: string;
     lastSync: string;
     blockCount: number;
+    isPrivate: boolean;
   }[]>([]);
+  const [privateChannels, setPrivateChannels] = useState<{
+    slug: string;
+    title: string;
+    thumbnailUrl?: string;
+    lastSync: string;
+    blockCount: number;
+    isPrivate: boolean;
+  }[]>([]);
+  
+  // Legacy compatibility - use activeTab to determine which channels to show
+  const recentChannels = activeTab === 'public' ? publicChannels : privateChannels;
   const [hoveredChannel, setHoveredChannel] = useState<string | null>(null);
   const [blockLimitWarning, setBlockLimitWarning] = useState<string | null>(null);
   const [channelLimits, setChannelLimits] = useState<{
@@ -79,11 +93,18 @@ export default function SetupPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Load recent channels
-        const channelsResponse = await fetch('/api/recent-channels');
-        if (channelsResponse.ok) {
-          const channelsData = await channelsResponse.json();
-          setRecentChannels(channelsData.channels || []);
+        // Load public channels
+        const publicChannelsResponse = await fetch('/api/recent-channels?type=public');
+        if (publicChannelsResponse.ok) {
+          const publicChannelsData = await publicChannelsResponse.json();
+          setPublicChannels(publicChannelsData.channels || []);
+        }
+
+        // Load private channels
+        const privateChannelsResponse = await fetch('/api/recent-channels?type=private');
+        if (privateChannelsResponse.ok) {
+          const privateChannelsData = await privateChannelsResponse.json();
+          setPrivateChannels(privateChannelsData.channels || []);
         }
 
         // Load channel limits
@@ -264,10 +285,17 @@ export default function SetupPage() {
                 const loadData = async () => {
                   try {
                     // Load recent channels
-                    const channelsResponse = await fetch('/api/recent-channels');
-                    if (channelsResponse.ok) {
-                      const channelsData = await channelsResponse.json();
-                      setRecentChannels(channelsData.channels || []);
+                    // Reload both public and private channels
+                    const publicResponse = await fetch('/api/recent-channels?type=public');
+                    if (publicResponse.ok) {
+                      const publicData = await publicResponse.json();
+                      setPublicChannels(publicData.channels || []);
+                    }
+
+                    const privateResponse = await fetch('/api/recent-channels?type=private');
+                    if (privateResponse.ok) {
+                      const privateData = await privateResponse.json();
+                      setPrivateChannels(privateData.channels || []);
                     }
 
                     // Load channel limits
@@ -656,12 +684,28 @@ export default function SetupPage() {
             )}
 
             {/* Available Channels Section */}
-            {recentChannels.length > 0 && (
+            {(publicChannels.length > 0 || privateChannels.length > 0) && (
               <div className="pt-4 border-t">
                 <h3 className="text-sm font-medium text-foreground mb-2">Available Channels</h3>
-                <p className="text-xs text-muted-foreground mb-3">Click any channel to switch instantly</p>
-                <div className="grid gap-2">
-                  {recentChannels.slice(0, 10).map((channel) => (
+                
+                <Tabs 
+                  value={activeTab} 
+                  onValueChange={(value) => setActiveTab(value as 'public' | 'private')}
+                  className="w-full"
+                >
+                  <TabsList className="grid w-full grid-cols-2 mb-3">
+                    <TabsTrigger value="public">Public Channels</TabsTrigger>
+                    <TabsTrigger value="private">
+                      {channelLimits?.userTier === 'free' ? '🔒 Private' : 'Private Channels'}
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="public" className="mt-0">
+                    {publicChannels.length > 0 ? (
+                      <>
+                        <p className="text-xs text-muted-foreground mb-3">Click any channel to switch instantly</p>
+                        <div className="grid gap-2">
+                          {publicChannels.slice(0, 10).map((channel) => (
                     <div
                       key={channel.slug}
                       className={`p-3 rounded-lg border transition-all cursor-pointer ${
@@ -727,8 +771,114 @@ export default function SetupPage() {
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <p className="text-sm text-muted-foreground py-8 text-center">
+                        No public channels available yet
+                      </p>
+                    )}
+                  </TabsContent>
+                  
+                  <TabsContent value="private" className="mt-0">
+                    {channelLimits?.userTier === 'free' ? (
+                      <div className="text-center py-8 space-y-4">
+                        <div className="text-4xl">🔒</div>
+                        <div>
+                          <h4 className="font-medium text-foreground mb-2">Private Channels</h4>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Access your private Are.na channels with a premium subscription
+                          </p>
+                          <Button
+                            variant="default"
+                            onClick={() => window.open('/pricing', '_blank')}
+                            className="px-6"
+                          >
+                            Upgrade to Premium
+                          </Button>
+                        </div>
+                      </div>
+                    ) : privateChannels.length > 0 ? (
+                      <>
+                        <p className="text-xs text-muted-foreground mb-3">Your private channels</p>
+                        <div className="grid gap-2">
+                          {privateChannels.slice(0, 10).map((channel) => (
+                            <div
+                              key={channel.slug}
+                              className={`p-3 rounded-lg border transition-all cursor-pointer ${
+                                switchingToChannel ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary/50 hover:bg-muted/50'
+                              } ${
+                                connectedChannel === channel.slug ? 'border-primary bg-primary/5' : 'border-border'
+                              }`}
+                              onClick={() => !switchingToChannel && handleQuickSwitch(channel.slug)}
+                              onMouseEnter={() => setHoveredChannel(channel.slug)}
+                              onMouseLeave={() => setHoveredChannel(null)}
+                              onFocus={() => setHoveredChannel(channel.slug)}
+                              onBlur={() => setHoveredChannel(null)}
+                              tabIndex={0}
+                            >
+                              <div className="flex items-center justify-between min-w-0">
+                                <div className="flex items-center flex-1 min-w-0 pr-2">
+                                  {/* Thumbnail */}
+                                  {channel.thumbnailUrl ? (
+                                    <img 
+                                      src={channel.thumbnailUrl} 
+                                      alt={`${channel.title || channel.slug} thumbnail`}
+                                      className="w-10 h-10 rounded-md object-cover flex-shrink-0 mr-3"
+                                      onError={(e) => {
+                                        (e.target as HTMLImageElement).style.display = 'none';
+                                      }}
+                                    />
+                                  ) : (
+                                    <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center flex-shrink-0 mr-3">
+                                      <span className="text-xs text-muted-foreground font-medium">
+                                        {(channel.title || channel.slug).charAt(0).toUpperCase()}
+                                      </span>
+                                    </div>
+                                  )}
+                                  
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium text-sm truncate flex items-center gap-2">
+                                      {channel.title || channel.slug}
+                                      <Badge variant="secondary" className="text-xs">Private</Badge>
+                                    </div>
+                                    <div className="text-xs text-muted-foreground truncate">
+                                      {channel.blockCount} blocks • Last synced {new Date(channel.lastSync).toLocaleDateString()}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  {connectedChannel === channel.slug ? (
+                                    <Badge variant="secondary" className="text-xs px-2 py-1">
+                                      Active
+                                    </Badge>
+                                  ) : switchingToChannel === channel.slug ? (
+                                    <Badge variant="outline" className="text-xs px-2 py-1">
+                                      <div className="mr-1"><Spinner size={8} /></div>
+                                      <span className="hidden sm:inline">Connecting...</span>
+                                      <span className="sm:hidden">•••</span>
+                                    </Badge>
+                                  ) : (
+                                    hoveredChannel === channel.slug && (
+                                      <Badge variant="outline" className="text-xs px-2 py-1">
+                                        Switch
+                                      </Badge>
+                                    )
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <p className="text-sm text-muted-foreground py-8 text-center">
+                        No private channels synced yet
+                      </p>
+                    )}
+                  </TabsContent>
+                </Tabs>
               </div>
             )}
           </CardContent>
