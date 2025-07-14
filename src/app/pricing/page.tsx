@@ -18,6 +18,7 @@ const plans = [
     period: 'forever',
     description: 'Perfect for exploring Are.na intelligence',
     features: [
+      '3 channels maximum',
       '25 blocks per channel',
       '10 chat messages per channel/month',
       '2 generations per channel/month',
