@@ -20,8 +20,7 @@ export async function POST(request: NextRequest) {
 
     // Update user tier manually
     await UserService.updateUserTier(userId, tier as 'free' | 'starter' | 'pro', {
-      status: 'active',
-      source: 'manual_fix'
+      status: 'active'
     });
 
     console.log(`✅ Successfully updated user ${userId} to ${tier}`);
