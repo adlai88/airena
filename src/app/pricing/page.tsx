@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Layout } from '@/components/layout';
 import { PageHeader } from '@/components/page-header';
@@ -76,7 +76,7 @@ const getTierPriority = (tier: string): number => {
   return priorities[tier as keyof typeof priorities] || 0;
 };
 
-export default function PricingPage() {
+function PricingContent() {
   const [isAnnual, setIsAnnual] = useState(false);
   const [currentTier, setCurrentTier] = useState<string>('free');
   const [showSuccess, setShowSuccess] = useState(false);
@@ -330,5 +330,27 @@ export default function PricingPage() {
         tier={checkoutModal.tier}
       />
     </Layout>
+  );
+}
+
+export default function PricingPage() {
+  return (
+    <Suspense fallback={
+      <Layout>
+        <div className="min-h-screen pt-20 pb-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <PageHeader
+              title="AI intelligence for Are.na"
+              subtitle="Starting at $5/month."
+            />
+            <div className="flex justify-center mt-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    }>
+      <PricingContent />
+    </Suspense>
   );
 }
