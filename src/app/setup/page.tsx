@@ -486,7 +486,7 @@ export default function SetupPage() {
     <Layout>
       <PageHeader 
         title="Channel Setup"
-        subtitle={<span>Connect to any public <a href="https://www.are.na/" target="_blank" rel="noopener noreferrer" className="text-orange-500 dark:text-orange-400 hover:text-orange-600 dark:hover:text-orange-300 no-underline hover:no-underline transition-colors">Are.na</a> channel</span>}
+        subtitle={<span>Connect to any public <a href="https://www.are.na/" target="_blank" rel="noopener noreferrer" className="no-underline hover:no-underline transition-colors" style={{ color: '#5E6DEE' }} onMouseEnter={(e) => { (e.target as HTMLElement).style.color = '#4A5BDB'; }} onMouseLeave={(e) => { (e.target as HTMLElement).style.color = '#5E6DEE'; }}>Are.na</a> channel</span>}
         variant="standard"
       />
       <div className="max-w-lg sm:max-w-xl md:max-w-2xl mx-auto pb-8 sm:pb-12 px-4 sm:px-6">
@@ -508,10 +508,10 @@ export default function SetupPage() {
             <div className="text-sm text-muted-foreground">
               Channels: <span className="font-medium">{channelLimits.channelCount}/{channelLimits.channelLimit}</span>
               {!channelLimits.canAddMoreChannels && (
-                <span className="text-orange-600 dark:text-orange-400 ml-2">
+                <span className="ml-2" style={{ color: '#5E6DEE' }}>
                   (<Button 
                     variant="link" 
-                    className="p-0 h-auto font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 text-sm"
+                    className="p-0 h-auto font-semibold text-sm" style={{ color: '#5E6DEE' }} onMouseEnter={(e) => { (e.target as HTMLElement).style.color = '#4A5BDB'; }} onMouseLeave={(e) => { (e.target as HTMLElement).style.color = '#5E6DEE'; }}
                     onClick={() => window.location.href = isSignedIn ? '/pricing' : '/sign-up?redirect=/pricing'}
                   >
                     {isSignedIn ? 'Upgrade for unlimited channels' : 'Create account to upgrade'}
@@ -569,13 +569,13 @@ export default function SetupPage() {
 
               {/* Channel limit warning */}
               {channelSlug && !canAddChannel(channelSlug) && (
-                <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded text-orange-800 text-xs">
+                <div className="mt-2 p-2 border border-border rounded text-xs" style={{ backgroundColor: '#5E6DEE10', color: '#5E6DEE' }}>
                   Channel limit reached ({channelLimits?.channelCount}/{channelLimits?.channelLimit}). 
                   {isSignedIn ? (
                     <>
                       <Button 
                         variant="link" 
-                        className="p-0 h-auto font-semibold text-orange-600 hover:text-orange-700 ml-1"
+                        className="p-0 h-auto font-semibold ml-1" style={{ color: '#5E6DEE' }} onMouseEnter={(e) => { (e.target as HTMLElement).style.color = '#4A5BDB'; }} onMouseLeave={(e) => { (e.target as HTMLElement).style.color = '#5E6DEE'; }}
                         onClick={() => window.location.href = '/pricing'}
                       >
                         Upgrade to Starter
@@ -585,7 +585,7 @@ export default function SetupPage() {
                     <>
                       <Button 
                         variant="link" 
-                        className="p-0 h-auto font-semibold text-orange-600 hover:text-orange-700 ml-1"
+                        className="p-0 h-auto font-semibold ml-1" style={{ color: '#5E6DEE' }} onMouseEnter={(e) => { (e.target as HTMLElement).style.color = '#4A5BDB'; }} onMouseLeave={(e) => { (e.target as HTMLElement).style.color = '#5E6DEE'; }}
                         onClick={() => window.location.href = '/sign-up?redirect=/pricing'}
                       >
                         Create free account

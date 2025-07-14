@@ -59,7 +59,7 @@ export default function RootLayout({
           profileSectionPrimaryButton: "bg-primary hover:bg-primary/90"
         },
         variables: {
-          colorPrimary: "#ee8144", // Your orange theme color
+          colorPrimary: "#5E6DEE", // Your blue theme color
           colorBackground: "#0a0a0a", // Dark background
           colorInputBackground: "#1a1a1a", // Dark input background
           colorInputText: "#ffffff" // White input text
