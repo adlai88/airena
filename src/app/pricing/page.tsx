@@ -301,7 +301,15 @@ function PricingContent() {
                   </p>
                   <Button
                     variant="outline"
-                    onClick={() => window.open('https://polar.sh/9868d684-1b6c-4479-bab1-0fef92b5cd71/portal', '_blank')}
+                    onClick={async () => {
+                      try {
+                        window.open('/api/customer-portal', '_blank');
+                      } catch (error) {
+                        console.error('Failed to open customer portal:', error);
+                        // Fallback to direct portal link
+                        window.open(`https://polar.sh/${process.env.NEXT_PUBLIC_POLAR_ORGANIZATION_ID || '9868d684-1b6c-4479-bab1-0fef92b5cd71'}/portal`, '_blank');
+                      }
+                    }}
                     className="w-full"
                   >
                     Customer Portal
