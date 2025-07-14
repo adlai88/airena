@@ -37,82 +37,94 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 ✅ **Phase 10.2: Open Source Preparation** (COMPLETED - Repository structure + Documentation + Self-hosting guides)
 ✅ **Phase 10.3: Visual Enhancement & Channel Limits** (COMPLETED - Channel thumbnails + 3-channel free tier limit + Large channel warnings)
 ✅ **Phase 10.4a: Open Source Launch** (COMPLETED - Repository public, documentation complete, self-hosting validated)
-🎯 **Next Phase**: Phase 10.4b - Intelligence Score Development + Community Building
+✅ **Phase 10.4b: Tiered Channel Discovery** (COMPLETED - Smart public/private channel separation + Enhanced subscription system)
+🎯 **Next Phase**: Phase 10.4c - Intelligence Score Development + Community Building
 
 **Live Application**: https://www.airena.io/  
 **Open Source Repository**: https://github.com/adlai88/airena
 
-## Latest Updates (Phase 10.4a: Open Source Launch - COMPLETED ✅)
+## Latest Updates (Phase 10.4b: Tiered Channel Discovery - COMPLETED ✅)
 
-### 🎉 **Major Milestone Achieved: Open Source Launch**
+### 🎯 **Major System Enhancement: Smart Channel Discovery & Security**
 
-**Repository**: https://github.com/adlai88/airena  
-**Launch Date**: July 13, 2025  
-**Status**: **LIVE and fully functional**
+**Implementation Date**: July 14, 2025  
+**Status**: **LIVE and fully functional**  
+**Impact**: **Resolved critical security vulnerability + Enhanced user experience**
 
 ### ✅ **What Was Accomplished**
 
-#### **Complete Self-Hosting Validation**
-- **End-to-end testing** with fresh Supabase instance
-- **Database schema audit** - synchronized production schema with self-hosting setup
-- **Systematic issue resolution** - fixed all missing columns, constraints, and indexes
-- **Full functionality verified** - sync, embedding, and chat all working perfectly
+#### **🔒 Critical Security Vulnerability Resolution**
+- **Fixed private channel exposure** - private channels were accessible to all users
+- **Implemented proper user isolation** - Row Level Security (RLS) policies enforced
+- **Channel ownership tracking** - all channels now properly associated with users
+- **Privacy by design** - public channels shareable, private channels user-specific
 
-#### **Production-Ready Documentation**
-- **Comprehensive README.md** - features, setup, contribution guidelines
-- **Complete SELF_HOSTING.md** - step-by-step deployment guide for multiple platforms
-- **Professional CONTRIBUTING.md** - detailed contributor guidelines and project structure
-- **Proper environment setup** - `.env.example` with all required variables documented
+#### **🎯 Smart Channel Discovery System**
+- **Tiered access model** - public channels visible to everyone, private channels premium-only
+- **Enhanced /setup experience** - no more empty channel lists for new users
+- **Tabbed interface** - seamless switching between "Public Channels" and "Private Channels"
+- **Upgrade motivation** - clear value proposition for private channel access
 
-#### **Repository Standards**
-- **MIT License** - proper open source licensing
-- **Package.json metadata** - repository URLs, license, homepage links
-- **Professional structure** - clean codebase organization ready for contributors
+#### **💰 Enhanced Subscription System**
+- **Unified Polar integration** - all tier changes (including downgrades) through Polar checkout
+- **Improved checkout UX** - redirects back to pricing page with success confirmation
+- **Fixed sync errors** - resolved monthly_usage table schema issues for premium users
+- **Smart privacy detection** - automatic public/private classification during sync
 
-#### **Technical Achievements**
-- **Database Schema Synchronization** - self-hosting database now matches production exactly
-- **Missing Component Resolution** - fixed all self-hosting blockers systematically
-- **Performance Optimization** - proper indexes and constraints for scalability
-- **Validation Through Testing** - confirmed 12/12 blocks sync + chat functionality
+#### **🚀 API & Database Improvements**
+- **Enhanced /api/recent-channels** - supports `?type=public|private` filtering
+- **Database migrations** - added `is_private` column and proper constraints
+- **RLS policies** - users can see public channels OR their own private channels
+- **Schema synchronization** - fixed column naming inconsistencies
 
-#### **Key Fixes During Testing**
-1. **Missing .env.example file** - created comprehensive example
-2. **Database setup issues** - fixed environment variable loading
-3. **Schema mismatches** - synchronized all missing columns and constraints
-4. **Unique constraint errors** - added proper `blocks_arena_id_key` constraint
-5. **Documentation gaps** - updated Supabase connection instructions
+#### **🎨 User Experience Enhancements**
+- **Suspense boundaries** - fixed Next.js build errors with proper async handling
+- **Success messaging** - checkout completion flows back to pricing with confirmation
+- **Visual indicators** - "Private" badges on private channels
+- **Responsive design** - tabs work seamlessly across device sizes
+
+#### **🔧 Technical Achievements**
+- **Zero-downtime deployment** - all changes backward compatible
+- **Type safety** - enhanced TypeScript interfaces for channel privacy
+- **Error handling** - graceful fallbacks for missing channels or permissions
+- **Performance optimization** - efficient queries with proper indexing
 
 ### 🎯 **Strategic Impact**
 
-**Open Source Positioning**: 
-- **Complete multimodal AI platform** available for self-hosting
-- **Clear value separation** between open source and hosted service
-- **Community-first approach** with professional documentation standards
+**Security & Privacy**:
+- **Enterprise-ready security** - proper user isolation and privacy protection
+- **Compliance foundation** - RLS policies ensure data access compliance
+- **Trust building** - users can confidently sync private content
 
-**Technical Validation**:
-- **Self-hosting works end-to-end** - verified with systematic testing
-- **Documentation is accurate** - tested from fresh environment setup
-- **Repository is contributor-ready** - professional standards throughout
+**User Experience**:
+- **Eliminated confusion** - new users immediately see available content
+- **Clear value proposition** - users understand premium benefits
+- **Seamless workflows** - consistent experience across all user tiers
+
+**Business Model**:
+- **Enhanced conversion funnel** - free users see locked premium features
+- **Reduced support burden** - self-service upgrade flows
+- **Platform scalability** - architecture supports growth
 
 ---
 
-## 🚀 **Next Phase: Phase 10.4b - Intelligence Score Development**
+## 🚀 **Next Phase: Phase 10.4c - Intelligence Score Development**
 
-**Strategic Timing**: Begin Intelligence Score development now that open source foundation is solid and community building can happen in parallel.
+**Strategic Timing**: With security vulnerabilities resolved and discovery system in place, focus on advanced features that drive engagement and retention.
 
 ### 🎯 **Current Priorities**
 
 #### **Immediate (Week 1-2)**
-1. **Monitor open source community** - respond to issues, gather feedback
-2. **Optional community outreach** - share on relevant platforms when ready
-3. **Begin Intelligence Score research** - Are.na API capabilities, scoring algorithms
+1. **Monitor system stability** - ensure tiered discovery system performs well under load
+2. **User feedback collection** - gather insights on new channel discovery experience
+3. **Intelligence Score research** - Are.na API capabilities, personalization algorithms
 
 #### **Development Focus (Week 2-4)** 
-- **Intelligence Score MVP** - core algorithm and basic UI
-- **Community feedback integration** - improve self-hosting based on user reports
-- **Documentation refinements** - based on real user experiences
+- **Intelligence Score MVP** - personalized content analysis and recommendations
+- **Enhanced analytics** - user engagement tracking and optimization
+- **Performance monitoring** - ensure new features don't impact sync speeds
 
-### 🚧 Phase 10.4b: Intelligence Score Foundation (NEXT)
+### 🚧 Phase 10.4c: Intelligence Score Foundation (NEXT)
 
 #### **🔮 Core Intelligence Score Feature**
 Based on pricing strategy: *"Shows specific, personalized value locked behind upgrade"*

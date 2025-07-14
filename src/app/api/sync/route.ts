@@ -6,7 +6,7 @@ import { auth } from '@clerk/nextjs/server';
 
 export async function POST(req: NextRequest) {
   try {
-    const { channelSlug, sessionId } = await req.json();
+    const { channelSlug, sessionId, blockLimit } = await req.json();
 
     if (!channelSlug) {
       return Response.json({ error: 'Channel slug is required' }, { status: 400 });
@@ -46,7 +46,8 @@ export async function POST(req: NextRequest) {
             channelSlug,
             userSessionId,
             ipAddress,
-            userId || undefined
+            userId || undefined,
+            blockLimit
           );
 
           // Send final result with session ID

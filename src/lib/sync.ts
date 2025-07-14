@@ -235,7 +235,8 @@ export class SyncService {
     channelSlug: string,
     sessionId: string,
     ipAddress: string,
-    userId?: string
+    userId?: string,
+    blockLimit?: number
   ): Promise<SyncResult> {
     const startTime = Date.now();
     const errors: string[] = [];
@@ -393,6 +394,12 @@ export class SyncService {
         }
       }
 
+      // Apply user-selected block limit if provided (from large channel preset selection)
+      if (blockLimit && blockLimit > 0 && blockLimit < newBlocks.length) {
+        console.log(`Applying user-selected block limit: ${blockLimit} out of ${newBlocks.length} new blocks`);
+        newBlocks = newBlocks.slice(0, blockLimit);
+        errors.push(`Processing limited to ${blockLimit} blocks as selected`);
+      }
 
       if (newBlocks.length === 0) {
         return {

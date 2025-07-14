@@ -86,8 +86,38 @@ export default function SetupPage() {
     wouldExceedLimit: boolean;
     message: string;
   } | null>(null);
+  const [selectedBlockCount, setSelectedBlockCount] = useState<number>(0);
   const [userConfirmedLargeChannel, setUserConfirmedLargeChannel] = useState(false);
   const router = useRouter();
+
+  // Generate smart preset options for block selection
+  const getBlockPresets = (maxBlocks: number, remaining: number) => {
+    const presets = [];
+    
+    // Add progressive presets based on remaining blocks
+    if (remaining >= 25) presets.push({ count: 25, label: 'Quick sample', description: '25 blocks' });
+    if (remaining >= 50) presets.push({ count: 50, label: 'Medium collection', description: '50 blocks' });
+    if (remaining >= 100) presets.push({ count: 100, label: 'Large subset', description: '100 blocks' });
+    
+    // Always add "All remaining" if it's different from the largest preset
+    const lastPreset = presets[presets.length - 1];
+    if (!lastPreset || lastPreset.count !== remaining) {
+      presets.push({ 
+        count: remaining, 
+        label: 'All remaining', 
+        description: `${remaining} blocks` 
+      });
+    }
+    
+    return presets;
+  };
+
+  // Initialize selected block count when large channel warning is shown
+  useEffect(() => {
+    if (largeChannelWarning?.show && selectedBlockCount === 0) {
+      setSelectedBlockCount(largeChannelWarning.monthlyRemaining);
+    }
+  }, [largeChannelWarning, selectedBlockCount]);
 
   // Load recent channels and channel limits on mount
   useEffect(() => {
@@ -160,6 +190,8 @@ export default function SetupPage() {
                 wouldExceedLimit: warningData.wouldExceedLimit,
                 message: warningData.message
               });
+              // Set default selection to remaining blocks
+              setSelectedBlockCount(warningData.monthlyRemaining);
               return; // Stop here, let user confirm
             }
           }
@@ -194,7 +226,8 @@ export default function SetupPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           channelSlug: channelSlug.trim(),
-          sessionId: sessionId
+          sessionId: sessionId,
+          blockLimit: userConfirmedLargeChannel && selectedBlockCount > 0 ? selectedBlockCount : undefined
         }),
         signal: controller.signal
       });
@@ -917,57 +950,57 @@ export default function SetupPage() {
               </div>
             </div>
 
-            {largeChannelWarning?.wouldExceedLimit && (
+            {/* Block Count Selection */}
+            <div className="space-y-3">
+              <div className="text-sm font-medium">
+                How many blocks would you like to sync from this {largeChannelWarning?.channelBlocks}-block channel?
+              </div>
+              
+              <div className="grid gap-2">
+                {largeChannelWarning && getBlockPresets(largeChannelWarning.channelBlocks, largeChannelWarning.monthlyRemaining).map((preset) => (
+                  <Button
+                    key={preset.count}
+                    variant={selectedBlockCount === preset.count ? "default" : "outline"}
+                    onClick={() => setSelectedBlockCount(preset.count)}
+                    className="justify-between h-auto p-3"
+                  >
+                    <div className="text-left">
+                      <div className="font-medium">{preset.description}</div>
+                      <div className="text-xs text-muted-foreground">{preset.label}</div>
+                    </div>
+                    {selectedBlockCount === preset.count && (
+                      <div className="text-xs">✓</div>
+                    )}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Warning if would exceed limit */}
+            {selectedBlockCount > (largeChannelWarning?.monthlyRemaining || 0) && (
               <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md text-sm text-destructive">
-                <strong>Warning:</strong> This would use up your entire monthly block allowance and prevent you from processing other channels this month.
+                <strong>Warning:</strong> This would use more blocks than you have remaining this month.
               </div>
             )}
-            
-            {largeChannelWarning?.wouldExceedLimit ? (
-              // When would exceed limit: Show Cancel, Upgrade, and Process Anyway
-              <div className="space-y-3 pt-2">
+
+            {/* Action Buttons */}
+            <div className="space-y-3 pt-2">
+              {largeChannelWarning?.wouldExceedLimit && selectedBlockCount === largeChannelWarning.monthlyRemaining ? (
                 <Button 
                   onClick={() => window.location.href = isSignedIn ? '/pricing' : '/sign-up?redirect=/pricing'}
                   className="w-full"
                   variant="default"
                 >
-                  {isSignedIn ? 'Upgrade Now' : 'Create Account'}
+                  {isSignedIn ? 'Upgrade for More Blocks' : 'Create Account'}
                 </Button>
-                <div className="flex gap-3">
-                  <Button 
-                    onClick={() => {
-                      setLargeChannelWarning(null);
-                      setUserConfirmedLargeChannel(false);
-                    }}
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    onClick={() => {
-                      setUserConfirmedLargeChannel(true);
-                      setLargeChannelWarning(null);
-                      // Proceed with sync
-                      const form = document.querySelector('form') as HTMLFormElement;
-                      if (form) {
-                        form.requestSubmit();
-                      }
-                    }}
-                    className="flex-1"
-                    variant="destructive"
-                  >
-                    Process Anyway
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              // When large but won't exceed limit: Show Cancel and Continue
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              ) : null}
+              
+              <div className="flex gap-3">
                 <Button 
                   onClick={() => {
                     setLargeChannelWarning(null);
                     setUserConfirmedLargeChannel(false);
+                    setSelectedBlockCount(0);
                   }}
                   variant="outline"
                   className="flex-1"
@@ -978,19 +1011,23 @@ export default function SetupPage() {
                   onClick={() => {
                     setUserConfirmedLargeChannel(true);
                     setLargeChannelWarning(null);
-                    // Proceed with sync
+                    // Proceed with sync using selected block count
                     const form = document.querySelector('form') as HTMLFormElement;
                     if (form) {
                       form.requestSubmit();
                     }
                   }}
                   className="flex-1"
-                  variant="default"
+                  disabled={selectedBlockCount === 0}
+                  variant={selectedBlockCount > (largeChannelWarning?.monthlyRemaining || 0) ? "destructive" : "default"}
                 >
-                  Continue
+                  {selectedBlockCount > (largeChannelWarning?.monthlyRemaining || 0) 
+                    ? `Process ${selectedBlockCount} Anyway` 
+                    : `Process ${selectedBlockCount} Blocks`
+                  }
                 </Button>
               </div>
-            )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
