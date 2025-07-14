@@ -21,7 +21,7 @@ export default function HomePage() {
             </Link>
           </h1>
           <p className="text-xl mb-12 text-foreground">
-            Turn years of curation into instant intelligence. Chat with your channels, generate content, and discover patterns across everything you&apos;ve saved.
+            Chat with your channels, generate content, and discover patterns across everything you&apos;ve saved.
           </p>
 
           <div className="mb-16">
