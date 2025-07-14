@@ -69,6 +69,12 @@ const plans = [
   }
 ];
 
+// Helper function to determine tier priority for upgrade/downgrade logic
+const getTierPriority = (tier: string): number => {
+  const priorities = { free: 0, starter: 1, pro: 2 };
+  return priorities[tier as keyof typeof priorities] || 0;
+};
+
 export default function PricingPage() {
   const [isAnnual, setIsAnnual] = useState(false);
   const [currentTier, setCurrentTier] = useState<string>('free');
@@ -122,11 +128,12 @@ export default function PricingPage() {
       return;
     }
 
-    if (planId === currentTier) {
-      console.log('🔍 User already on this tier');
-      alert('You are already on this plan!');
-      return;
-    }
+    // Allow subscriptions regardless of current tier (for upgrades/downgrades)
+    // if (planId === currentTier) {
+    //   console.log('🔍 User already on this tier');
+    //   alert('You are already on this plan!');
+    //   return;
+    // }
 
     // Find the plan details for the modal
     const plan = plans.find(p => p.id === planId);
@@ -232,12 +239,14 @@ export default function PricingPage() {
                         ? 'bg-primary hover:bg-primary/90'
                         : 'bg-secondary hover:bg-secondary/80 text-foreground'
                     } ${
-                      !(plan.comingSoon || (isSignedIn && currentTier === plan.id)) ? 'cursor-pointer' : ''
+                      !plan.comingSoon ? 'cursor-pointer' : ''
                     }`}
                     disabled={plan.comingSoon || (isSignedIn && currentTier === plan.id)}
                   >
                     {plan.comingSoon ? 'Coming Soon' : 
                      isSignedIn && currentTier === plan.id ? 'Current Plan' :
+                     isSignedIn && currentTier !== 'free' && plan.id !== 'free' ? 
+                       (getTierPriority(plan.id) > getTierPriority(currentTier) ? 'Upgrade' : 'Downgrade') :
                      plan.cta}
                     {!plan.comingSoon && plan.id !== 'free' && !(isSignedIn && currentTier === plan.id) && (
                       <ArrowRight className="h-4 w-4 ml-1" />
@@ -250,6 +259,29 @@ export default function PricingPage() {
 
           {/* Comparison Section */}
           {/* Removed 'Why choose Airena?' section and its columns */}
+
+          {/* Subscription Management */}
+          {isSignedIn && currentTier !== 'free' && (
+            <div className="mt-12 text-center">
+              <Card className="max-w-md mx-auto">
+                <CardHeader>
+                  <CardTitle className="text-lg">Manage Subscription</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Need to cancel or modify your subscription? Contact our support team.
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => window.open('mailto:support@airena.io?subject=Subscription Management', '_blank')}
+                    className="w-full"
+                  >
+                    Contact Support
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* Overage Pricing */}
           <div className="mt-12 text-center">

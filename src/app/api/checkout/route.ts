@@ -52,7 +52,23 @@ export async function POST(request: NextRequest) {
     console.log('🔍 Using Polar API Key:', process.env.POLAR_API_KEY ? 'Present' : 'Missing');
     
     try {
-      // Create checkout session with Polar API
+      // Get user's current tier to determine if this is an upgrade/downgrade
+      let currentUserTier = 'free';
+      try {
+        const tierResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/user-tier`, {
+          headers: { 'cookie': request.headers.get('cookie') || '' }
+        });
+        if (tierResponse.ok) {
+          const tierData = await tierResponse.json();
+          currentUserTier = tierData.tier;
+        }
+      } catch (error) {
+        console.log('⚠️ Could not fetch current tier:', error);
+      }
+
+    console.log('🔍 Current tier:', currentUserTier, 'Target tier:', tier);
+
+    // Create checkout session with Polar API
       const checkoutResponse = await fetch('https://api.polar.sh/v1/checkouts/', {
         method: 'POST',
         headers: {
@@ -65,7 +81,10 @@ export async function POST(request: NextRequest) {
           customer_metadata: {
             userId,
             tier,
-            source: 'airena'
+            source: 'airena',
+            previousTier: currentUserTier,
+            action: currentUserTier === 'free' ? 'subscribe' : 
+                   currentUserTier === tier ? 'renew' : 'upgrade'
           }
         }),
       });
