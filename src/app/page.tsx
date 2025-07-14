@@ -44,7 +44,7 @@ export default function HomePage() {
 
           {/* Replace 'Airena is:' and numbered list with 'Why Airena?' and new bullets */}
           <div className="border-t border-border pt-8">
-            <h2 className="text-2xl font-bold mb-4 text-foreground">Why Airena?</h2>
+            <h2 className="text-2xl font-bold mb-4 text-foreground">Airena is:</h2>
             <ul className="list-disc pl-6 space-y-2 text-foreground">
               <li>Your taste, amplified: Every answer is informed by your personally curated knowledge</li>
               <li>Zero setup: Just connect an Are.na channel and start chatting</li>
