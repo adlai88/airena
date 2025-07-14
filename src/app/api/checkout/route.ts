@@ -68,6 +68,44 @@ export async function POST(request: NextRequest) {
 
     console.log('🔍 Current tier:', currentUserTier, 'Target tier:', tier);
 
+    // For upgrades/downgrades, we might need to handle differently
+    // Let's try with customer_email to link to existing customer
+    const checkoutPayload: {
+      product_id: string;
+      success_url: string;
+      customer_metadata: Record<string, unknown>;
+      customer_email?: string;
+    } = {
+      product_id: productId,
+      success_url: successUrl,
+      customer_metadata: {
+        userId,
+        tier,
+        source: 'airena',
+        previousTier: currentUserTier,
+        action: currentUserTier === 'free' ? 'subscribe' : 
+               currentUserTier === tier ? 'renew' : 'upgrade'
+      }
+    };
+
+    // For existing customers (upgrades), try to link by email
+    if (currentUserTier !== 'free') {
+      try {
+        // Get user email from Clerk
+        const { clerkClient } = await import('@clerk/nextjs/server');
+        const client = await clerkClient();
+        const user = await client.users.getUser(userId);
+        if (user.emailAddresses?.[0]?.emailAddress) {
+          checkoutPayload.customer_email = user.emailAddresses[0].emailAddress;
+          console.log('🔍 Adding customer_email for existing customer:', user.emailAddresses[0].emailAddress);
+        }
+      } catch (error) {
+        console.log('⚠️ Could not get user email:', error);
+      }
+    }
+
+    console.log('🔍 Checkout payload:', JSON.stringify(checkoutPayload, null, 2));
+
     // Create checkout session with Polar API
       const checkoutResponse = await fetch('https://api.polar.sh/v1/checkouts/', {
         method: 'POST',
@@ -75,18 +113,7 @@ export async function POST(request: NextRequest) {
           'Authorization': `Bearer ${process.env.POLAR_API_KEY}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          product_id: productId,
-          success_url: successUrl,
-          customer_metadata: {
-            userId,
-            tier,
-            source: 'airena',
-            previousTier: currentUserTier,
-            action: currentUserTier === 'free' ? 'subscribe' : 
-                   currentUserTier === tier ? 'renew' : 'upgrade'
-          }
-        }),
+        body: JSON.stringify(checkoutPayload),
       });
 
       console.log('🔍 Polar API response status:', checkoutResponse.status);

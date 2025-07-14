@@ -14,16 +14,44 @@ interface PolarWebhookEvent {
     status: string;
     metadata?: Record<string, unknown>;
     customer_metadata?: Record<string, unknown>;
+    customer?: {
+      metadata?: Record<string, unknown>;
+    };
   };
+}
+
+export async function GET() {
+  console.log('🔍 Webhook GET endpoint accessed');
+  return NextResponse.json({ 
+    status: 'Webhook endpoint accessible',
+    timestamp: new Date().toISOString() 
+  });
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, { 
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, polar-signature',
+    }
+  });
 }
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🚨 WEBHOOK CALLED! Headers:', Object.fromEntries(request.headers.entries()));
+    
     // Verify webhook signature
     const signature = request.headers.get('polar-signature');
     const webhookSecret = process.env.POLAR_WEBHOOK_SECRET;
     
+    console.log('🔍 Signature present:', !!signature);
+    console.log('🔍 Webhook secret present:', !!webhookSecret);
+    
     if (!signature || !webhookSecret) {
+      console.log('❌ Missing signature or secret');
       return NextResponse.json(
         { error: 'Missing webhook signature or secret' },
         { status: 401 }
@@ -31,6 +59,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.text();
+    console.log('🔍 Raw webhook body:', body);
     
     // TODO: Implement signature verification
     // const isValid = verifyWebhookSignature(body, signature, webhookSecret);
@@ -215,7 +244,8 @@ async function handlePaymentFailed(event: PolarWebhookEvent) {
 
 // Helper function to extract userId from either metadata location
 function extractUserId(event: PolarWebhookEvent): string | null {
-  const userId = event.data.metadata?.userId || event.data.customer_metadata?.userId;
+  // Based on the actual Polar payload, userId is in customer.metadata
+  const userId = event.data.customer?.metadata?.userId || event.data.metadata?.userId || event.data.customer_metadata?.userId;
   console.log('🔍 Extracted userId:', userId);
   return userId as string | null;
 }
