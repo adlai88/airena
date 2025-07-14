@@ -38,85 +38,85 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 ✅ **Phase 10.3: Visual Enhancement & Channel Limits** (COMPLETED - Channel thumbnails + 3-channel free tier limit + Large channel warnings)
 ✅ **Phase 10.4a: Open Source Launch** (COMPLETED - Repository public, documentation complete, self-hosting validated)
 ✅ **Phase 10.4b: Tiered Channel Discovery** (COMPLETED - Smart public/private channel separation + Enhanced subscription system)
-🎯 **Next Phase**: Phase 10.4c - Intelligence Score Development + Community Building
+✅ **Phase 10.4c: Enhanced User Experience & Block Selection** (COMPLETED - Preset-based block limits + Customer portal fixes + UI polish)
+🎯 **Next Phase**: Phase 10.4d - Intelligence Score Development + Community Building
 
 **Live Application**: https://www.airena.io/  
 **Open Source Repository**: https://github.com/adlai88/airena
 
-## Latest Updates (Phase 10.4b: Tiered Channel Discovery - COMPLETED ✅)
+## Latest Updates (Phase 10.4c: Enhanced User Experience & Block Selection - COMPLETED ✅)
 
-### 🎯 **Major System Enhancement: Smart Channel Discovery & Security**
+### 🎯 **Major UX Enhancement: Smart Block Selection & Customer Portal**
 
 **Implementation Date**: July 14, 2025  
 **Status**: **LIVE and fully functional**  
-**Impact**: **Resolved critical security vulnerability + Enhanced user experience**
+**Impact**: **Intelligent block limiting + Fixed subscription management + Enhanced user control**
 
 ### ✅ **What Was Accomplished**
 
-#### **🔒 Critical Security Vulnerability Resolution**
-- **Fixed private channel exposure** - private channels were accessible to all users
-- **Implemented proper user isolation** - Row Level Security (RLS) policies enforced
-- **Channel ownership tracking** - all channels now properly associated with users
-- **Privacy by design** - public channels shareable, private channels user-specific
+#### **🎯 Intelligent Block Selection System**
+- **Preset-based block limits** - smart options (25, 50, 100 blocks, all remaining) replace binary all-or-nothing choice
+- **Dynamic presets** - options adapt based on user's remaining monthly allowance  
+- **Large channel warnings** - enhanced modal with block count selection instead of "Process Anyway"
+- **Backend block limiting** - sync API and service respect user-selected block limits
+- **Visual feedback** - clear selection state and warnings for limit exceedance
 
-#### **🎯 Smart Channel Discovery System**
-- **Tiered access model** - public channels visible to everyone, private channels premium-only
-- **Enhanced /setup experience** - no more empty channel lists for new users
-- **Tabbed interface** - seamless switching between "Public Channels" and "Private Channels"
-- **Upgrade motivation** - clear value proposition for private channel access
+#### **🔧 Customer Portal Integration** 
+- **Fixed 404 customer portal** - implemented proper Polar.sh Next.js SDK integration
+- **Pre-authenticated access** - automatic customer ID lookup via Clerk user email
+- **Proper SDK usage** - replaced hardcoded URLs with `@polar-sh/nextjs` CustomerPortal utility
+- **Error handling** - graceful fallback to manual portal if API issues occur
+- **Environment security** - proper API key and organization ID configuration
 
-#### **💰 Enhanced Subscription System**
-- **Unified Polar integration** - all tier changes (including downgrades) through Polar checkout
-- **Improved checkout UX** - redirects back to pricing page with success confirmation
-- **Fixed sync errors** - resolved monthly_usage table schema issues for premium users
-- **Smart privacy detection** - automatic public/private classification during sync
+#### **🎨 UI/UX Polish & Enhancements**
+- **Dismissible success banners** - added close button to success messages for better interface visibility
+- **Responsive design** - preset selection works seamlessly across device sizes
+- **Smart defaults** - automatically selects maximum available blocks as default
+- **Accessibility improvements** - proper ARIA labels and keyboard navigation
 
-#### **🚀 API & Database Improvements**
-- **Enhanced /api/recent-channels** - supports `?type=public|private` filtering
-- **Database migrations** - added `is_private` column and proper constraints
-- **RLS policies** - users can see public channels OR their own private channels
-- **Schema synchronization** - fixed column naming inconsistencies
-
-#### **🎨 User Experience Enhancements**
-- **Suspense boundaries** - fixed Next.js build errors with proper async handling
-- **Success messaging** - checkout completion flows back to pricing with confirmation
-- **Visual indicators** - "Private" badges on private channels
-- **Responsive design** - tabs work seamlessly across device sizes
+#### **🚀 API & Backend Improvements**
+- **Block limit parameter** - sync API accepts and respects `blockLimit` from frontend
+- **Enhanced sync service** - applies user-selected limits during processing pipeline
+- **Customer lookup** - Polar.sh customer search by email for portal access
+- **Environment configuration** - proper development and production environment setup
 
 #### **🔧 Technical Achievements**
-- **Zero-downtime deployment** - all changes backward compatible
-- **Type safety** - enhanced TypeScript interfaces for channel privacy
-- **Error handling** - graceful fallbacks for missing channels or permissions
-- **Performance optimization** - efficient queries with proper indexing
+- **Zero-breaking changes** - all enhancements backward compatible
+- **Type safety** - proper TypeScript interfaces for block limiting
+- **Error resilience** - comprehensive error handling throughout sync pipeline
+- **Performance maintained** - block limiting doesn't impact sync speeds
 
 ### 🎯 **Strategic Impact**
 
-**Security & Privacy**:
-- **Enterprise-ready security** - proper user isolation and privacy protection
-- **Compliance foundation** - RLS policies ensure data access compliance
-- **Trust building** - users can confidently sync private content
+**User Experience & Control**:
+- **Intelligent resource management** - users choose exactly how many blocks to process instead of all-or-nothing
+- **Reduced friction** - no more binary "Process Anyway" vs "Cancel" decisions for large channels
+- **Transparency** - clear understanding of block usage and remaining allowances
+- **Subscription management** - working customer portal reduces support burden
 
-**User Experience**:
-- **Eliminated confusion** - new users immediately see available content
-- **Clear value proposition** - users understand premium benefits
-- **Seamless workflows** - consistent experience across all user tiers
+**Technical Excellence**:
+- **Professional integrations** - proper SDK usage instead of hardcoded workarounds
+- **User-centric design** - features built around actual user needs and feedback
+- **Maintainable codebase** - clean implementations that follow best practices
+- **Error resilience** - comprehensive fallback strategies for edge cases
 
-**Business Model**:
-- **Enhanced conversion funnel** - free users see locked premium features
-- **Reduced support burden** - self-service upgrade flows
-- **Platform scalability** - architecture supports growth
+**Business Value**:
+- **Improved retention** - users feel more in control of their block usage
+- **Reduced support tickets** - working customer portal and clear UI reduce confusion
+- **Professional polish** - attention to small details builds user trust
+- **Platform maturity** - sophisticated block management shows product evolution
 
 ---
 
-## 🚀 **Next Phase: Phase 10.4c - Intelligence Score Development**
+## 🚀 **Next Phase: Phase 10.4d - Intelligence Score Development**
 
-**Strategic Timing**: With security vulnerabilities resolved and discovery system in place, focus on advanced features that drive engagement and retention.
+**Strategic Timing**: With user experience polished and technical infrastructure solid, focus on advanced features that drive engagement and retention.
 
 ### 🎯 **Current Priorities**
 
 #### **Immediate (Week 1-2)**
-1. **Monitor system stability** - ensure tiered discovery system performs well under load
-2. **User feedback collection** - gather insights on new channel discovery experience
+1. **Monitor UX improvements** - ensure block selection and customer portal work smoothly under load
+2. **User feedback collection** - gather insights on new block selection experience
 3. **Intelligence Score research** - Are.na API capabilities, personalization algorithms
 
 #### **Development Focus (Week 2-4)** 
@@ -124,7 +124,7 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 - **Enhanced analytics** - user engagement tracking and optimization
 - **Performance monitoring** - ensure new features don't impact sync speeds
 
-### 🚧 Phase 10.4c: Intelligence Score Foundation (NEXT)
+### 🚧 Phase 10.4d: Intelligence Score Foundation (NEXT)
 
 #### **🔮 Core Intelligence Score Feature**
 Based on pricing strategy: *"Shows specific, personalized value locked behind upgrade"*
