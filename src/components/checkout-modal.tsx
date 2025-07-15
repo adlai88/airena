@@ -72,7 +72,7 @@ export function CheckoutModal({ isOpen, onClose, planName, planPrice, tier, bill
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="flex items-center gap-2">
             <CreditCard className="h-5 w-5" />
-            Subscribe to {planName} - {planPrice}/month
+            Subscribe to {planName} - ${planPrice}/{billing === 'annual' ? 'year' : 'month'}
           </DialogTitle>
         </DialogHeader>
 

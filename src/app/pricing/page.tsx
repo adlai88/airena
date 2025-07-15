@@ -159,10 +159,16 @@ function PricingContent() {
 
     // Open the checkout modal
     console.log('🔍 Opening checkout modal for:', plan.name, 'billing:', isAnnual ? 'annual' : 'monthly');
+    
+    // Calculate the correct price based on billing period
+    const displayPrice = isAnnual && plan.id === 'starter' ? '45' : 
+                        isAnnual && plan.id === 'pro' ? '99' : 
+                        plan.price.replace('$', '');
+    
     setCheckoutModal({
       isOpen: true,
       planName: plan.name,
-      planPrice: plan.price.replace('$', ''),
+      planPrice: displayPrice,
       tier: planId,
       billing: isAnnual ? 'annual' : 'monthly'
     });
