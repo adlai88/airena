@@ -78,7 +78,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
     if (isActivePage('/setup')) return { name: 'Channels', icon: Cog };
     if (isActivePage('/chat')) return { name: 'Chat', icon: MessageSquare };
     if (isActivePage('/generate')) return { name: 'Generate', icon: Wand2 };
-    if (isActivePage('/usage')) return { name: 'Usage', icon: BarChart3 };
+    if (isActivePage('/usage')) return { name: 'Menu', icon: BarChart3 }; // Usage is in hamburger menu
     return { name: 'Channels', icon: Cog }; // default
   };
 
@@ -130,12 +130,6 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                       className={isActivePage('/generate') ? 'bg-accent text-accent-foreground' : ''}
                     >
                       Generate
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => navigateWithParams('/usage')}
-                      className={isActivePage('/usage') ? 'bg-accent text-accent-foreground' : ''}
-                    >
-                      Usage
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

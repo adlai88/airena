@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Menu, Home, User, Settings } from 'lucide-react';
+import { Menu, Home, User, Settings, BarChart3 } from 'lucide-react';
 import { SignInButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs';
 
 interface HamburgerMenuProps {
@@ -69,6 +69,10 @@ export function HamburgerMenu({ homeNav = false }: HamburgerMenuProps) {
             <DropdownMenuItem onClick={() => handleNavigation('/')}>
               <Home className="mr-2 h-4 w-4" />
               Home
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleNavigation('/usage')}>
+              <BarChart3 className="mr-2 h-4 w-4" />
+              Usage
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             
