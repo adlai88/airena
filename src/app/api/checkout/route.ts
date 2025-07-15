@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     console.log('🔍 Request body:', body);
-    const { tier } = body;
+    const { tier, billing = 'monthly' } = body;
 
     if (!tier || !['free', 'starter', 'pro'].includes(tier)) {
       console.log('❌ Invalid tier:', tier);
@@ -28,20 +28,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Map tier to product ID
+    // Map tier and billing to product ID
     const PRODUCT_IDS = {
       free: '2939287a-ef9c-41de-9d8b-e89dad1be367',
-      starter: '2d078db5-1c02-43ae-bf7a-8b763fd26140',
-      pro: 'bda6be16-5294-4b12-8973-6ccdd0bf05e7'
+      starter_monthly: '2d078db5-1c02-43ae-bf7a-8b763fd26140',
+      starter_annual: '3fff0f35-d90b-4f2d-bad9-6901128e5f28',
+      pro_monthly: 'bda6be16-5294-4b12-8973-6ccdd0bf05e7',
+      pro_annual: 'dc8f5557-4783-4226-970a-7e1f200a1f8c'
     };
 
-    const productId = PRODUCT_IDS[tier as keyof typeof PRODUCT_IDS];
-    console.log('🔍 Product ID for tier', tier, ':', productId);
+    const productKey = tier === 'free' ? 'free' : `${tier}_${billing}`;
+    const productId = PRODUCT_IDS[productKey as keyof typeof PRODUCT_IDS];
+    console.log('🔍 Product key:', productKey, 'Product ID:', productId);
     
-    if (!productId) {
-      console.log('❌ Product not found for tier:', tier);
+    if (!productId || productId.startsWith('PLACEHOLDER_')) {
+      console.log('❌ Product not found for tier:', tier, 'billing:', billing);
       return NextResponse.json(
-        { error: 'Product not found for tier' },
+        { error: `Product not found for ${tier} ${billing}. Please create the annual products in Polar first.` },
         { status: 400 }
       );
     }

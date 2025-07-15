@@ -16,9 +16,10 @@ interface CheckoutModalProps {
   planName: string;
   planPrice: string;
   tier: string;
+  billing: string;
 }
 
-export function CheckoutModal({ isOpen, onClose, planName, planPrice, tier }: CheckoutModalProps) {
+export function CheckoutModal({ isOpen, onClose, planName, planPrice, tier, billing }: CheckoutModalProps) {
   const [checkoutUrl, setCheckoutUrl] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
@@ -27,7 +28,7 @@ export function CheckoutModal({ isOpen, onClose, planName, planPrice, tier }: Ch
     if (isOpen && tier) {
       createCheckoutSession();
     }
-  }, [isOpen, tier]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isOpen, tier, billing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const createCheckoutSession = async () => {
     setIsLoading(true);
@@ -40,7 +41,7 @@ export function CheckoutModal({ isOpen, onClose, planName, planPrice, tier }: Ch
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ tier }),
+        body: JSON.stringify({ tier, billing }),
       });
 
       const data = await response.json();

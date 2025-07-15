@@ -85,11 +85,13 @@ function PricingContent() {
     planName: string;
     planPrice: string;
     tier: string;
+    billing: string;
   }>({
     isOpen: false,
     planName: '',
     planPrice: '',
-    tier: ''
+    tier: '',
+    billing: 'monthly'
   });
   const { isSignedIn, isLoaded } = useUser();
   const searchParams = useSearchParams();
@@ -156,12 +158,13 @@ function PricingContent() {
     }
 
     // Open the checkout modal
-    console.log('🔍 Opening checkout modal for:', plan.name);
+    console.log('🔍 Opening checkout modal for:', plan.name, 'billing:', isAnnual ? 'annual' : 'monthly');
     setCheckoutModal({
       isOpen: true,
       planName: plan.name,
       planPrice: plan.price.replace('$', ''),
-      tier: planId
+      tier: planId,
+      billing: isAnnual ? 'annual' : 'monthly'
     });
   };
 
@@ -318,6 +321,7 @@ function PricingContent() {
         planName={checkoutModal.planName}
         planPrice={checkoutModal.planPrice}
         tier={checkoutModal.tier}
+        billing={checkoutModal.billing}
       />
     </Layout>
   );
