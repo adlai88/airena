@@ -227,11 +227,31 @@ export function Navigation({ homeNav = false }: NavigationProps) {
               </div>
             </>
           ) : (
-            /* App Navigation: Show hamburger on mobile, theme + avatar on desktop */
+            /* App Navigation: Theme + avatar on mobile and desktop when signed in, hamburger when signed out */
             <>
-              {/* Mobile: Hamburger Menu */}
+              {/* Mobile: Theme toggle + Avatar (when signed in) or Hamburger (when signed out) */}
               <div className="sm:hidden">
-                <HamburgerMenu homeNav={false} />
+                {isSignedIn ? (
+                  <div className="flex items-center gap-2">
+                    <ThemeToggle />
+                    <UserButton>
+                      <UserButton.MenuItems>
+                        <UserButton.Link
+                          label="Usage"
+                          labelIcon={<BarChart3 size={16} />}
+                          href="/usage"
+                        />
+                        <UserButton.Link
+                          label="Plan"
+                          labelIcon={<CreditCard size={16} />}
+                          href="/pricing"
+                        />
+                      </UserButton.MenuItems>
+                    </UserButton>
+                  </div>
+                ) : (
+                  <HamburgerMenu homeNav={false} />
+                )}
               </div>
               
               {/* Desktop: Theme toggle + User */}
