@@ -546,7 +546,7 @@ export default function SetupPage() {
   return (
     <Layout>
       <PageHeader 
-        title="Channel Setup"
+        title="Select Channel"
         subtitle={<span>Connect to any public <a href="https://www.are.na/" target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:text-indigo-600 no-underline hover:no-underline transition-colors">Are.na</a> channel</span>}
         variant="standard"
       />

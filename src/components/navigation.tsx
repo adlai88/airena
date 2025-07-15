@@ -75,11 +75,11 @@ export function Navigation({ homeNav = false }: NavigationProps) {
 
   // Get current active page name for mobile dropdown
   const getActivePage = () => {
-    if (isActivePage('/setup')) return { name: 'Channel', icon: Cog };
+    if (isActivePage('/setup')) return { name: 'Channels', icon: Cog };
     if (isActivePage('/chat')) return { name: 'Chat', icon: MessageSquare };
     if (isActivePage('/generate')) return { name: 'Generate', icon: Wand2 };
     if (isActivePage('/usage')) return { name: 'Usage', icon: BarChart3 };
-    return { name: 'Channel', icon: Cog }; // default
+    return { name: 'Channels', icon: Cog }; // default
   };
 
   const activePage = getActivePage();
@@ -117,28 +117,24 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                       onClick={() => navigateWithParams('/setup')}
                       className={isActivePage('/setup') ? 'bg-accent text-accent-foreground' : ''}
                     >
-                      <Cog className="mr-2 h-4 w-4" />
-                      Channel
+                      Channels
                     </DropdownMenuItem>
                     <DropdownMenuItem 
                       onClick={() => navigateWithParams('/chat')}
                       className={isActivePage('/chat') ? 'bg-accent text-accent-foreground' : ''}
                     >
-                      <MessageSquare className="mr-2 h-4 w-4" />
                       Chat
                     </DropdownMenuItem>
                     <DropdownMenuItem 
                       onClick={() => navigateWithParams('/generate')}
                       className={isActivePage('/generate') ? 'bg-accent text-accent-foreground' : ''}
                     >
-                      <Wand2 className="mr-2 h-4 w-4" />
                       Generate
                     </DropdownMenuItem>
                     <DropdownMenuItem 
                       onClick={() => navigateWithParams('/usage')}
                       className={isActivePage('/usage') ? 'bg-accent text-accent-foreground' : ''}
                     >
-                      <BarChart3 className="mr-2 h-4 w-4" />
                       Usage
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -160,7 +156,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                             : 'hover:bg-accent hover:text-accent-foreground'
                         }`}
                       >
-                        Channel
+                        Channels
                       </Button>
                     </NavigationMenuLink>
                   </NavigationMenuItem>
