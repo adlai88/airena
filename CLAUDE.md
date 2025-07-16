@@ -39,7 +39,7 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 ✅ **Phase 10.4a: Open Source Launch** (COMPLETED - Repository public, documentation complete, self-hosting validated)
 ✅ **Phase 10.4b: Tiered Channel Discovery** (COMPLETED - Smart public/private channel separation + Enhanced subscription system)
 ✅ **Phase 10.4c: Enhanced User Experience & Block Selection** (COMPLETED - Preset-based block limits + Customer portal fixes + UI polish)
-🎯 **Next Phase**: Phase 10.4d - Intelligence Score Development + Community Building
+🎯 **Next Phase**: Phase 10.4d - Template Enhancement + System Testing
 
 **Live Application**: https://www.airena.io/  
 **Open Source Repository**: https://github.com/adlai88/airena
@@ -108,23 +108,50 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 
 ---
 
-## 🚀 **Next Phase: Phase 10.4d - Intelligence Score Development**
+## 🚀 **Next Phase: Phase 10.4d - Template Enhancement + System Testing**
 
-**Strategic Timing**: With user experience polished and technical infrastructure solid, focus on advanced features that drive engagement and retention.
+**Strategic Timing**: With user experience polished, focus on immediate value-add features before complex intelligence scoring.
 
 ### 🎯 **Current Priorities**
 
 #### **Immediate (Week 1-2)**
-1. **Monitor UX improvements** - ensure block selection and customer portal work smoothly under load
-2. **User feedback collection** - gather insights on new block selection experience
-3. **Intelligence Score research** - Are.na API capabilities, personalization algorithms
+1. **Test monthly reset system** - ensure existing monthly limits work correctly
+2. **Activate brainstorm template** - enable creative free tier template
+3. **Plan enhanced research report** - design Firecrawl integration for premium tier
 
 #### **Development Focus (Week 2-4)** 
-- **Intelligence Score MVP** - personalized content analysis and recommendations
-- **Enhanced analytics** - user engagement tracking and optimization
-- **Performance monitoring** - ensure new features don't impact sync speeds
+- **Template Priority 1**: Activate brainstorm template for free tier (encourages creativity)
+- **Template Priority 2**: Enhanced research report with Firecrawl integration (premium justification)
+- **System validation** - monthly reset testing before any weekly reset implementation
 
-### 🚧 Phase 10.4d: Intelligence Score Foundation (NEXT)
+### 🚧 **Template Enhancement Strategy**
+
+#### **📋 Template Implementation Plan**
+
+**Free Tier Template**: Brainstorm Template
+- **Current Status**: Coded but not active in UI
+- **Function**: Generates creative ideas from existing channel content
+- **Value**: Encourages engagement without web research costs
+- **Implementation**: Activate in generate page UI
+
+**Premium Tier Template**: Enhanced Research Report
+- **Current Status**: Basic version exists, needs Firecrawl integration
+- **Function**: Combines curated content with intelligent web research
+- **Value**: Transforms static curation into dynamic research assistant
+- **Implementation**: See `/docs/enhanced-research-report-template.md`
+
+#### **📊 Reset System Testing Requirements**
+
+**Monthly Reset System** (currently implemented but untested):
+- **Free Tier**: 10 chat messages + 2 generations per channel per month
+- **Starter Tier**: 200 blocks per month (unlimited chat/generations)
+- **Pro Tier**: 500 blocks per month (unlimited chat/generations)
+
+**Weekly Reset System** (future implementation):
+- **Only needed for new free tier strategy**: 1 channel, 25 blocks total, weekly reset
+- **Current priority**: Test monthly resets first
+
+### 🚧 Phase 10.4e: Intelligence Score Foundation (LATER)
 
 #### **🔮 Core Intelligence Score Feature**
 Based on pricing strategy: *"Shows specific, personalized value locked behind upgrade"*

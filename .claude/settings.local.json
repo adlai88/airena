@@ -12,7 +12,11 @@
       "Bash(find:*)",
       "mcp__supabase__list_tables",
       "Bash(git add:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(npm run dev:*)",
+      "Bash(node:*)",
+      "Bash(rm:*)",
+      "mcp__supabase__execute_sql"
     ],
     "deny": []
   },

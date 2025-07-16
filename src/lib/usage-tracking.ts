@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, supabaseServiceRole } from './supabase';
 
 export interface UsageRecord {
   id: number;
@@ -171,7 +171,7 @@ export class UsageTracker {
     month: string = this.getCurrentMonth()
   ): Promise<MonthlyUsageRecord | null> {
     try {
-      const query = supabase
+      const query = supabaseServiceRole
         .from('monthly_usage')
         .select('*')
         .eq('month', month);
@@ -214,7 +214,7 @@ export class UsageTracker {
         // Update existing record
         const newTotal = existingUsage.total_blocks_processed + blocksProcessed;
         
-        const { error } = await supabase
+        const { error } = await supabaseServiceRole
           .from('monthly_usage')
           .update({
             total_blocks_processed: newTotal,
@@ -237,7 +237,7 @@ export class UsageTracker {
           limit: tierConfig.blocks
         };
 
-        const { error } = await supabase
+        const { error } = await supabaseServiceRole
           .from('monthly_usage')
           .insert(insertData);
 
@@ -351,7 +351,7 @@ export class UsageTracker {
   ): Promise<UsageCheckResult> {
     try {
       // Query for existing usage record
-      const query = supabase
+      const query = supabaseServiceRole
         .from('channel_usage')
         .select('*')
         .eq('channel_id', channelId);
@@ -450,7 +450,7 @@ export class UsageTracker {
   ): Promise<UsageRecord> {
     try {
       // First, get the existing usage to calculate new total
-      const query = supabase
+      const query = supabaseServiceRole
         .from('channel_usage')
         .select('*')
         .eq('channel_id', channelId);
@@ -479,7 +479,7 @@ export class UsageTracker {
 
       if (existingUsage) {
         // Update existing record by adding new blocks to the total
-        const updateQuery = supabase
+        const updateQuery = supabaseServiceRole
           .from('channel_usage')
           .update({
             total_blocks_processed: newTotal,
@@ -515,7 +515,7 @@ export class UsageTracker {
           last_processed_at: new Date().toISOString()
         };
 
-        const { data: insertResult, error: insertError } = await supabase
+        const { data: insertResult, error: insertError } = await supabaseServiceRole
           .from('channel_usage')
           .insert(insertData)
           .select()
@@ -543,7 +543,7 @@ export class UsageTracker {
     userId?: string
   ): Promise<UsageRecord[]> {
     try {
-      const query = supabase
+      const query = supabaseServiceRole
         .from('channel_usage')
         .select(`
           *,
@@ -612,7 +612,7 @@ export class UsageTracker {
           const timestamp = timestampMatch[1];
           
           // Look for session IDs with the same timestamp (likely from same browser session)
-          const { data: fuzzyData, error: fuzzyError } = await supabase
+          const { data: fuzzyData, error: fuzzyError } = await supabaseServiceRole
             .from('channel_usage')
             .select(`
               *,
@@ -938,7 +938,7 @@ export class UsageTracker {
     month: string = this.getCurrentMonth()
   ): Promise<ChannelLimitsRecord | null> {
     try {
-      const query = supabase
+      const query = supabaseServiceRole
         .from('channel_limits')
         .select('*')
         .eq('channel_id', channelId)
@@ -1075,7 +1075,7 @@ export class UsageTracker {
           updates.generations_used = existingLimits.generations_used + 1;
         }
 
-        const { error } = await supabase
+        const { error } = await supabaseServiceRole
           .from('channel_limits')
           .update(updates)
           .eq('id', existingLimits.id);
@@ -1097,7 +1097,7 @@ export class UsageTracker {
           generations_limit: tierConfig.generations
         };
 
-        const { error } = await supabase
+        const { error } = await supabaseServiceRole
           .from('channel_limits')
           .insert(insertData);
 
