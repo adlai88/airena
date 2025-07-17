@@ -1,4 +1,4 @@
-import { supabase, supabaseServiceRole } from './supabase';
+import { supabaseServiceRole } from './supabase';
 
 export interface UsageRecord {
   id: number;
