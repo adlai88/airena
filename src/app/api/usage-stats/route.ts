@@ -31,9 +31,16 @@ export async function GET() {
       tierInfo
     });
   } catch (error) {
-    console.error('Error getting usage stats:', error);
+    console.error('🔍 DEBUG: Error getting usage stats:', error);
+    console.error('🔍 DEBUG: Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    console.error('🔍 DEBUG: Error message:', error instanceof Error ? error.message : error);
+    
     return NextResponse.json(
-      { error: 'Failed to get usage statistics' },
+      { 
+        error: 'Failed to get usage statistics',
+        debug: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      },
       { status: 500 }
     );
   }
