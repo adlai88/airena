@@ -16,7 +16,8 @@
       "Bash(npm run dev:*)",
       "Bash(node:*)",
       "Bash(rm:*)",
-      "mcp__supabase__execute_sql"
+      "mcp__supabase__execute_sql",
+      "mcp__supabase__get_logs"
     ],
     "deny": []
   },

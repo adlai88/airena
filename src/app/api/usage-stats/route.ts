@@ -5,6 +5,7 @@ import { auth } from '@clerk/nextjs/server';
 export async function GET() {
   try {
     const { userId } = await auth();
+    console.log('🔍 DEBUG: userId from auth:', userId);
     
     if (!userId) {
       return NextResponse.json(
@@ -13,7 +14,14 @@ export async function GET() {
       );
     }
 
+    console.log('🔍 DEBUG: Calling getUserStats with sessionId="", userId=', userId);
     const stats = await UsageTracker.getUserStats('', userId);
+    console.log('🔍 DEBUG: getUserStats result:', {
+      tier: stats.tier,
+      monthlyUsage: stats.monthly,
+      channelCount: stats.channels.length,
+      totalBlocks: stats.totalBlocksProcessed
+    });
     
     // Add tier info to the response
     const tierInfo = UsageTracker.getTierInfo(stats.tier);
