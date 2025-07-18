@@ -510,7 +510,7 @@ export class UsageTracker {
           session_id: userId ? null : sessionId,
           ip_address: ipAddress,
           total_blocks_processed: blocksProcessed,
-          is_free_tier: true, // Default to free tier for now
+          is_free_tier: userTier === 'free', // Set based on actual user tier
           first_processed_at: new Date().toISOString(),
           last_processed_at: new Date().toISOString()
         };
@@ -543,8 +543,6 @@ export class UsageTracker {
     userId?: string
   ): Promise<UsageRecord[]> {
     try {
-      console.log('🔍 DEBUG getUserUsage: sessionId=', sessionId, 'userId=', userId);
-      
       const query = supabaseServiceRole
         .from('channel_usage')
         .select(`
@@ -558,10 +556,8 @@ export class UsageTracker {
         .order('last_processed_at', { ascending: false });
 
       if (userId) {
-        console.log('🔍 DEBUG getUserUsage: Using userId filter');
         query.eq('user_id', userId);
       } else {
-        console.log('🔍 DEBUG getUserUsage: Using sessionId filter');
         query.eq('session_id', sessionId).is('user_id', null);
       }
 
@@ -571,8 +567,6 @@ export class UsageTracker {
         console.error('Error getting user usage:', error);
         throw new Error(`Failed to get usage: ${error.message}`);
       }
-
-      console.log('🔍 DEBUG getUserUsage: Raw data from DB:', data?.length || 0, 'records');
       
       // Flatten the channel data from the join
       return (data || []).map((record: Record<string, unknown>) => {
@@ -835,23 +829,17 @@ export class UsageTracker {
     totalBlocksProcessed: number;
   }> {
     try {
-      console.log('🔍 DEBUG getUserStats: sessionId=', sessionId, 'userId=', userId);
-      
       const userTier = await this.getUserTier(userId);
-      console.log('🔍 DEBUG getUserStats: userTier=', userTier);
-      
       const tierConfig = this.TIER_LIMITS[userTier];
       const currentMonth = this.getCurrentMonth();
 
       // Get monthly usage
       const monthlyUsage = await this.getMonthlyUsage(userId || sessionId, sessionId, currentMonth);
-      console.log('🔍 DEBUG getUserStats: monthlyUsage=', monthlyUsage);
       const currentMonthlyBlocks = monthlyUsage ? monthlyUsage.total_blocks_processed : 0;
       const monthlyRemaining = Math.max(0, tierConfig.blocks - currentMonthlyBlocks);
 
       // Get channel usage
       const channels = await this.getUserUsage(sessionId, userId);
-      console.log('🔍 DEBUG getUserStats: channels found=', channels.length);
       const totalBlocksProcessed = channels.reduce((sum, channel) => sum + channel.total_blocks_processed, 0);
 
       return {
