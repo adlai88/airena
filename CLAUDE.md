@@ -39,7 +39,7 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 ✅ **Phase 10.4a: Open Source Launch** (COMPLETED - Repository public, documentation complete, self-hosting validated)
 ✅ **Phase 10.4b: Tiered Channel Discovery** (COMPLETED - Smart public/private channel separation + Enhanced subscription system)
 ✅ **Phase 10.4c: Enhanced User Experience & Block Selection** (COMPLETED - Preset-based block limits + Customer portal fixes + UI polish)
-✅ **Phase 10.5: Spatial Canvas** (COMPLETED - Supabase LW15 Hackathon Feature)
+✅ **Phase 10.5: Spatial Canvas** (COMPLETED - Supabase LW15 Hackathon Feature) - [See detailed plan](./SPATIAL_PROTOTYPE_PLAN.md)
 🎯 **Next Phase**: Phase 10.6 - Clerk → Polar Auth Migration
 
 **Live Application**: https://www.airena.io/  
@@ -138,6 +138,8 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 - Edge cases handled
 - Demo channels identified
 - Code cleaned up (removed debug logs, test files)
+
+For full implementation details, see [SPATIAL_PROTOTYPE_PLAN.md](./SPATIAL_PROTOTYPE_PLAN.md)
 
 ---
 

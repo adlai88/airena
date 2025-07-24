@@ -4,6 +4,8 @@
 **Timeline**: July 25-27, 2025  
 **Goal**: Transform Are.na channels into self-organizing knowledge maps
 
+> **Note**: This feature has been completed and integrated into the main codebase. See [CLAUDE.md](./CLAUDE.md) for the latest project status and upcoming Phase 10.6 (Auth Migration).
+
 ## 📊 Current Status (July 24, 2025 - Night)
 
 ### ✅ Completed Features
