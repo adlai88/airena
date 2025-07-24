@@ -205,6 +205,7 @@ export class EmbeddingService {
             const videoId = youtubeMatch[1];
             thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
             console.log(`🎥 Generated YouTube thumbnail for video ${videoId}`);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } else if ((arenaBlock.source?.provider as any)?.image) {
             // Check for provider image (some embeds provide this)
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
