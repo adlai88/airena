@@ -14,6 +14,7 @@ export async function POST(request: Request) {
       .from('channels')
       .select('id')
       .eq('slug', channelSlug)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .single() as { data: { id: number } | null; error: any };
       
     if (channelError || !channel) {
