@@ -26,7 +26,8 @@ export async function POST(request: Request) {
       .from('blocks')
       .select('arena_id, url')
       .eq('channel_id', channel.id)
-      .is('thumbnail_url', null);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .is('thumbnail_url', null) as { data: Array<{ arena_id: number; url: string | null }> | null; error: any };
       
     if (blocksError) {
       return NextResponse.json({ error: blocksError.message }, { status: 500 });
