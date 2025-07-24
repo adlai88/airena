@@ -289,4 +289,66 @@ Based on pricing strategy: *"Shows specific, personalized value locked behind up
 **Next**: Validate community traction before Intelligence Score development
 **Goal**: Build sustainable community foundation for long-term growth
 
+---
+
+## 🔐 Phase 10.6: Authentication Migration - Clerk to Polar
+
+### Current Auth Architecture (Clerk)
+
+**Key Integration Points:**
+1. **Middleware** (`src/middleware.ts`)
+   - Protects routes using `clerkMiddleware()`
+   - Public routes: home, setup, pricing, legal pages, API routes
+   - Protected routes: channels, generate, usage, settings
+
+2. **User Management**
+   - Users table synced via Clerk webhooks (`/api/webhooks/clerk`)
+   - User ID mapping: `clerk_user_id` → `users.id`
+   - Email and metadata stored locally
+
+3. **Auth Hooks & Components**
+   - `useAuth()` hook used throughout for user state
+   - `SignIn`/`SignUp` components from `@clerk/nextjs`
+   - `UserButton` for account management
+
+4. **API Protection**
+   - Routes check `auth().userId` for authentication
+   - User lookup via `clerk_user_id` in database
+
+5. **Key Dependencies**
+   - `@clerk/nextjs`: UI components and hooks
+   - Clerk environment variables: `NEXT_PUBLIC_CLERK_*`, `CLERK_SECRET_KEY`
+
+### Known Issues to Address
+
+1. **Unauthenticated Sync Bug**
+   - New/unauthenticated users can't sync channels
+   - Error: "User not found" in sync endpoint
+   - Need to handle guest/anonymous syncing
+
+2. **User Data Migration**
+   - Only 1 user currently (makes migration simpler)
+   - Need to map Clerk user ID to Polar customer ID
+
+### Polar Integration Considerations
+
+**What we know:**
+- Polar already handles payments/subscriptions
+- Has customer portal for subscription management
+- Email-based customer identification
+- Need to review Polar's auth capabilities
+
+**Migration Strategy (High-Level):**
+1. Review Polar auth documentation
+2. Create migration plan preserving existing user data
+3. Update middleware and auth checks
+4. Replace Clerk components with Polar equivalents
+5. Update API endpoints to use Polar auth
+6. Test thoroughly with existing user account
+
+**Database Considerations:**
+- Add `polar_customer_id` to users table
+- Maintain `clerk_user_id` during transition
+- Eventually remove Clerk fields after migration
+
 [Rest of the file remains unchanged]
