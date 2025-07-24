@@ -51,7 +51,7 @@ function kMeansClustering(
     }
   }
   
-  let clusters = new Array(n).fill(0);
+  const clusters = new Array(n).fill(0);
   let hasChanged = true;
   let iteration = 0;
   
@@ -169,6 +169,7 @@ export async function POST(request: Request) {
     const k = Math.min(Math.max(3, Math.floor(blocks.length / 7)), 7);
     
     // Run k-means clustering
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { clusters } = kMeansClustering(blocks as any, k);
     
     // Group blocks by cluster
