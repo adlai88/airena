@@ -14,7 +14,7 @@ export async function POST(request: Request) {
       .from('channels')
       .select('id')
       .eq('slug', channelSlug)
-      .single();
+      .single() as { data: { id: number } | null; error: any };
       
     if (channelError || !channel) {
       return NextResponse.json({ error: 'Channel not found' }, { status: 404 });
