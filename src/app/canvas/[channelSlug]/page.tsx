@@ -9,8 +9,10 @@ import { Spinner } from '@/components/ui/spinner'
 export default function CanvasPage() {
   const params = useParams()
   const channelSlug = params.channelSlug as string
-  const [blocks, setBlocks] = useState([])
-  const [channelInfo, setChannelInfo] = useState(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [blocks, setBlocks] = useState<any[]>([])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [channelInfo, setChannelInfo] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -61,6 +63,18 @@ export default function CanvasPage() {
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <p className="text-destructive">{error}</p>
+          </div>
+        </div>
+      </Layout>
+    )
+  }
+
+  if (!channelInfo) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-muted-foreground">No channel information available</p>
           </div>
         </div>
       </Layout>
