@@ -168,7 +168,8 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     // Clear existing shapes
     const allShapes = editor.getCurrentPageShapes()
     if (allShapes.length > 0) {
-      editor.deleteShapes(allShapes.map(shape => shape.id))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      editor.deleteShapes(allShapes.map((shape: any) => shape.id))
     }
 
     let shapes
@@ -323,7 +324,8 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     // Clear and recreate all shapes
     const allShapes = editor.getCurrentPageShapes()
     if (allShapes.length > 0) {
-      editor.deleteShapes(allShapes.map(shape => shape.id))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      editor.deleteShapes(allShapes.map((shape: any) => shape.id))
     }
     
     editor.createShapes([...shapes, ...labelShapes])
