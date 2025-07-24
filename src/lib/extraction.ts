@@ -27,6 +27,7 @@ export interface ProcessedTextBlock {
   url: string;
   blockType: 'Text';
   source: string;
+  originalBlock: ArenaBlock;
 }
 
 // Union type for all processed block types
@@ -169,8 +170,14 @@ export class ContentExtractor {
         return null;
       }
 
+      // Add the original block to the processed image
+      const processedImageWithOriginal: ProcessedImageBlock = {
+        ...processedImage,
+        originalBlock: block
+      };
+
       console.log(`✅ Processed image: ${processedImage.title}`);
-      return processedImage;
+      return processedImageWithOriginal;
     } catch (error) {
       console.error(`Failed to process image block ${block.id}:`, error);
       return null;
@@ -354,7 +361,8 @@ export class ContentExtractor {
         content,
         url: `https://www.are.na/block/${block.id}`, // Are.na block URL
         blockType: 'Text',
-        source: 'arena-text'
+        source: 'arena-text',
+        originalBlock: block
       };
     } catch (error) {
       console.error(`Failed to process text block ${block.id}:`, error);

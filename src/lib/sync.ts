@@ -361,8 +361,26 @@ export class SyncService {
       const existingBlocks = await this.getExistingBlocks(dbChannelId);
       console.log(`Found ${existingBlocks.size} existing blocks in database:`, Array.from(existingBlocks));
       console.log(`Arena channel has ${processableBlocks.length} processable blocks:`, processableBlocks.map(b => b.id));
-      let newBlocks = processableBlocks.filter(block => !existingBlocks.has(block.id));
-      console.log(`Filtered to ${newBlocks.length} new blocks:`, newBlocks.map(b => b.id));
+      
+      // Check for existing blocks missing thumbnails
+      const { data: blocksWithoutThumbnails, error: thumbCheckError } = await supabase
+        .from('blocks')
+        .select('arena_id')
+        .eq('channel_id', dbChannelId)
+        .is('thumbnail_url', null) as { data: { arena_id: number }[] | null; error: unknown };
+      
+      if (thumbCheckError) {
+        console.error('Error checking blocks without thumbnails:', thumbCheckError);
+      }
+      
+      const blocksMissingThumbnails = new Set(blocksWithoutThumbnails?.map(b => b.arena_id) || []);
+      console.log(`Found ${blocksMissingThumbnails.size} existing blocks missing thumbnails`);
+      
+      // Include new blocks AND existing blocks missing thumbnails
+      let newBlocks = processableBlocks.filter(block => 
+        !existingBlocks.has(block.id) || blocksMissingThumbnails.has(block.id)
+      );
+      console.log(`Processing ${newBlocks.length} blocks (${newBlocks.filter(b => !existingBlocks.has(b.id)).length} new, ${newBlocks.filter(b => blocksMissingThumbnails.has(b.id)).length} missing thumbnails):`, newBlocks.map(b => b.id));
 
       // Check usage limits now that we know how many blocks will be processed
       const usageInfo = await UsageTracker.checkUsageLimit(
@@ -409,7 +427,7 @@ export class SyncService {
           processedBlocks: 0,
           skippedBlocks: processableBlocks.length,
           deletedBlocks,
-          errors: ['All blocks already processed'],
+          errors: ['All blocks already processed with thumbnails'],
           duration: Date.now() - startTime,
         };
       }
@@ -429,10 +447,16 @@ export class SyncService {
       if (newTextBlocks > 0) newBlockTypes.push(`${newTextBlocks} text blocks`);
       
       const newBlockTypeMessage = newBlockTypes.length > 0 ? ` (${newBlockTypes.join(', ')})` : '';
+      
+      // Count blocks that need thumbnail updates
+      const thumbnailUpdateCount = newBlocks.filter(b => blocksMissingThumbnails.has(b.id)).length;
+      const messagePrefix = thumbnailUpdateCount > 0 
+        ? `Processing ${newBlocks.length} blocks (${thumbnailUpdateCount} for thumbnail updates)`
+        : `Processing ${newBlocks.length} new blocks`;
 
       this.reportProgress({
         stage: 'extracting',
-        message: `Processing ${newBlocks.length} new blocks${newBlockTypeMessage}...`,
+        message: `${messagePrefix}${newBlockTypeMessage}...`,
         progress: 35,
         totalBlocks: newBlocks.length,
       });

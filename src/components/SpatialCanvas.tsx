@@ -40,6 +40,7 @@ interface SpatialCanvasProps {
 type ViewMode = 'grid' | 'similarity' | 'random'
 
 export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProps) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [editor, setEditor] = useState<any>(null)
   const [selectedBlock, setSelectedBlock] = useState<Block | null>(null)
   const [showChat, setShowChat] = useState(false)
@@ -52,6 +53,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   const [isLoading, setIsLoading] = useState(false)
   const [isArranging, setIsArranging] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [clusters, setClusters] = useState<any[]>([])
   const [visibleBlockCount, setVisibleBlockCount] = useState(0)
   const { resolvedTheme } = useTheme()
@@ -93,12 +95,11 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     // Add randomness that changes each time
     const randomSeed = Date.now()
     
-    return blocks.map((block, index) => {
+    return blocks.map((block) => {
       // Use combination of block ID and current time for true randomness
       const seed = block.id + randomSeed
       const random1 = ((seed * 9301 + 49297) % 233280) / 233280
       const random2 = ((seed * 49297 + 233280) % 9301) / 9301
-      const random3 = ((seed * 233280 + 9301) % 49297) / 49297
       
       // Scatter blocks across the viewport
       const x = 200 + random1 * (viewportWidth - 400)
@@ -197,6 +198,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     } else if (viewMode !== 'similarity') {
       applyLayout()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor, blocks, viewMode])
 
   // Handle selection changes
@@ -230,6 +232,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   }, [editor, blocks])
 
   // Apply similarity layout with specific clusters data
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const applySimilarityLayoutWithData = (clustersData: any[]) => {
     if (!editor || !blocks.length || !clustersData.length) return
 
@@ -557,7 +560,6 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
 
           // Only show images for blocks that have them
           const hasImage = block.block_type === 'Image' && (block.thumbnail_url || block.url)
-          const hasLinkPreview = block.block_type === 'Link' && block.title
           
           // For Image blocks, prefer thumbnail URL over full image URL
           const imageUrl = hasImage ? (block.thumbnail_url || block.url) : null
@@ -583,7 +585,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                     className="max-w-full max-h-full object-contain"
                     draggable={false}
                     loading="lazy"
-                    onError={(e) => {
+                    onError={() => {
                       console.error('Image load error:', imageUrl)
                       setBrokenImages(prev => new Set([...prev, imageUrl]))
                     }}
@@ -684,7 +686,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                 </p>
                 {selectedBlock && (
                   <p className="text-xs text-muted-foreground">
-                    Selected: "{selectedBlock.title || 'Untitled'}"
+                    Selected: &quot;{selectedBlock.title || 'Untitled'}&quot;
                   </p>
                 )}
               </div>

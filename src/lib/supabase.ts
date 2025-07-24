@@ -59,6 +59,7 @@ export interface Block {
   description: string | null;
   content: string | null;
   url: string | null;
+  thumbnail_url: string | null;
   block_type: string | null;
   created_at: string;
   updated_at: string;

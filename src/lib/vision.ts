@@ -16,6 +16,8 @@ const ImageAnalysisSchema = z.object({
 
 export type ImageAnalysis = z.infer<typeof ImageAnalysisSchema>;
 
+import { ArenaBlock } from './arena';
+
 export interface ProcessedImageBlock {
   arenaId: number;
   title: string;
@@ -24,6 +26,7 @@ export interface ProcessedImageBlock {
   analysis: ImageAnalysis;
   processedContent: string; // Formatted text for embedding
   blockType: 'Image';
+  originalBlock: ArenaBlock;
 }
 
 export class VisionService {

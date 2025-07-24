@@ -174,6 +174,49 @@ export class EmbeddingService {
       // Prepare data based on block type
       const url = block.blockType === 'Image' ? (block as ProcessedImageBlock).imageUrl : (block as ProcessedBlock).url;
       const content = block.blockType === 'Image' ? (block as ProcessedImageBlock).processedContent : (block as ProcessedBlock).content;
+      
+      // Extract thumbnail URL from original Arena block
+      let thumbnailUrl: string | null = null;
+      if ('originalBlock' in block && block.originalBlock) {
+        const arenaBlock = block.originalBlock;
+        
+        // Debug log for blocks without thumbnails
+        if (!arenaBlock.image?.thumb?.url && !arenaBlock.image?.display?.url) {
+          console.log(`🔍 Block ${arenaBlock.id} (${arenaBlock.class}) needs thumbnail extraction:`, {
+            sourceUrl: arenaBlock.source_url || arenaBlock.source?.url,
+            hasProvider: !!arenaBlock.source?.provider,
+          });
+        }
+        
+        // Try to get thumbnail from various sources
+        thumbnailUrl = arenaBlock.image?.thumb?.url || 
+                      arenaBlock.image?.square?.url ||
+                      arenaBlock.image?.display?.url ||
+                      null;
+                      
+        // For Media/Video blocks, check provider thumbnail or generate from YouTube
+        if (!thumbnailUrl && (arenaBlock.class === 'Media' || arenaBlock.class === 'Link')) {
+          // Check if it's a YouTube video
+          const sourceUrl = arenaBlock.source_url || arenaBlock.source?.url || '';
+          const youtubeMatch = sourceUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+          
+          if (youtubeMatch) {
+            // Use YouTube's thumbnail service
+            const videoId = youtubeMatch[1];
+            thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+            console.log(`🎥 Generated YouTube thumbnail for video ${videoId}`);
+          } else if (arenaBlock.source?.provider?.image) {
+            // Check for provider image (some embeds provide this)
+            thumbnailUrl = arenaBlock.source.provider.image;
+          }
+        }
+                      
+        // For non-image blocks, check if there's an attachment thumbnail
+        if (!thumbnailUrl && arenaBlock.class === 'Attachment' && arenaBlock.source?.url) {
+          // Attachments might have their URL as thumbnail
+          thumbnailUrl = arenaBlock.source.url;
+        }
+      }
 
       const { error } = await supabase
         .from('blocks')
@@ -184,6 +227,7 @@ export class EmbeddingService {
           description: 'description' in block ? block.description : null,
           content: content,
           url: url,
+          thumbnail_url: thumbnailUrl,
           block_type: block.blockType,
           embedding: embedding,
           updated_at: new Date().toISOString(),
@@ -195,7 +239,7 @@ export class EmbeddingService {
         throw new Error(`Database error: ${error.message}`);
       }
 
-      console.log(`✅ Stored block ${'arenaId' in block ? block.arenaId : block.id} in database`);
+      console.log(`✅ Stored block ${'arenaId' in block ? block.arenaId : block.id} in database${thumbnailUrl ? ' with thumbnail' : ''}`);
     } catch (error) {
       console.error(`Failed to store block ${'arenaId' in block ? block.arenaId : block.id}:`, error);
       throw error;

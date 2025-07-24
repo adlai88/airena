@@ -75,6 +75,19 @@ export class ArenaClient {
           'Authorization': `Bearer ${this.apiKey}`,
         } : {},
       });
+      
+      // Debug log for specific block requests
+      if (endpoint.includes('/blocks/') && endpoint.match(/\/blocks\/(\d+)$/)) {
+        const blockId = endpoint.match(/\/blocks\/(\d+)$/)?.[1];
+        if (blockId && ['30586062', '30176897', '37587387'].includes(blockId)) {
+          console.log(`🔍 Raw API response for block ${blockId}:`, {
+            hasImage: !!response.data.image,
+            imageKeys: response.data.image ? Object.keys(response.data.image) : [],
+            class: response.data.class,
+          });
+        }
+      }
+      
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -166,6 +179,17 @@ export class ArenaClient {
         
         try {
           const detailedBlock = await this.getBlock(block.id);
+          
+          // Debug log first few blocks
+          if (i < 3 && batchIndex === 0) {
+            console.log(`🔍 Arena Link Block ${detailedBlock.id} structure:`, {
+              hasImage: !!detailedBlock.image,
+              imageThumb: detailedBlock.image?.thumb?.url,
+              imageDisplay: detailedBlock.image?.display?.url,
+              hasSource: !!detailedBlock.source,
+              sourceUrl: detailedBlock.source_url,
+            });
+          }
           
           // Check if block has a source URL (either in source_url or source.url)
           const hasUrl = detailedBlock.source_url || detailedBlock.source?.url;
@@ -294,6 +318,19 @@ export class ArenaClient {
         
         try {
           const detailedBlock = await this.getBlock(block.id);
+          
+          // Debug log first few media blocks to see their structure
+          if (i < 3 && batchIndex === 0) {
+            console.log(`🔍 Arena Media Block ${detailedBlock.id} structure:`, {
+              class: detailedBlock.class,
+              hasImage: !!detailedBlock.image,
+              imageKeys: detailedBlock.image ? Object.keys(detailedBlock.image) : [],
+              hasSource: !!detailedBlock.source,
+              sourceKeys: detailedBlock.source ? Object.keys(detailedBlock.source) : [],
+              sourceProvider: detailedBlock.source?.provider,
+              providerKeys: detailedBlock.source?.provider ? Object.keys(detailedBlock.source.provider) : [],
+            });
+          }
           
           // For Media blocks, the URL is typically in source.url, not source_url
           const hasMediaUrl = detailedBlock.source_url || detailedBlock.source?.url;
