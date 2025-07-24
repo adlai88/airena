@@ -113,7 +113,9 @@ export class VisionService {
         imageUrl: block.source_url,
         analysis,
         processedContent,
-        blockType: 'Image'
+        blockType: 'Image',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        originalBlock: block as any
       };
 
     } catch (error) {

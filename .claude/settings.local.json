@@ -17,7 +17,12 @@
       "Bash(node:*)",
       "Bash(rm:*)",
       "mcp__supabase__execute_sql",
-      "mcp__supabase__get_logs"
+      "mcp__supabase__get_logs",
+      "WebFetch(domain:supabase.com)",
+      "WebFetch(domain:dev.are.na)",
+      "Bash(supabase secrets:*)",
+      "Bash(supabase functions deploy:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": []
   },

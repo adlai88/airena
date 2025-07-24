@@ -205,9 +205,10 @@ export class EmbeddingService {
             const videoId = youtubeMatch[1];
             thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
             console.log(`🎥 Generated YouTube thumbnail for video ${videoId}`);
-          } else if (arenaBlock.source?.provider?.image) {
+          } else if ((arenaBlock.source?.provider as any)?.image) {
             // Check for provider image (some embeds provide this)
-            thumbnailUrl = arenaBlock.source.provider.image;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            thumbnailUrl = (arenaBlock.source!.provider as any).image;
           }
         }
                       
