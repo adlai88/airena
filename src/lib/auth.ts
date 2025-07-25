@@ -61,7 +61,16 @@ export const auth = betterAuth({
   // Session configuration
   session: {
     expiresIn: 60 * 60 * 24 * 30, // 30 days
-    updateAge: 60 * 60 * 24 // Update session every 24 hours
+    updateAge: 60 * 60 * 24, // Update session every 24 hours
+    // Field mappings for session table
+    fields: {
+      userId: "user_id",
+      expiresAt: "expires_at",
+      createdAt: "created_at",
+      updatedAt: "updated_at",
+      ipAddress: "ip_address",
+      userAgent: "user_agent"
+    }
   },
   
   // Map Better Auth field names to your existing database column names
@@ -70,17 +79,6 @@ export const auth = betterAuth({
       emailVerified: "email_verified",
       createdAt: "created_at", 
       updatedAt: "updated_at"
-    }
-  },
-  
-  session: {
-    fields: {
-      userId: "user_id",
-      expiresAt: "expires_at",
-      createdAt: "created_at",
-      updatedAt: "updated_at",
-      ipAddress: "ip_address",
-      userAgent: "user_agent"
     }
   },
   
@@ -103,7 +101,10 @@ export const auth = betterAuth({
     polar({
       client: polarClient,
       createCustomerOnSignUp: true,
-      onCustomerCreated: async ({ user, customer }) => {
+      onCustomerCreated: async ({ user, customer }: { 
+        user: { id: string; email?: string }; 
+        customer: { id: string } 
+      }) => {
         // Update user with Polar customer ID
         console.log(`Polar customer created: ${customer.id} for user: ${user.id}`);
         await pool.query(
@@ -146,37 +147,38 @@ export const auth = betterAuth({
         webhooks({
           secret: process.env.POLAR_WEBHOOK_SECRET!,
           onSubscriptionCreated: async (payload) => {
-            // Extract userId from multiple possible locations (matching current implementation)
-            const userId = payload.customer?.metadata?.userId || 
-                          payload.metadata?.userId || 
-                          payload.customer_metadata?.userId;
+            // The payload type is WebhookSubscriptionCreatedPayload from @polar-sh/sdk
+            const subscription = payload.data;
+            const customer = subscription.customer;
+            const userId = customer?.metadata?.userId as string | undefined;
             
             if (!userId) {
               console.error('No userId found in subscription created webhook');
               return;
             }
             
-            const tier = determineTierFromProduct(payload.subscription.product_id);
+            const tier = determineTierFromProduct(subscription.productId);
             console.log(`Subscription created - userId: ${userId}, tier: ${tier}`);
             
             // Update user tier directly in database
             await pool.query(
               'UPDATE users SET tier = $1, polar_customer_id = $2, updated_at = NOW() WHERE id = $3',
-              [tier, payload.customer.id, userId]
+              [tier, customer.id, userId]
             );
           },
           
           onSubscriptionUpdated: async (payload) => {
-            const userId = payload.customer?.metadata?.userId || 
-                          payload.metadata?.userId || 
-                          payload.customer_metadata?.userId;
+            // The payload type is WebhookSubscriptionUpdatedPayload from @polar-sh/sdk
+            const subscription = payload.data;
+            const customer = subscription.customer;
+            const userId = customer?.metadata?.userId as string | undefined;
             
             if (!userId) {
               console.error('No userId found in subscription updated webhook');
               return;
             }
             
-            const tier = determineTierFromProduct(payload.subscription.product_id);
+            const tier = determineTierFromProduct(subscription.productId);
             console.log(`Subscription updated - userId: ${userId}, tier: ${tier}`);
             
             await pool.query(
@@ -186,9 +188,10 @@ export const auth = betterAuth({
           },
           
           onSubscriptionCanceled: async (payload) => {
-            const userId = payload.customer?.metadata?.userId || 
-                          payload.metadata?.userId || 
-                          payload.customer_metadata?.userId;
+            // The payload type is WebhookSubscriptionCanceledPayload from @polar-sh/sdk
+            const subscription = payload.data;
+            const customer = subscription.customer;
+            const userId = customer?.metadata?.userId as string | undefined;
             
             if (!userId) {
               console.error('No userId found in subscription canceled webhook');
@@ -204,18 +207,19 @@ export const auth = betterAuth({
             );
           },
           
-          onPaymentSucceeded: async (payload) => {
-            const userId = payload.customer?.metadata?.userId || 
-                          payload.metadata?.userId || 
-                          payload.customer_metadata?.userId;
+          onOrderPaid: async (payload) => {
+            // The payload type is WebhookOrderPaidPayload from @polar-sh/sdk
+            const order = payload.data;
+            const customer = order.customer;
+            const userId = customer?.metadata?.userId as string | undefined;
             
             if (!userId) {
-              console.error('No userId found in payment succeeded webhook');
+              console.error('No userId found in order paid webhook');
               return;
             }
             
-            const tier = determineTierFromProduct(payload.order.product_id);
-            console.log(`Payment succeeded - userId: ${userId}, tier: ${tier}`);
+            const tier = determineTierFromProduct(order.product.id);
+            console.log(`Order paid - userId: ${userId}, tier: ${tier}`);
             
             // Ensure subscription is active
             await pool.query(
@@ -224,26 +228,27 @@ export const auth = betterAuth({
             );
           },
           
-          onPaymentFailed: async (payload) => {
-            const userId = payload.customer?.metadata?.userId || 
-                          payload.metadata?.userId || 
-                          payload.customer_metadata?.userId;
+          onOrderRefunded: async (payload) => {
+            // The payload type is WebhookOrderRefundedPayload from @polar-sh/sdk
+            const order = payload.data;
+            const customer = order.customer;
+            const userId = customer?.metadata?.userId as string | undefined;
             
             if (!userId) {
-              console.error('No userId found in payment failed webhook');
+              console.error('No userId found in order refunded webhook');
               return;
             }
             
-            console.log(`Payment failed - userId: ${userId}, marking as past due`);
+            console.log(`Order refunded - userId: ${userId}, marking as past due`);
             
             // Could optionally downgrade to free or mark as past_due
             // For now, we'll keep their tier but you might want to track payment status
           },
           
           onCustomerUpdated: async (payload) => {
-            const userId = payload.customer?.metadata?.userId || 
-                          payload.metadata?.userId || 
-                          payload.customer_metadata?.userId;
+            // The payload type is WebhookCustomerUpdatedPayload from @polar-sh/sdk
+            const customer = payload.data;
+            const userId = customer.metadata?.userId as string | undefined;
             
             if (!userId) {
               console.error('No userId found in customer updated webhook');
@@ -253,7 +258,7 @@ export const auth = betterAuth({
             console.log(`Customer updated - userId: ${userId}`);
             
             // Check if tier is specified in metadata
-            const metadata = payload.customer_metadata || payload.metadata || {};
+            const metadata = customer.metadata || {};
             if (metadata.tier) {
               const tier = metadata.tier as string;
               // Clean up tier value (remove any suffixes like "-t")
@@ -264,7 +269,7 @@ export const auth = betterAuth({
                 
                 await pool.query(
                   'UPDATE users SET tier = $1, polar_customer_id = $2, updated_at = NOW() WHERE id = $3',
-                  [cleanTier, payload.customer.id, userId]
+                  [cleanTier, customer.id, userId]
                 );
               }
             }

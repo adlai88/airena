@@ -42,7 +42,16 @@ export const authMinimal = betterAuth({
   // Session configuration
   session: {
     expiresIn: 60 * 60 * 24 * 30, // 30 days
-    updateAge: 60 * 60 * 24 // Update session every 24 hours
+    updateAge: 60 * 60 * 24, // Update session every 24 hours
+    // Field mappings for session table
+    fields: {
+      userId: "user_id",
+      expiresAt: "expires_at",
+      createdAt: "created_at",
+      updatedAt: "updated_at",
+      ipAddress: "ip_address",
+      userAgent: "user_agent"
+    }
   },
   
   // Map Better Auth field names to your existing database column names
@@ -51,17 +60,6 @@ export const authMinimal = betterAuth({
       emailVerified: "email_verified",
       createdAt: "created_at", 
       updatedAt: "updated_at"
-    }
-  },
-  
-  session: {
-    fields: {
-      userId: "user_id",
-      expiresAt: "expires_at",
-      createdAt: "created_at",
-      updatedAt: "updated_at",
-      ipAddress: "ip_address",
-      userAgent: "user_agent"
     }
   },
   

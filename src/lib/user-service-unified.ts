@@ -84,7 +84,7 @@ export class UnifiedUserService {
     if (this.isNewAuth) {
       return UserServiceV2.getArenaApiKey(userId);
     } else {
-      return UserService.getArenaApiKey(userId);
+      return UserService.getUserArenaApiKey(userId);
     }
   }
 }

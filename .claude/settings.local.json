@@ -24,7 +24,9 @@
       "Bash(supabase functions deploy:*)",
       "Bash(npx tsc:*)",
       "WebFetch(domain:docs.polar.sh)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs"
     ],
     "deny": []
   },

@@ -8,7 +8,7 @@ import { headers } from 'next/headers';
 export async function getCurrentUserId(): Promise<string | null> {
   try {
     const session = await betterAuth.api.getSession({
-      headers: headers()
+      headers: await headers()
     });
     return session?.user?.id || null;
   } catch (error) {

@@ -49,19 +49,30 @@ export function useUser(): User | null {
   if (isNewAuth) {
     if (!session?.user) return null;
     
+    // Cast to include our custom fields
+    const userWithCustomFields = session.user as typeof session.user & {
+      arenaApiKey?: string | null;
+      tier?: string;
+      polarCustomerId?: string | null;
+    };
+    
     return {
-      id: session.user.id,
-      email: session.user.email,
-      name: session.user.name,
-      image: session.user.image,
-      arenaApiKey: session.user.arenaApiKey,
-      tier: session.user.tier || 'free',
-      polarCustomerId: session.user.polarCustomerId
+      id: userWithCustomFields.id,
+      email: userWithCustomFields.email,
+      name: userWithCustomFields.name,
+      image: userWithCustomFields.image,
+      arenaApiKey: userWithCustomFields.arenaApiKey,
+      tier: userWithCustomFields.tier || 'free',
+      polarCustomerId: userWithCustomFields.polarCustomerId
     };
   } else {
     if (!clerkUser.user) return null;
     
-    const metadata = clerkUser.user.privateMetadata as Record<string, unknown> || {};
+    // Clerk client-side user object may have privateMetadata or unsafeMetadata
+    const userWithMetadata = clerkUser.user as typeof clerkUser.user & { 
+      privateMetadata?: Record<string, unknown>;
+    };
+    const metadata = userWithMetadata.privateMetadata || clerkUser.user.unsafeMetadata || {};
     
     return {
       id: clerkUser.user.id,

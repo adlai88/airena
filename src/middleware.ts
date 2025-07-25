@@ -1,4 +1,3 @@
-import { clerkMiddleware } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
@@ -26,7 +25,7 @@ function isAuthPath(pathname: string): boolean {
 }
 
 // Better Auth middleware handler
-async function betterAuthMiddleware(request: NextRequest) {
+export default async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   
   // Skip middleware for API routes and static files
@@ -59,19 +58,6 @@ async function betterAuthMiddleware(request: NextRequest) {
     console.error('Better Auth middleware error:', error);
     // On error, allow the request to continue
     return NextResponse.next();
-  }
-}
-
-// Main middleware function that chooses which auth system to use
-export default async function middleware(request: NextRequest) {
-  // Check if Better Auth is enabled
-  const useBetterAuth = process.env.NEXT_PUBLIC_USE_BETTER_AUTH === 'true';
-  
-  if (useBetterAuth) {
-    return betterAuthMiddleware(request);
-  } else {
-    // Use Clerk middleware
-    return clerkMiddleware()(request);
   }
 }
 
