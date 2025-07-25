@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Tldraw, toRichText } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { Button } from '@/components/ui/button'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
-import { MessageSquare, X, Grid3X3, Brain, Shuffle } from 'lucide-react'
+import { MessageSquare, X, Grid3X3, Brain, Shuffle, ExternalLink, Calendar, Tag } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
 // Types based on actual database schema
@@ -43,6 +44,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [editor, setEditor] = useState<any>(null)
   const [selectedBlock, setSelectedBlock] = useState<Block | null>(null)
+  const [showModal, setShowModal] = useState(false)
   const [showChat, setShowChat] = useState(false)
   const [chatInput, setChatInput] = useState('')
   const [messages, setMessages] = useState<Array<{
@@ -57,6 +59,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   const [clusters, setClusters] = useState<any[]>([])
   const [visibleBlockCount, setVisibleBlockCount] = useState(0)
   const { resolvedTheme } = useTheme()
+  const [prevTool, setPrevTool] = useState<string>('select')
 
   // Layout calculation functions
   const calculateGridLayout = (blocks: Block[]) => {
@@ -76,12 +79,13 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         type: 'geo',
         x: padding + col * (baseSize + spacing),
         y: padding + row * (baseSize + spacing),
+        opacity: 0, // Make shape invisible
         props: {
           geo: typeConfig.geo,
           w: typeConfig.w,
           h: typeConfig.h,
           color: typeConfig.color,
-          fill: 'none',
+          fill: 'none'
         }
       }
     })
@@ -112,12 +116,13 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         type: 'geo',
         x: x,
         y: y,
+        opacity: 0, // Make shape invisible
         props: {
           geo: typeConfig.geo,
           w: typeConfig.w,
           h: typeConfig.h,
           color: typeConfig.color,
-          fill: 'none',
+          fill: 'none'
         }
       }
     })
@@ -207,6 +212,9 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     if (!editor) return
 
     const handleSelectionChange = () => {
+      // Don't process selections when modal is open
+      if (showModal) return
+      
       const selectedShapeIds = editor.getSelectedShapeIds()
       if (selectedShapeIds.length > 0) {
         // Find the first block shape (not text shape)
@@ -217,7 +225,10 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const blockId = parseInt((blockShapeId as any).replace('shape:block-', ''))
           const block = blocks.find(b => b.id === blockId)
-          setSelectedBlock(block || null)
+          if (block) {
+            setSelectedBlock(block)
+            setShowModal(true)
+          }
         } else {
           setSelectedBlock(null)
         }
@@ -232,28 +243,27 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     return () => {
       unsubscribe()
     }
-  }, [editor, blocks])
+  }, [editor, blocks, showModal])
 
   // Apply similarity layout with specific clusters data
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const applySimilarityLayoutWithData = (clustersData: any[]) => {
     if (!editor || !blocks.length || !clustersData.length) return
 
-    const clusterWidth = 300
-    const clusterHeight = 300
-    const clusterPadding = 100
-    const blockSpacing = 20
+    const blockSpacing = 10 // Tighter spacing for organic feel
     
-    const numClusters = clustersData.length
-    const cols = Math.ceil(Math.sqrt(numClusters))
+    // Create a vertical scroll layout
+    const centerX = 700 // Shifted left to center the cluster + label unit
+    const clusterSpacing = 400 // Vertical spacing between clusters
+    const startY = 300 // Starting Y position
     
     const clusterPositions: Record<number, { x: number; y: number }> = {}
+    
+    // Position clusters in a vertical line - no horizontal variation
     clustersData.forEach((cluster, index) => {
-      const col = index % cols
-      const row = Math.floor(index / cols)
       clusterPositions[cluster.id] = {
-        x: col * (clusterWidth + clusterPadding) + 200,
-        y: row * (clusterHeight + clusterPadding) + 200,
+        x: centerX, // All clusters centered at same X
+        y: startY + (index * clusterSpacing),
       }
     })
     
@@ -282,43 +292,67 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       const cluster = clustersData.find(c => c.id === parseInt(clusterId))
       const clusterPos = clusterPositions[parseInt(clusterId)]
       
-      const blocksPerClusterRow = Math.ceil(Math.sqrt(clusterBlocks.length))
+      // Create a more organic, hexagonal packing for blocks within cluster
+      const blockSize = 40 // Even smaller blocks for similarity view
       
       clusterBlocks.forEach((block, index) => {
-        const col = index % blocksPerClusterRow
-        const row = Math.floor(index / blocksPerClusterRow)
+        // Consistent hexagonal packing pattern for all clusters
+        let x = 0
+        let y = 0
         
-        const typeConfig = getBlockTypeConfig(block, 80)
+        if (index === 0) {
+          // Center block
+          x = 0
+          y = 0
+        } else {
+          // Calculate position in hexagonal pattern
+          const ringsComplete = Math.floor((Math.sqrt(1 + 8 * index) - 1) / 2)
+          const posInRing = index - (ringsComplete * (ringsComplete + 1) / 2)
+          const totalInRing = ringsComplete * 6
+          
+          const angle = (posInRing / totalInRing) * Math.PI * 2
+          const radius = ringsComplete * (blockSize + blockSpacing)
+          
+          x = Math.cos(angle) * radius
+          y = Math.sin(angle) * radius
+        }
+        
+        const typeConfig = getBlockTypeConfig(block, blockSize)
         
         shapes.push({
           id: `shape:block-${block.id}`,
           type: 'geo',
-          x: clusterPos.x + col * (typeConfig.w + blockSpacing),
-          y: clusterPos.y + row * (typeConfig.h + blockSpacing) + 30, // Leave space for label
+          x: clusterPos.x + x,
+          y: clusterPos.y + y,
+          opacity: 0, // Make shape invisible
           props: {
             geo: typeConfig.geo,
             w: typeConfig.w,
             h: typeConfig.h,
             color: typeConfig.color,
-            fill: 'none',
+            fill: 'none'
           }
         })
       })
       
-      // Add cluster label
+      // Add cluster label with consistent left alignment
       if (cluster) {
+        // Calculate max cluster width to position label safely beyond it
+        const maxClusterRadius = Math.ceil(Math.sqrt(clusterBlocks.length)) * (blockSize + blockSpacing)
+        const labelX = centerX + maxClusterRadius + 50 // Safe distance from cluster edge
+        
         labelShapes.push({
           id: `shape:cluster-label-${cluster.id}`,
           type: 'text',
-          x: clusterPos.x,
-          y: clusterPos.y,
+          x: labelX, // Positioned beyond cluster bounds
+          y: clusterPos.y - 5,
           props: {
-            richText: toRichText(`${cluster.label} (${cluster.blockCount})`),
-            color: 'black',
-            size: 'm',
+            richText: toRichText(`${cluster.label}`),
+            color: 'grey', // Softer color for less prominence
+            size: 's', // Small text size (smallest available)
             font: 'sans',
             textAlign: 'start',
-            w: clusterWidth,
+            w: 250,
             autoSize: true,
             scale: 1
           }
@@ -335,8 +369,20 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     
     editor.createShapes([...shapes, ...labelShapes])
     
+    // Position camera in the middle of the scroll
     setTimeout(() => {
-      editor.zoomToFit({ duration: 200 })
+      const viewportBounds = editor.getViewportPageBounds()
+      
+      // Calculate middle position
+      const middleClusterIndex = Math.floor(clustersData.length / 2)
+      const middleY = startY + (middleClusterIndex * clusterSpacing)
+      
+      // Center on the middle cluster
+      editor.setCamera({
+        x: -centerX + viewportBounds.width / 2,
+        y: -middleY + viewportBounds.height / 2, // Center vertically on middle cluster
+        z: 1 // Full zoom for clarity
+      }, { duration: 200 })
     }, 100)
   }
 
@@ -384,7 +430,11 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           }),
         })
         
-        if (!response.ok) throw new Error('Failed to calculate similarities')
+        if (!response.ok) {
+          const errorData = await response.json()
+          console.error('Edge Function error response:', errorData)
+          throw new Error(errorData.error || 'Failed to calculate similarities')
+        }
         
         const data = await response.json()
         const fetchedClusters = data.clusters || []
@@ -420,6 +470,50 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     }
   }, [editor, resolvedTheme])
 
+  // Handle modal state with tldraw
+  useEffect(() => {
+    if (!editor) return
+    
+    if (showModal) {
+      // Save current state
+      setPrevTool(editor.getCurrentToolId())
+      
+      // Set editor to readonly mode
+      editor.updateInstanceState({ isReadonly: true })
+      
+      // Deselect all shapes
+      editor.setSelectedShapes([])
+      
+      // Stop any ongoing interactions
+      editor.cancel()
+    } else {
+      // Restore state
+      editor.updateInstanceState({ isReadonly: false })
+      
+      // Restore tool
+      if (prevTool) {
+        editor.setCurrentTool(prevTool)
+      }
+    }
+  }, [showModal, editor, prevTool])
+  
+  // Handle escape key for modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showModal) {
+        e.preventDefault()
+        e.stopPropagation()
+        setShowModal(false)
+      }
+    }
+    
+    if (showModal) {
+      // Use capture phase to intercept before tldraw
+      document.addEventListener('keydown', handleKeyDown, true)
+      return () => document.removeEventListener('keydown', handleKeyDown, true)
+    }
+  }, [showModal])
+
   // Update shape positions periodically with throttling
   useEffect(() => {
     if (!editor) return
@@ -453,9 +547,8 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     // Update initially and on changes
     updatePositions()
     
-    // Listen to store changes and camera changes
+    // Listen to store changes
     const unsubscribeStore = editor.store.listen(updatePositions)
-    const unsubscribeCamera = editor.on('change', updatePositions)
     
     // Also update on animation frame for smooth tracking
     let animationFrame: number
@@ -467,7 +560,6 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     
     return () => {
       unsubscribeStore()
-      unsubscribeCamera()
       cancelAnimationFrame(animationFrame)
     }
   }, [editor, blocks])
@@ -502,34 +594,6 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         </div>
       </div>
       
-      {/* Selected block info - moved to right side to avoid chat button */}
-      {selectedBlock && (
-        <div className="absolute bottom-4 right-4 z-50 max-w-md">
-          <div className="bg-background/95 backdrop-blur border rounded-lg p-4">
-            <h3 className="font-semibold text-sm mb-2">
-              {selectedBlock.title || 'Untitled'}
-            </h3>
-            <p className="text-xs text-muted-foreground mb-2">
-              Type: {selectedBlock.block_type}
-            </p>
-            {selectedBlock.description && (
-              <p className="text-xs mb-2 line-clamp-3">
-                {selectedBlock.description}
-              </p>
-            )}
-            {selectedBlock.url && (
-              <a 
-                href={selectedBlock.url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-xs text-primary hover:underline"
-              >
-                Open original →
-              </a>
-            )}
-          </div>
-        </div>
-      )}
       
       {/* Block Image Overlays - with viewport culling */}
       {editor && (() => {
@@ -885,6 +949,129 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
             </form>
           </div>
         </div>
+      )}
+
+      {/* Block Detail Modal - Use portal to escape tldraw's event system */}
+      {showModal && selectedBlock && typeof window !== 'undefined' && createPortal(
+            <div 
+              className="fixed inset-0 flex items-center justify-center"
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 9999,
+                pointerEvents: 'auto'
+              }}
+              onMouseDown={(e) => {
+                // Only close if clicking directly on the backdrop
+                if (e.target === e.currentTarget) {
+                  setShowModal(false)
+                }
+              }}
+            >
+              {/* Modal Content */}
+              <div 
+                className="relative bg-background border rounded-lg shadow-lg max-w-4xl w-[90%] max-h-[90vh] overflow-hidden flex flex-col mx-4"
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                {/* Close button */}
+                <button
+                  type="button"
+                  className="absolute right-2 top-2 z-10 p-2 rounded-md hover:bg-accent transition-colors"
+                  onClick={() => setShowModal(false)}
+                  aria-label="Close modal"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+            
+            {/* Header */}
+            <div className="p-6 pb-0">
+              <h2 className="text-xl font-semibold pr-8">
+                {selectedBlock.title || 'Untitled'}
+              </h2>
+            </div>
+              
+              <div className="flex-1 overflow-y-auto p-6">
+                {/* Image display for blocks with images */}
+                {(selectedBlock.block_type === 'Image' || selectedBlock.thumbnail_url) && (
+                  <div className="relative w-full mb-6">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img 
+                      src={selectedBlock.thumbnail_url || selectedBlock.url || ''}
+                      alt={selectedBlock.title || ''}
+                      className="w-full h-auto max-h-[500px] object-contain rounded-lg"
+                    />
+                  </div>
+                )}
+                
+                {/* Block metadata */}
+                <div className="space-y-4">
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Tag className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">{selectedBlock.block_type}</span>
+                    </div>
+                    {selectedBlock.created_at && (
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">
+                          {new Date(selectedBlock.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Description */}
+                  {selectedBlock.description && (
+                    <div>
+                      <h3 className="font-medium mb-2">Description</h3>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                        {selectedBlock.description}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Content (for text blocks or AI-generated content) */}
+                  {selectedBlock.content && selectedBlock.block_type !== 'Image' && (
+                    <div>
+                      <h3 className="font-medium mb-2">Content</h3>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                        {selectedBlock.content}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Actions */}
+                  <div className="flex gap-3 pt-4 border-t">
+                    {selectedBlock.url && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(selectedBlock.url || '', '_blank')}
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Open Original
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const arenaUrl = `https://www.are.na/block/${selectedBlock.arena_id}`
+                        window.open(arenaUrl, '_blank')
+                      }}
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      View on Are.na
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body
       )}
     </div>
   )
