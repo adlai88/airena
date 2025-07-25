@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -774,15 +775,19 @@ export default function SetupPage() {
                         <div className="flex items-center flex-1 min-w-0 pr-2">
                           {/* Thumbnail */}
                           {channel.thumbnailUrl ? (
-                            <img 
-                              src={channel.thumbnailUrl} 
-                              alt={`${channel.title || channel.slug} thumbnail`}
-                              className="w-10 h-10 rounded-md object-cover flex-shrink-0 mr-3"
-                              onError={(e) => {
-                                // Hide image on load error
-                                (e.target as HTMLImageElement).style.display = 'none';
-                              }}
-                            />
+                            <div className="relative w-10 h-10 flex-shrink-0 mr-3">
+                              <Image 
+                                src={channel.thumbnailUrl} 
+                                alt={`${channel.title || channel.slug} thumbnail`}
+                                fill
+                                className="rounded-md object-cover"
+                                onError={(e) => {
+                                  // Hide image on load error
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.visibility = 'hidden';
+                                }}
+                              />
+                            </div>
                           ) : (
                             <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center flex-shrink-0 mr-3">
                               <span className="text-xs text-muted-foreground font-medium">
@@ -873,14 +878,18 @@ export default function SetupPage() {
                                 <div className="flex items-center flex-1 min-w-0 pr-2">
                                   {/* Thumbnail */}
                                   {channel.thumbnailUrl ? (
-                                    <img 
-                                      src={channel.thumbnailUrl} 
-                                      alt={`${channel.title || channel.slug} thumbnail`}
-                                      className="w-10 h-10 rounded-md object-cover flex-shrink-0 mr-3"
-                                      onError={(e) => {
-                                        (e.target as HTMLImageElement).style.display = 'none';
-                                      }}
-                                    />
+                                    <div className="relative w-10 h-10 flex-shrink-0 mr-3">
+                                      <Image 
+                                        src={channel.thumbnailUrl} 
+                                        alt={`${channel.title || channel.slug} thumbnail`}
+                                        fill
+                                        className="rounded-md object-cover"
+                                        onError={(e) => {
+                                          const target = e.target as HTMLImageElement;
+                                          target.style.visibility = 'hidden';
+                                        }}
+                                      />
+                                    </div>
                                   ) : (
                                     <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center flex-shrink-0 mr-3">
                                       <span className="text-xs text-muted-foreground font-medium">

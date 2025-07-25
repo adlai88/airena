@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Layout } from '@/components/layout';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -360,15 +361,19 @@ export default function UsagePage() {
                         <div className="flex items-center flex-1 min-w-0 pr-2">
                           {/* Thumbnail */}
                           {channel.channel_thumbnail_url ? (
-                            <img 
-                              src={channel.channel_thumbnail_url} 
-                              alt={`${channel.channel_title || channel.channel_slug} thumbnail`}
-                              className="w-10 h-10 rounded-md object-cover flex-shrink-0 mr-3"
-                              onError={(e) => {
-                                // Hide image on load error
-                                (e.target as HTMLImageElement).style.display = 'none';
-                              }}
-                            />
+                            <div className="relative w-10 h-10 flex-shrink-0 mr-3">
+                              <Image 
+                                src={channel.channel_thumbnail_url} 
+                                alt={`${channel.channel_title || channel.channel_slug} thumbnail`}
+                                fill
+                                className="rounded-md object-cover"
+                                onError={(e) => {
+                                  // Hide image on load error
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.visibility = 'hidden';
+                                }}
+                              />
+                            </div>
                           ) : (
                             <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center flex-shrink-0 mr-3">
                               <span className="text-xs text-muted-foreground font-medium">

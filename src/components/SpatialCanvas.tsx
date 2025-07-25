@@ -588,6 +588,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
             >
               {imageUrl && !brokenImages.has(imageUrl) ? (
                 <div className="w-full h-full bg-gray-50 dark:bg-gray-900/50 p-1 flex items-center justify-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img 
                     src={imageUrl}
                     alt={block.title || ''}
