@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { headers } from 'next/headers';
+import { auth } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
     console.log('🔍 Checkout API called');
     
-    const { userId } = await auth();
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    const userId = session?.user?.id;
     console.log('🔍 Auth successful, userId:', userId);
     
     if (!userId) {
@@ -95,13 +99,10 @@ export async function POST(request: NextRequest) {
     // For existing customers (upgrades), try to link by email
     if (currentUserTier !== 'free') {
       try {
-        // Get user email from Clerk
-        const { clerkClient } = await import('@clerk/nextjs/server');
-        const client = await clerkClient();
-        const user = await client.users.getUser(userId);
-        if (user.emailAddresses?.[0]?.emailAddress) {
-          checkoutPayload.customer_email = user.emailAddresses[0].emailAddress;
-          console.log('🔍 Adding customer_email for existing customer:', user.emailAddresses[0].emailAddress);
+        // Get user email from session
+        if (session?.user?.email) {
+          checkoutPayload.customer_email = session.user.email;
+          console.log('🔍 Adding customer_email for existing customer:', session.user.email);
         }
       } catch (error) {
         console.log('⚠️ Could not get user email:', error);

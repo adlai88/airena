@@ -1,5 +1,6 @@
 import { CustomerPortal } from "@polar-sh/nextjs";
-import { auth } from '@clerk/nextjs/server';
+import { headers } from 'next/headers';
+import { auth } from '@/lib/auth';
 
 // Create customer portal route using Polar.sh Next.js SDK
 export const GET = CustomerPortal({
@@ -7,22 +8,20 @@ export const GET = CustomerPortal({
   getCustomerId: async () => {
     try {
       // Get the authenticated user
-      const { userId } = await auth();
+      const session = await auth.api.getSession({
+        headers: await headers(),
+      });
       
-      if (!userId) {
+      if (!session?.user) {
         throw new Error('User not authenticated');
       }
 
-      // Get user email from Clerk to find their Polar customer ID
-      const { clerkClient } = await import('@clerk/nextjs/server');
-      const client = await clerkClient();
-      const user = await client.users.getUser(userId);
+      // Get user email from session
+      const userEmail = session.user.email;
       
-      if (!user.emailAddresses?.[0]?.emailAddress) {
+      if (!userEmail) {
         throw new Error('User email not found');
       }
-
-      const userEmail = user.emailAddresses[0].emailAddress;
 
       // Search for customer by email in Polar
       const customersResponse = await fetch(

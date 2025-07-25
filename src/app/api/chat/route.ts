@@ -4,7 +4,8 @@ import { openai } from '@ai-sdk/openai';
 import { supabase } from '@/lib/supabase';
 import { EmbeddingService } from '@/lib/embeddings';
 import { PromptTemplates, ContextBlock } from '@/lib/templates';
-import { auth } from '@clerk/nextjs/server';
+import { headers } from 'next/headers';
+import { auth } from '@/lib/auth';
 import { UsageTracker } from '@/lib/usage-tracking';
 
 export async function POST(req: Request) {
@@ -22,8 +23,10 @@ export async function POST(req: Request) {
     // Get authentication info (optional for free users)
     let userId: string | null = null;
     try {
-      const authResult = await auth();
-      userId = authResult.userId;
+      const session = await auth.api.getSession({
+        headers: await headers(),
+      });
+      userId = session?.user?.id || null;
     } catch {
       // No authentication required for free users
       userId = null;
