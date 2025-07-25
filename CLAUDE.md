@@ -39,8 +39,9 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 ✅ **Phase 10.4a: Open Source Launch** (COMPLETED - Repository public, documentation complete, self-hosting validated)
 ✅ **Phase 10.4b: Tiered Channel Discovery** (COMPLETED - Smart public/private channel separation + Enhanced subscription system)
 ✅ **Phase 10.4c: Enhanced User Experience & Block Selection** (COMPLETED - Preset-based block limits + Customer portal fixes + UI polish)
-✅ **Phase 10.5: Spatial Canvas** (COMPLETED - Supabase LW15 Hackathon Feature) - [See detailed plan](./SPATIAL_PROTOTYPE_PLAN.md)
-🎯 **Next Phase**: Phase 10.6 - Clerk → Polar Auth Migration
+✅ **Phase 10.5: Spatial Canvas** (COMPLETED - Supabase LW15 Hackathon Feature) - [See detailed plan](./docs/SPATIAL_PROTOTYPE_PLAN.md)
+✅ **Phase 10.6: Better Auth + Polar Migration** (COMPLETED - Unified auth/billing system)
+🎯 **Current Phase**: Phase 10.4d - Template Enhancement + System Testing
 
 **Live Application**: https://www.airena.io/  
 **Open Source Repository**: https://github.com/adlai88/airena
@@ -139,38 +140,61 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 - Demo channels identified
 - Code cleaned up (removed debug logs, test files)
 
-For full implementation details, see [SPATIAL_PROTOTYPE_PLAN.md](./SPATIAL_PROTOTYPE_PLAN.md)
+For full implementation details, see [SPATIAL_PROTOTYPE_PLAN.md](./docs/SPATIAL_PROTOTYPE_PLAN.md)
 
 ---
 
-## 🚀 **Next Phase: Phase 10.6 - Clerk → Polar Auth Migration**
+## ✅ **Phase 10.6: Better Auth + Polar Migration (COMPLETED)**
 
-### **Strategic Rationale**
-With zero existing users and potential hackathon traffic incoming, now is the perfect time to migrate from dual auth/billing systems to Polar's unified solution.
+### **Strategic Achievement**
+Successfully migrated from Clerk + Polar dual system to Better Auth + Polar unified authentication, while preserving anonymous access for demo users.
 
-### **Migration Benefits**
-1. **Single system** for authentication + billing
-2. **Works in development** without special Clerk setup
-3. **Simpler architecture** - no metadata syncing between systems
-4. **Better user tracking** from day one
-5. **Reduced complexity** - one less service dependency
+### **Implementation Date**: July 25, 2025  
+**Status**: **LIVE and fully functional**  
+**Impact**: **Simplified architecture + Better development experience + Anonymous access preserved**
 
-### **Planned Approach**
-1. **Require authentication** for all users (no more anonymous access complexity)
-2. **Use Polar OAuth** for sign up/sign in
-3. **Direct integration** - user data and subscription in one place
-4. **Update messaging** - "Free to start" instead of "No signup required"
+### **What Was Accomplished**
 
-### **Timeline**
-- After spatial canvas is merged and deployed
-- Complete before major user acquisition begins
-- Test thoroughly with the single existing user (you!)
+#### **🔐 Better Auth Integration**
+- **Supabase-native auth** - Better Auth configured with Supabase adapter
+- **Database schema** - Added user, session, account, and verification tables
+- **Field mapping** - Handled camelCase to snake_case conversions
+- **Edge runtime compatibility** - Fixed crypto module issues with middleware
+
+#### **💳 Polar Unified System**
+- **Single auth/billing system** - Polar handles both authentication and payments
+- **Webhook integration** - Subscription events update user tiers automatically
+- **Customer portal** - Direct access to subscription management
+- **Development-friendly** - Works locally without complex Clerk setup
+
+#### **🚀 Migration Success**
+- **User data preserved** - Migrated existing user from Clerk to Better Auth
+- **Route updates** - Renamed /setup to /channels for clarity
+- **Anonymous access** - Fixed public channel viewing for non-authenticated users
+- **Session tracking** - Anonymous users can sync channels without signup
+
+#### **🔧 Technical Improvements**
+- **Feature flags** - NEXT_PUBLIC_USE_BETTER_AUTH for gradual rollout
+- **Unified auth hooks** - Single useAuth() works with both systems
+- **Anonymous sync fix** - Removed channels.user_id NOT NULL constraint
+- **CORS handling** - Dynamic origin detection for local development
+
+### **Remaining Cleanup Tasks** (Low Priority)
+- Update remaining API routes to Better Auth
+- Remove Clerk webhook endpoint
+- Remove Clerk dependencies from package.json
+- Clean up Clerk environment variables
+
+### **Future Enhancement: OAuth Providers**
+- **Google OAuth** - Add social login with Google accounts
+- **GitHub OAuth** - Add developer-friendly GitHub authentication
+- Better Auth supports both providers out of the box
 
 ---
 
-## 🚀 **Previous Phase: Phase 10.4d - Template Enhancement + System Testing**
+## 🚀 **Current Phase: Phase 10.4d - Template Enhancement + System Testing**
 
-**Strategic Timing**: With user experience polished, focus on immediate value-add features before complex intelligence scoring.
+**Strategic Timing**: With authentication migration complete, focus on immediate value-add features before complex intelligence scoring.
 
 ### 🎯 **Current Priorities**
 
@@ -291,66 +315,3 @@ Based on pricing strategy: *"Shows specific, personalized value locked behind up
 **Next**: Validate community traction before Intelligence Score development
 **Goal**: Build sustainable community foundation for long-term growth
 
----
-
-## 🔐 Phase 10.6: Authentication Migration - Clerk to Polar
-
-### Current Auth Architecture (Clerk)
-
-**Key Integration Points:**
-1. **Middleware** (`src/middleware.ts`)
-   - Protects routes using `clerkMiddleware()`
-   - Public routes: home, setup, pricing, legal pages, API routes
-   - Protected routes: channels, generate, usage, settings
-
-2. **User Management**
-   - Users table synced via Clerk webhooks (`/api/webhooks/clerk`)
-   - User ID mapping: `clerk_user_id` → `users.id`
-   - Email and metadata stored locally
-
-3. **Auth Hooks & Components**
-   - `useAuth()` hook used throughout for user state
-   - `SignIn`/`SignUp` components from `@clerk/nextjs`
-   - `UserButton` for account management
-
-4. **API Protection**
-   - Routes check `auth().userId` for authentication
-   - User lookup via `clerk_user_id` in database
-
-5. **Key Dependencies**
-   - `@clerk/nextjs`: UI components and hooks
-   - Clerk environment variables: `NEXT_PUBLIC_CLERK_*`, `CLERK_SECRET_KEY`
-
-### Known Issues to Address
-
-1. **Unauthenticated Sync Bug**
-   - New/unauthenticated users can't sync channels
-   - Error: "User not found" in sync endpoint
-   - Need to handle guest/anonymous syncing
-
-2. **User Data Migration**
-   - Only 1 user currently (makes migration simpler)
-   - Need to map Clerk user ID to Polar customer ID
-
-### Polar Integration Considerations
-
-**What we know:**
-- Polar already handles payments/subscriptions
-- Has customer portal for subscription management
-- Email-based customer identification
-- Need to review Polar's auth capabilities
-
-**Migration Strategy (High-Level):**
-1. Review Polar auth documentation
-2. Create migration plan preserving existing user data
-3. Update middleware and auth checks
-4. Replace Clerk components with Polar equivalents
-5. Update API endpoints to use Polar auth
-6. Test thoroughly with existing user account
-
-**Database Considerations:**
-- Add `polar_customer_id` to users table
-- Maintain `clerk_user_id` during transition
-- Eventually remove Clerk fields after migration
-
-[Rest of the file remains unchanged]

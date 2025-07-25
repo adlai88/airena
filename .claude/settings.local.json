@@ -22,7 +22,9 @@
       "WebFetch(domain:dev.are.na)",
       "Bash(supabase secrets:*)",
       "Bash(supabase functions deploy:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "WebFetch(domain:docs.polar.sh)",
+      "Bash(mv:*)"
     ],
     "deny": []
   },

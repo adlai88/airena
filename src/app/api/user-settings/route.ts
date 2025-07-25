@@ -1,10 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
+import { auth as betterAuth } from '@/lib/auth';
+import { headers } from 'next/headers';
 import { UserService } from '@/lib/user-service';
+import { UserServiceV2 } from '@/lib/user-service-v2';
 
 export async function GET() {
   try {
-    const { userId } = await auth();
+    const isNewAuth = process.env.NEXT_PUBLIC_USE_BETTER_AUTH === 'true';
+    let userId: string | null = null;
+    
+    if (isNewAuth) {
+      const session = await betterAuth.api.getSession({
+        headers: headers()
+      });
+      userId = session?.user?.id || null;
+    } else {
+      const { userId: clerkUserId } = await auth();
+      userId = clerkUserId;
+    }
     
     if (!userId) {
       return NextResponse.json(
@@ -14,13 +28,18 @@ export async function GET() {
     }
 
     // Check if user has an API key stored
-    const arenaApiKey = await UserService.getUserArenaApiKey(userId);
+    const arenaApiKey = isNewAuth 
+      ? await UserServiceV2.getArenaApiKey(userId)
+      : await UserService.getUserArenaApiKey(userId);
     const hasApiKey = !!arenaApiKey;
-    const subscription = await UserService.getUserSubscription(userId);
+    
+    const tier = isNewAuth
+      ? await UserServiceV2.getUserTier(userId)
+      : (await UserService.getUserSubscription(userId)).tier;
 
     return NextResponse.json({
       hasApiKey,
-      tier: subscription.tier
+      tier
     });
 
   } catch (error) {
@@ -34,7 +53,18 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const isNewAuth = process.env.NEXT_PUBLIC_USE_BETTER_AUTH === 'true';
+    let userId: string | null = null;
+    
+    if (isNewAuth) {
+      const session = await betterAuth.api.getSession({
+        headers: headers()
+      });
+      userId = session?.user?.id || null;
+    } else {
+      const { userId: clerkUserId } = await auth();
+      userId = clerkUserId;
+    }
     
     if (!userId) {
       return NextResponse.json(

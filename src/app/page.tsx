@@ -27,7 +27,7 @@ export default function HomePage() {
           <div className="mb-16">
             <div className="inline-flex flex-col w-full sm:w-auto">
               <Button variant="default" size="lg" className="font-medium min-h-[52px] px-8 min-w-[220px] w-full sm:w-auto" asChild>
-                <Link href="/setup">Try Demo</Link>
+                <Link href="/channels">Try Demo</Link>
               </Button>
               <p className="text-xs text-muted-foreground text-center mt-2">No signup required</p>
             </div>

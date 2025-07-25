@@ -13,12 +13,12 @@ import { Layout } from '@/components/layout';
 import { PageHeader } from '@/components/page-header';
 import { useChannel } from '@/hooks/useChannel';
 import { arenaClient } from '@/lib/arena';
-import { useUser } from '@clerk/nextjs';
+import { useAuth } from '@/components/auth-provider';
 import { Spinner } from '@/components/ui/spinner';
 
 export default function SetupPage() {
   const { channelSlug: connectedChannel, username: connectedUsername, isDefault: isDefaultChannel, refresh: refreshChannel } = useChannel();
-  const { isSignedIn } = useUser();
+  const { isSignedIn } = useAuth();
   const [channelSlug, setChannelSlug] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [switchingToChannel, setSwitchingToChannel] = useState<string | null>(null);

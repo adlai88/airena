@@ -428,7 +428,7 @@ function GenerateContent() {
           <Button onClick={handleStartOver}>
             Generate New Newsletter
           </Button>
-          <Button variant="ghost" onClick={() => router.push('/setup')}>
+          <Button variant="ghost" onClick={() => router.push('/channels')}>
             Sync Different Channel
           </Button>
         </div>

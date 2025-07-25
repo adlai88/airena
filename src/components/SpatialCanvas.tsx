@@ -566,11 +566,12 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           
           visibleCount++
 
-          // Only show images for blocks that have them
+          // Show thumbnails for any block type that has them
+          const hasThumbnail = block.thumbnail_url && block.thumbnail_url.trim() !== ''
           const hasImage = block.block_type === 'Image' && (block.thumbnail_url || block.url)
           
-          // For Image blocks, prefer thumbnail URL over full image URL
-          const imageUrl = hasImage ? (block.thumbnail_url || block.url) : null
+          // Use thumbnail URL if available, otherwise use URL for Image blocks
+          const imageUrl = hasThumbnail ? block.thumbnail_url : (hasImage ? block.url : null)
 
           return (
             <div
@@ -586,7 +587,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
               }}
             >
               {imageUrl && !brokenImages.has(imageUrl) ? (
-                <div className="w-full h-full bg-gray-50 dark:bg-gray-900/50 p-2 flex items-center justify-center">
+                <div className="w-full h-full bg-gray-50 dark:bg-gray-900/50 p-1 flex items-center justify-center">
                   <img 
                     src={imageUrl}
                     alt={block.title || ''}
@@ -600,17 +601,17 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                   />
                 </div>
               ) : (
-                <div className="w-full h-full bg-white/90 border-2 border-gray-300 p-2 flex flex-col items-center justify-center">
-                  <p className="text-xs text-center line-clamp-2 font-medium mb-1">
+                <div className="w-full h-full bg-white/90 dark:bg-gray-800/90 border-2 border-gray-300 dark:border-gray-600 p-2 flex flex-col items-center justify-center">
+                  <p className="text-xs text-center line-clamp-2 font-medium mb-1 text-gray-800 dark:text-gray-200">
                     {block.title || 'Untitled'}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     {block.block_type}
                   </p>
                 </div>
               )}
-              {/* Title overlay for images */}
-              {hasImage && (
+              {/* Title overlay for blocks with thumbnails */}
+              {imageUrl && !brokenImages.has(imageUrl) && (
                 <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-1">
                   <p className="text-xs truncate">{block.title || block.block_type}</p>
                 </div>

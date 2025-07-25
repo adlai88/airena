@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { getCurrentUserId } from '@/lib/auth-helpers';
 import { createClient } from '@supabase/supabase-js';
-import { UserService } from '@/lib/user-service';
+import { UserServiceV2 } from '@/lib/user-service-v2';
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -11,8 +11,8 @@ const supabase = createClient(
 export async function GET(request: NextRequest) {
   try {
     // Get user authentication and tier
-    const { userId } = await auth();
-    const userTier = userId ? await UserService.getUserTier(userId) : 'free';
+    const userId = await getCurrentUserId();
+    const userTier = userId ? await UserServiceV2.getUserTier(userId) : 'free';
     
     // Parse query params
     const { searchParams } = new URL(request.url);
@@ -32,8 +32,7 @@ export async function GET(request: NextRequest) {
         created_at,
         arena_id,
         is_private,
-        user_id,
-        blocks!inner(count)
+        user_id
       `)
       .order('last_sync', { ascending: false })
       .limit(10);
@@ -58,6 +57,8 @@ export async function GET(request: NextRequest) {
       console.error('Error fetching recent channels:', error);
       return NextResponse.json({ channels: [] });
     }
+    
+    console.log('📊 Query returned channels:', channels?.length || 0);
 
     // Format the response to include block counts
     const formattedChannels = await Promise.all(
@@ -88,6 +89,8 @@ export async function GET(request: NextRequest) {
 
     // Filter out channels with 0 blocks - they're not useful for generation/chat
     const channelsWithContent = formattedChannels.filter(channel => channel.blockCount > 0);
+    
+    console.log('✅ Returning channels:', channelsWithContent.length);
 
     return NextResponse.json({ channels: channelsWithContent });
   } catch (error) {

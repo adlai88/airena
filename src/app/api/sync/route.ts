@@ -3,6 +3,9 @@ import { NextRequest } from 'next/server';
 import { SyncService, SyncProgress } from '@/lib/sync';
 import { UsageTracker } from '@/lib/usage-tracking';
 import { auth } from '@clerk/nextjs/server';
+import { auth as betterAuth } from '@/lib/auth';
+import { headers } from 'next/headers';
+import { useNewAuth } from '@/lib/feature-flags';
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,9 +17,20 @@ export async function POST(req: NextRequest) {
 
     // Get authentication info (optional for free users)
     let userId: string | null = null;
+    const isNewAuth = process.env.NEXT_PUBLIC_USE_BETTER_AUTH === 'true';
+    
     try {
-      const authResult = await auth();
-      userId = authResult.userId;
+      if (isNewAuth) {
+        // Use Better Auth
+        const session = await betterAuth.api.getSession({
+          headers: headers()
+        });
+        userId = session?.user?.id || null;
+      } else {
+        // Use Clerk
+        const authResult = await auth();
+        userId = authResult.userId;
+      }
     } catch {
       // No authentication required for free users
       userId = null;

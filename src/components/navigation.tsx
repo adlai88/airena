@@ -17,7 +17,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ChevronDown, Cog, MessageSquare, Wand2, BarChart3, CreditCard } from 'lucide-react';
-import { SignInButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs';
+import { SignInButton, SignUpButton, UserButton as ClerkUserButton, useUser as useClerkUser } from '@clerk/nextjs';
+import { BetterAuthUserButton } from '@/components/better-auth-user-button';
+import { useAuth, useUser } from '@/components/auth-provider';
+import { useNewAuth } from '@/lib/feature-flags';
 
 interface NavigationProps {
   homeNav?: boolean;
@@ -26,7 +29,15 @@ interface NavigationProps {
 export function Navigation({ homeNav = false }: NavigationProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isSignedIn } = useUser();
+  const isNewAuth = useNewAuth();
+  
+  // Use unified auth hooks
+  const auth = useAuth();
+  const user = useUser();
+  const isSignedIn = auth.isSignedIn;
+  
+  // Choose which UserButton to use
+  const UserButton = isNewAuth ? BetterAuthUserButton : ClerkUserButton;
 
   // const isActive = (path: string) => pathname === path;
   
@@ -67,7 +78,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
   };
 
   const isActivePage = (path: string) => {
-    if (path === '/setup') return pathname === '/setup' || pathname === '/options';
+    if (path === '/channels') return pathname === '/channels' || pathname === '/options';
     if (path === '/generate') return pathname === '/generate' || pathname.startsWith('/generate');
     if (path === '/chat') return pathname === '/chat' || pathname.startsWith('/chat');
     return false;
@@ -75,7 +86,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
 
   // Get current active page name for mobile dropdown
   const getActivePage = () => {
-    if (isActivePage('/setup')) return { name: 'Channels', icon: Cog };
+    if (isActivePage('/channels')) return { name: 'Channels', icon: Cog };
     if (isActivePage('/chat')) return { name: 'Chat', icon: MessageSquare };
     if (isActivePage('/generate')) return { name: 'Generate', icon: Wand2 };
     if (isActivePage('/usage')) return { name: 'Menu', icon: BarChart3 }; // Usage is in hamburger menu
@@ -114,8 +125,8 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="center" className="w-48">
                     <DropdownMenuItem 
-                      onClick={() => navigateWithParams('/setup')}
-                      className={isActivePage('/setup') ? 'bg-accent text-accent-foreground' : ''}
+                      onClick={() => navigateWithParams('/channels')}
+                      className={isActivePage('/channels') ? 'bg-accent text-accent-foreground' : ''}
                     >
                       Channels
                     </DropdownMenuItem>
@@ -143,9 +154,9 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                     <NavigationMenuLink asChild>
                       <Button
                         variant="ghost"
-                        onClick={() => navigateWithParams('/setup')}
+                        onClick={() => navigateWithParams('/channels')}
                         className={`rounded-md px-4 py-2 transition-colors text-sm font-medium cursor-pointer ${
-                          isActivePage('/setup')
+                          isActivePage('/channels')
                             ? 'bg-accent text-accent-foreground'
                             : 'hover:bg-accent hover:text-accent-foreground'
                         }`}
@@ -218,11 +229,22 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                     </UserButton.MenuItems>
                   </UserButton>
                 ) : (
-                  <SignUpButton mode="modal">
-                    <Button variant="ghost" size="sm" className="font-medium min-h-[44px] sm:min-h-auto text-sm cursor-pointer">
+                  isNewAuth ? (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="font-medium min-h-[44px] sm:min-h-auto text-sm cursor-pointer"
+                      onClick={() => router.push('/sign-up')}
+                    >
                       Sign up
                     </Button>
-                  </SignUpButton>
+                  ) : (
+                    <SignUpButton mode="modal">
+                      <Button variant="ghost" size="sm" className="font-medium min-h-[44px] sm:min-h-auto text-sm cursor-pointer">
+                        Sign up
+                      </Button>
+                    </SignUpButton>
+                  )
                 )}
               </div>
             </>
@@ -273,11 +295,22 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                     </UserButton.MenuItems>
                   </UserButton>
                 ) : (
-                  <SignInButton mode="modal">
-                    <Button variant="ghost" size="sm" className="font-medium">
+                  isNewAuth ? (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="font-medium"
+                      onClick={() => router.push('/sign-in')}
+                    >
                       Sign in
                     </Button>
-                  </SignInButton>
+                  ) : (
+                    <SignInButton mode="modal">
+                      <Button variant="ghost" size="sm" className="font-medium">
+                        Sign in
+                      </Button>
+                    </SignInButton>
+                  )
                 )}
               </div>
             </>
