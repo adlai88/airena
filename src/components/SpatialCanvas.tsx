@@ -253,8 +253,8 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     
     // Create a vertical scroll layout
     const centerX = 700 // Shifted left to center the cluster + label unit
-    const clusterSpacing = 400 // Vertical spacing between clusters
-    const startY = 300 // Starting Y position
+    const clusterSpacing = 250 // Reduced vertical spacing between clusters for tighter layout
+    const startY = 200 // Starting Y position
     
     const clusterPositions: Record<number, { x: number; y: number }> = {}
     

@@ -262,13 +262,15 @@ async function generateClusterLabel(
         model: 'gpt-4o-mini',
         messages: [{
           role: 'user',
-          content: `Based on these block titles and types, create a short 2-3 word label that captures the specific theme or topic of this cluster. Be specific rather than generic.
+          content: `Based on these block titles and types, create a short 2-3 word label that captures the specific theme or topic of this cluster. Be specific and unique rather than generic.
           
 Titles: ${sampleTitles.join(', ')}
 Types: ${uniqueTypes.join(', ')}
 
-Examples of good labels: "startup culture", "design systems", "punk music", "machine learning", "web3 protocols"
-Examples of bad labels: "mixed content", "various topics", "general cluster"
+Examples of good labels: "startup culture", "design systems", "punk music", "machine learning", "web3 protocols", "typography research", "color theory", "urban planning"
+Examples of bad labels: "mixed content", "various topics", "general cluster", "abstract art", "creative work", "design inspiration"
+
+Focus on what makes this cluster unique. Look for specific themes, subjects, or concepts in the titles.
 
 Respond with only the label, no explanation.`
         }],
@@ -441,7 +443,7 @@ serve(async (req) => {
     })
     console.log('Final cluster distribution after validation:', finalClusterCounts)
     
-    // Group blocks by validated cluster
+    // Group blocks by validated cluster (using the MERGED cluster IDs)
     const clusterGroups: Record<number, typeof processedBlocks> = {}
     processedBlocks.forEach((block, idx) => {
       const clusterId = validated.clusters[idx]
@@ -453,18 +455,42 @@ serve(async (req) => {
     
     // Generate labels for each cluster
     const clusterData = []
+    const usedLabels = new Set<string>()
     
     for (const [clusterId, clusterBlocks] of Object.entries(clusterGroups)) {
       // Sample titles and content from cluster
       const sampleTitles = clusterBlocks
         .filter(b => b.title)
-        .slice(0, 5)
+        .slice(0, 8) // Get more samples for better labeling
         .map(b => b.title)
       
       const blockTypes = clusterBlocks.map(b => b.block_type)
       const uniqueTypes = [...new Set(blockTypes)]
       
-      const label = await generateClusterLabel(sampleTitles, uniqueTypes)
+      let label = await generateClusterLabel(sampleTitles, uniqueTypes)
+      
+      // Ensure unique labels
+      let labelAttempts = 1
+      while (usedLabels.has(label.toLowerCase()) && labelAttempts < 3) {
+        console.log(`Duplicate label detected: "${label}", regenerating...`)
+        // Add context to get a different label
+        const context = `(attempt ${labelAttempts + 1}, avoid: ${Array.from(usedLabels).join(', ')})`
+        label = await generateClusterLabel(sampleTitles, uniqueTypes)
+        labelAttempts++
+      }
+      
+      // If still duplicate after attempts, append a number
+      if (usedLabels.has(label.toLowerCase())) {
+        let counter = 2
+        let uniqueLabel = `${label} ${counter}`
+        while (usedLabels.has(uniqueLabel.toLowerCase())) {
+          counter++
+          uniqueLabel = `${label} ${counter}`
+        }
+        label = uniqueLabel
+      }
+      
+      usedLabels.add(label.toLowerCase())
       
       clusterData.push({
         id: parseInt(clusterId),
