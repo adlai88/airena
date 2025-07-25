@@ -442,14 +442,36 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       }
     })
     
-    // Clear and recreate all shapes at their starting positions
-    const allShapes = editor.getCurrentPageShapes()
-    if (allShapes.length > 0) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      editor.deleteShapes(allShapes.map((shape: any) => shape.id))
-    }
+    // Instead of deleting shapes, update existing ones or create new ones
+    const existingShapes = editor.getCurrentPageShapes()
+    const existingShapeIds = new Set(existingShapes.map((s: any) => s.id))
     
-    editor.createShapes([...shapes, ...labelShapes])
+    // Update existing block shapes
+    shapes.forEach(newShape => {
+      if (existingShapeIds.has(newShape.id)) {
+        // Shape exists, just store its target position - we'll animate it
+        const existingShape = editor.getShape(newShape.id)
+        if (existingShape) {
+          // Keep current position, we'll animate from here
+          newShape.x = (existingShape as any).x
+          newShape.y = (existingShape as any).y
+        }
+      } else {
+        // Create new shape at starting position
+        editor.createShape(newShape)
+      }
+    })
+    
+    // Remove any shapes that shouldn't exist (like old labels)
+    const newShapeIds = new Set(shapes.map(s => s.id))
+    existingShapes.forEach((shape: any) => {
+      if (!newShapeIds.has(shape.id) && shape.id.startsWith('shape:')) {
+        editor.deleteShape(shape.id)
+      }
+    })
+    
+    // Create label shapes (they're new)
+    editor.createShapes(labelShapes)
     
     // Animate to final positions with staggered timing
     setTimeout(() => {
@@ -479,17 +501,21 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const startY = (shape as any).y
           
-          // Calculate expansion point (move away from center)
-          const viewportCenter = { x: 700, y: 600 }
-          const directionX = startX - viewportCenter.x
-          const directionY = startY - viewportCenter.y
-          const distance = Math.sqrt(directionX * directionX + directionY * directionY)
-          const normalizedX = distance > 0 ? directionX / distance : 0
-          const normalizedY = distance > 0 ? directionY / distance : 0
+          // Determine animation style based on distance to final position
+          const deltaX = finalPos.x - startX
+          const deltaY = finalPos.y - startY
+          const totalDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
           
-          // Expansion point is 20% further from center
-          const expansionX = startX + normalizedX * 80
-          const expansionY = startY + normalizedY * 80
+          // For grid mode: use gentler animation without expansion if blocks are close
+          const useExpansion = totalDistance > 200 // Only expand if moving far
+          
+          // Calculate expansion point (move slightly toward final cluster position)
+          const expansionX = useExpansion 
+            ? startX + deltaX * 0.3 // Move 30% toward target first
+            : startX + deltaX * 0.1 // Just a slight movement
+          const expansionY = useExpansion
+            ? startY + deltaY * 0.3 - 50 // Also lift up slightly
+            : startY + deltaY * 0.1
           
           const animate = () => {
             const elapsed = Date.now() - startTime
@@ -497,20 +523,26 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
             
             let currentX, currentY
             
-            if (progress < 0.4) {
-              // Phase 1: Expand outward (0-40% of animation)
-              const expandProgress = progress / 0.4
-              const eased = 1 - Math.pow(1 - expandProgress, 2) // Ease out quad
+            if (useExpansion && progress < 0.3) {
+              // Phase 1: Gentle rise/expansion (0-30% of animation)
+              const expandProgress = progress / 0.3
+              const eased = expandProgress * expandProgress // Ease in quad for smooth start
               
               currentX = startX + (expansionX - startX) * eased
               currentY = startY + (expansionY - startY) * eased
-            } else {
-              // Phase 2: Contract to final position (40-100% of animation)
-              const contractProgress = (progress - 0.4) / 0.6
-              const eased = 1 - Math.pow(1 - contractProgress, 3) // Ease out cubic
+            } else if (useExpansion) {
+              // Phase 2: Smooth descent to final position (30-100% of animation)
+              const contractProgress = (progress - 0.3) / 0.7
+              // Custom easing for smooth arc
+              const eased = 1 - Math.pow(1 - contractProgress, 2.5)
               
               currentX = expansionX + (finalPos.x - expansionX) * eased
               currentY = expansionY + (finalPos.y - expansionY) * eased
+            } else {
+              // Direct smooth transition for close blocks
+              const eased = 1 - Math.pow(1 - progress, 3) // Smooth ease out
+              currentX = startX + (finalPos.x - startX) * eased
+              currentY = startY + (finalPos.y - startY) * eased
             }
             
             editor.updateShape({
