@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser, getSignOutFunction, useAuth } from '@/components/auth-provider';
+import { useUser, getSignOutFunction } from '@/components/auth-provider';
 import { useAuth as useClerkAuth } from '@clerk/nextjs';
 import { useNewAuth } from '@/lib/feature-flags';
 import { authClient } from '@/components/auth-provider';

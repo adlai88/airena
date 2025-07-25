@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { authMinimal } from '@/lib/auth-minimal';
 import { toNextJsHandler } from "better-auth/next-js";
 

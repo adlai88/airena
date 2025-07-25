@@ -19,7 +19,7 @@ import {
 import { ChevronDown, Cog, MessageSquare, Wand2, BarChart3, CreditCard } from 'lucide-react';
 import { SignInButton, SignUpButton, UserButton as ClerkUserButton } from '@clerk/nextjs';
 import { BetterAuthUserButton } from '@/components/better-auth-user-button';
-import { useAuth, useUser } from '@/components/auth-provider';
+import { useAuth } from '@/components/auth-provider';
 import { useNewAuth } from '@/lib/feature-flags';
 
 interface NavigationProps {
