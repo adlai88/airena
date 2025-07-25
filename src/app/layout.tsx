@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import { ClerkProvider } from '@clerk/nextjs';
-import { dark } from '@clerk/themes';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,45 +42,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider
-      appearance={{
-        baseTheme: dark,
-        elements: {
-          formButtonPrimary: "bg-primary hover:bg-primary/90",
-          footerActionLink: "text-primary hover:text-primary/90",
-          avatarBox: "!rounded-full !bg-gray-200 !text-gray-800 !border-0",
-          userButtonAvatarBox: "!rounded-full !bg-gray-200 !border-0 hover:!bg-gray-300",
-          userButtonAvatarImage: "!rounded-full",
-          userPreviewAvatarBox: "!rounded-full !bg-gray-200 !text-gray-800",
-          userButtonTrigger: "!rounded-full hover:!rounded-full focus:!rounded-full",
-          userButtonBox: "!rounded-full",
-          profileSectionPrimaryButton: "bg-primary hover:bg-primary/90"
-        },
-        variables: {
-          colorPrimary: "#6366f1", // Tailwind indigo-500
-          colorBackground: "#0a0a0a", // Dark background
-          colorInputBackground: "#1a1a1a", // Dark input background
-          colorInputText: "#ffffff" // White input text
-        }
-      }}
-    >
-      <html lang="en" suppressHydrationWarning>
-        <head>
-          {/* Favicon links handled by metadata */}
-        </head>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Favicon links handled by metadata */}
+      </head>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
         >
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-          </ThemeProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+          {children}
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }

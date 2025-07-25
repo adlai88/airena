@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
-import { useUser } from '@clerk/nextjs';
+import { useUser } from '@/components/auth-provider';
 import { CheckoutModal } from '@/components/checkout-modal';
 
 const plans = [
@@ -93,7 +93,9 @@ function PricingContent() {
     tier: '',
     billing: 'monthly'
   });
-  const { isSignedIn, isLoaded } = useUser();
+  const user = useUser();
+  const isSignedIn = !!user;
+  const isLoaded = user !== undefined;
   const searchParams = useSearchParams();
 
   // Fetch current user tier

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useUser } from '@clerk/nextjs';
+import { useUser } from '@/components/auth-provider';
 import { Layout } from '@/components/layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,20 +10,22 @@ import { CheckCircle, ArrowRight, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
 export default function SuccessPage() {
-  const { user, isLoaded } = useUser();
+  const user = useUser();
   const [userTier, setUserTier] = useState<string>('free');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (isLoaded && user) {
-      // Check user tier from Clerk metadata
-      const tier = user.publicMetadata?.tier as string || 'free';
+    if (user) {
+      // Check user tier from user object
+      const tier = user.tier || 'free';
       setUserTier(tier);
       setIsLoading(false);
+    } else if (user === null) {
+      setIsLoading(false);
     }
-  }, [isLoaded, user]);
+  }, [user]);
 
-  if (!isLoaded || isLoading) {
+  if (isLoading) {
     return (
       <Layout>
         <div className="min-h-screen pt-20 pb-16 flex items-center justify-center">

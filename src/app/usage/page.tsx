@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle, Check, Key } from 'lucide-react';
 import { UserTier, UsageRecord } from '@/lib/usage-tracking';
-import { useUser } from '@clerk/nextjs';
+import { useUser } from '@/components/auth-provider';
 
 interface UsageStats {
   tier: UserTier;
