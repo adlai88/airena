@@ -5,8 +5,8 @@ import type { NextRequest } from 'next/server';
 const protectedPaths = [
   '/generate',  // Requires user account for generation limits
   '/usage',     // User-specific usage data
-  '/settings',  // User settings
-  '/canvas'     // User-specific canvas data
+  '/settings'   // User settings
+  // '/canvas' removed - canvas is now public like channels
 ];
 
 // Note: /channels is intentionally not protected to allow anonymous demo access
