@@ -59,6 +59,8 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   const [visibleBlockCount, setVisibleBlockCount] = useState(0)
   const { resolvedTheme } = useTheme()
   const [prevTool, setPrevTool] = useState<string>('select')
+  const [previousPositions, setPreviousPositions] = useState<Record<string, {x: number, y: number}>>({})
+  const [isAnimating, setIsAnimating] = useState(false)
 
   // Layout calculation functions
   const calculateGridLayout = (blocks: Block[]) => {
@@ -264,6 +266,19 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   const applySimilarityLayoutWithData = (clustersData: any[]) => {
     if (!editor || !blocks.length || !clustersData.length) return
 
+    setIsAnimating(true)
+
+    // First, capture current positions of all blocks
+    const currentPositions: Record<string, {x: number, y: number}> = {}
+    blocks.forEach(block => {
+      const shape = editor.getShape(`shape:block-${block.id}`)
+      if (shape) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        currentPositions[block.id] = { x: (shape as any).x, y: (shape as any).y }
+      }
+    })
+    setPreviousPositions(currentPositions)
+
     const blockSpacing = 10 // Tighter spacing for organic feel
     
     // Create a vertical scroll layout
@@ -301,7 +316,11 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       })
     })
     
-    // Position blocks and create labels
+    // Track final positions for animation
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const finalPositions: Record<string, {x: number, y: number, clusterId: number, indexInCluster: number}> = {}
+    
+    // Calculate final positions blocks
     Object.entries(blocksByCluster).forEach(([clusterId, clusterBlocks]) => {
       const cluster = clustersData.find(c => c.id === parseInt(clusterId))
       const clusterPos = clusterPositions[parseInt(clusterId)]
@@ -333,11 +352,22 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         
         const typeConfig = getBlockTypeConfig(block, blockSize)
         
+        // Store final position
+        finalPositions[block.id] = {
+          x: clusterPos.x + x,
+          y: clusterPos.y + y,
+          clusterId: parseInt(clusterId),
+          indexInCluster: index
+        }
+        
+        // Start at current position or a default position
+        const startPos = currentPositions[block.id] || { x: 100, y: 100 }
+        
         shapes.push({
           id: `shape:block-${block.id}`,
           type: 'geo',
-          x: clusterPos.x + x,
-          y: clusterPos.y + y,
+          x: startPos.x, // Start at current position
+          y: startPos.y,
           opacity: 0, // Make shape invisible
           props: {
             geo: typeConfig.geo,
@@ -360,6 +390,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           type: 'text',
           x: labelX, // Positioned beyond cluster bounds
           y: clusterPos.y - 5,
+          opacity: 0, // Start invisible for fade-in
           props: {
             richText: toRichText(`${cluster.label}`),
             color: 'grey', // Softer color for less prominence
@@ -374,7 +405,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       }
     })
     
-    // Clear and recreate all shapes
+    // Clear and recreate all shapes at their starting positions
     const allShapes = editor.getCurrentPageShapes()
     if (allShapes.length > 0) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -383,21 +414,96 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     
     editor.createShapes([...shapes, ...labelShapes])
     
-    // Position camera in the middle of the scroll
+    // Animate to final positions with staggered timing
     setTimeout(() => {
-      const viewportBounds = editor.getViewportPageBounds()
+      // Get cluster order for staggered animation
+      const clusterOrder = clustersData.map(c => c.id)
       
-      // Calculate middle position
-      const middleClusterIndex = Math.floor(clustersData.length / 2)
-      const middleY = startY + (middleClusterIndex * clusterSpacing)
+      // Animate blocks to their final positions
+      blocks.forEach(block => {
+        const finalPos = finalPositions[block.id]
+        if (!finalPos) return
+        
+        const shape = editor.getShape(`shape:block-${block.id}`)
+        if (!shape) return
+        
+        // Calculate animation delay based on cluster and position within cluster
+        const clusterIndex = clusterOrder.indexOf(finalPos.clusterId)
+        const baseDelay = clusterIndex * 150 // 150ms between clusters
+        const blockDelay = finalPos.indexInCluster * 30 // 30ms between blocks in cluster
+        const totalDelay = baseDelay + blockDelay
+        
+        // Animate after delay with smooth transition
+        setTimeout(() => {
+          const startTime = Date.now()
+          const duration = 800 // Animation duration in ms
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const startX = (shape as any).x
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const startY = (shape as any).y
+          
+          const animate = () => {
+            const elapsed = Date.now() - startTime
+            const progress = Math.min(elapsed / duration, 1)
+            
+            // Easing function (ease-out cubic)
+            const eased = 1 - Math.pow(1 - progress, 3)
+            
+            const currentX = startX + (finalPos.x - startX) * eased
+            const currentY = startY + (finalPos.y - startY) * eased
+            
+            editor.updateShape({
+              id: shape.id,
+              type: shape.type,
+              x: currentX,
+              y: currentY,
+            })
+            
+            if (progress < 1) {
+              requestAnimationFrame(animate)
+            }
+          }
+          
+          requestAnimationFrame(animate)
+        }, totalDelay)
+      })
       
-      // Center on the middle cluster
-      editor.setCamera({
-        x: -centerX + viewportBounds.width / 2,
-        y: -middleY + viewportBounds.height / 2, // Center vertically on middle cluster
-        z: 1 // Full zoom for clarity
-      }, { duration: 200 })
-    }, 100)
+      // Fade in cluster labels with stagger
+      clustersData.forEach((cluster, index) => {
+        setTimeout(() => {
+          const labelShape = editor.getShape(`shape:cluster-label-${cluster.id}`)
+          if (labelShape) {
+            editor.updateShape({
+              id: labelShape.id,
+              type: labelShape.type,
+              opacity: 1,
+            })
+          }
+        }, index * 150 + 300) // Start after blocks begin moving
+      })
+      
+      // Position camera after animation starts
+      setTimeout(() => {
+        const viewportBounds = editor.getViewportPageBounds()
+        
+        // Calculate middle position
+        const middleClusterIndex = Math.floor(clustersData.length / 2)
+        const middleY = startY + (middleClusterIndex * clusterSpacing)
+        
+        // Center on the middle cluster
+        editor.setCamera({
+          x: -centerX + viewportBounds.width / 2,
+          y: -middleY + viewportBounds.height / 2, // Center vertically on middle cluster
+          z: 1 // Full zoom for clarity
+        }, { duration: 800 })
+      }, 200)
+      
+      // Mark animation as complete
+      const totalAnimationTime = clustersData.length * 150 + 1000
+      setTimeout(() => {
+        setIsAnimating(false)
+      }, totalAnimationTime)
+    }, 50) // Small delay to ensure shapes are created
   }
 
   // Apply similarity layout
@@ -723,11 +829,11 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           variant={viewMode === 'similarity' ? 'default' : 'ghost'}
           size="sm"
           onClick={() => handleViewModeChange('similarity')}
-          disabled={blocks.length === 0 || isArranging}
+          disabled={blocks.length === 0 || isArranging || isAnimating}
           className="rounded-none border-x"
         >
           <Brain className="h-4 w-4 mr-1" />
-          {isArranging ? 'Loading...' : 'Similarity'}
+          {isArranging ? 'Analyzing...' : isAnimating ? 'Organizing...' : 'Similarity'}
         </Button>
         <Button
           variant={viewMode === 'random' ? 'default' : 'ghost'}
