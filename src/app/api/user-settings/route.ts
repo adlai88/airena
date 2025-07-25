@@ -12,7 +12,7 @@ export async function GET() {
     
     if (isNewAuth) {
       const session = await betterAuth.api.getSession({
-        headers: headers()
+        headers: await headers()
       });
       userId = session?.user?.id || null;
     } else {
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     
     if (isNewAuth) {
       const session = await betterAuth.api.getSession({
-        headers: headers()
+        headers: await headers()
       });
       userId = session?.user?.id || null;
     } else {

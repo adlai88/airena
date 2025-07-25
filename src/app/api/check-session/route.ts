@@ -6,7 +6,7 @@ export async function GET() {
   try {
     // Get session using Better Auth
     const session = await auth.api.getSession({
-      headers: headers()
+      headers: await headers()
     });
     
     if (!session) {

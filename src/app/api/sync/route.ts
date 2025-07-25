@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       if (isNewAuth) {
         // Use Better Auth
         const session = await betterAuth.api.getSession({
-          headers: headers()
+          headers: await headers()
         });
         userId = session?.user?.id || null;
       } else {

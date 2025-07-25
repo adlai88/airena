@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
           hasSession: !!session,
           userId: session?.user?.id || null,
           userEmail: session?.user?.email || null,
-          tier: session?.user?.tier || 'free'
+          tier: 'free' // Better Auth doesn't include tier in session by default
         };
       } catch (error) {
         response.betterAuth = {
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
         // Count users if table exists
         if (tableCheck.rows[0].users_table_exists) {
           const userCount = await pool.query('SELECT COUNT(*) FROM users');
-          response.database.userCount = parseInt(userCount.rows[0].count);
+          (response.database as Record<string, unknown>).userCount = parseInt(userCount.rows[0].count);
         }
         
         await pool.end();
