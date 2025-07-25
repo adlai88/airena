@@ -112,10 +112,10 @@ export class UsageTracker {
     }
 
     try {
-      // For server-side usage, we'll need to import UserService dynamically
+      // For server-side usage, we'll need to import UserServiceV2 dynamically
       // This avoids client-side import issues
-      const { UserService } = await import('./user-service');
-      return await UserService.getUserTier(userId);
+      const { UserServiceV2 } = await import('./user-service-v2');
+      return await UserServiceV2.getUserTier(userId);
     } catch (error) {
       console.error('Error getting user tier:', error);
       return 'free';

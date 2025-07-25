@@ -1,11 +1,9 @@
 /**
- * Unified UserService that works with both Clerk and Better Auth
- * Uses feature flag to determine which implementation to use
+ * Unified UserService that now directly uses UserServiceV2 (Better Auth)
+ * Since Clerk has been removed, this is now a simple re-export
  */
 
-import { UserService } from './user-service';
 import { UserServiceV2 } from './user-service-v2';
-import { isNewAuthEnabled } from './feature-flags';
 import { UserTier } from './usage-tracking';
 
 export interface UserSubscription {
@@ -17,24 +15,12 @@ export interface UserSubscription {
 }
 
 export class UnifiedUserService {
-  private static get isNewAuth(): boolean {
-    return isNewAuthEnabled();
-  }
-  
   static async getUserTier(userId: string): Promise<UserTier> {
-    if (this.isNewAuth) {
-      return UserServiceV2.getUserTier(userId);
-    } else {
-      return UserService.getUserTier(userId);
-    }
+    return UserServiceV2.getUserTier(userId);
   }
   
   static async getUserSubscription(userId: string): Promise<UserSubscription> {
-    if (this.isNewAuth) {
-      return UserServiceV2.getUserSubscription(userId);
-    } else {
-      return UserService.getUserSubscription(userId);
-    }
+    return UserServiceV2.getUserSubscription(userId);
   }
   
   static async updateUserTier(
@@ -46,45 +32,25 @@ export class UnifiedUserService {
       status?: string;
     }
   ): Promise<void> {
-    if (this.isNewAuth) {
-      return UserServiceV2.updateUserTier(userId, tier, subscriptionData);
-    } else {
-      return UserService.updateUserTier(userId, tier, subscriptionData);
-    }
+    return UserServiceV2.updateUserTier(userId, tier, subscriptionData);
   }
   
   static async hasActiveSubscription(userId: string): Promise<boolean> {
-    if (this.isNewAuth) {
-      return UserServiceV2.hasActiveSubscription(userId);
-    } else {
-      return UserService.hasActiveSubscription(userId);
-    }
+    return UserServiceV2.hasActiveSubscription(userId);
   }
   
   static async getUserByEmail(email: string) {
-    if (this.isNewAuth) {
-      return UserServiceV2.getUserByEmail(email);
-    } else {
-      return UserService.getUserByEmail(email);
-    }
+    return UserServiceV2.getUserByEmail(email);
   }
   
   static async updateUserSettings(
     userId: string,
     settings: { arenaApiKey?: string | null }
   ): Promise<void> {
-    if (this.isNewAuth) {
-      return UserServiceV2.updateUserSettings(userId, settings);
-    } else {
-      return UserService.updateUserSettings(userId, settings);
-    }
+    return UserServiceV2.updateUserSettings(userId, settings);
   }
   
   static async getArenaApiKey(userId: string): Promise<string | null> {
-    if (this.isNewAuth) {
-      return UserServiceV2.getArenaApiKey(userId);
-    } else {
-      return UserService.getUserArenaApiKey(userId);
-    }
+    return UserServiceV2.getArenaApiKey(userId);
   }
 }

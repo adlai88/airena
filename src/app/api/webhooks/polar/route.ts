@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { UserService } from '@/lib/user-service';
+import { UserServiceV2 } from '@/lib/user-service-v2';
 import { UserTier } from '@/lib/usage-tracking';
 
 // Polar.sh webhook event types
@@ -138,7 +138,7 @@ async function handleSubscriptionCreated(event: PolarWebhookEvent) {
     console.log('🔍 Subscription created - userId:', userId, 'tier:', tier);
     
     // Update user subscription in Clerk
-    await UserService.updateUserTier(userId, tier, {
+    await UserServiceV2.updateUserTier(userId, tier, {
       polarCustomerId: event.data.customer_id,
       subscriptionId: subscription_id,
       status: 'active'
@@ -164,7 +164,7 @@ async function handleSubscriptionUpdated(event: PolarWebhookEvent) {
     const tier = determineTierFromProduct(event.data.product_id, metadata);
     console.log('🔍 Subscription updated - userId:', userId, 'tier:', tier, 'status:', status);
     
-    await UserService.updateUserTier(userId, tier, {
+    await UserServiceV2.updateUserTier(userId, tier, {
       polarCustomerId: event.data.customer_id,
       subscriptionId: subscription_id,
       status: status
@@ -189,7 +189,7 @@ async function handleSubscriptionCanceled(event: PolarWebhookEvent) {
     console.log('🔍 Subscription canceled - userId:', userId);
 
     // Downgrade to free tier
-    await UserService.updateUserTier(userId, 'free', {
+    await UserServiceV2.updateUserTier(userId, 'free', {
       subscriptionId: subscription_id,
       status: 'cancelled'
     });
@@ -214,7 +214,7 @@ async function handlePaymentSucceeded(event: PolarWebhookEvent) {
     const tier = determineTierFromProduct(event.data.product_id, metadata);
     console.log('🔍 Payment succeeded - userId:', userId, 'tier:', tier);
     
-    await UserService.updateUserTier(userId, tier, {
+    await UserServiceV2.updateUserTier(userId, tier, {
       polarCustomerId: event.data.customer_id,
       status: 'active'
     });
@@ -237,7 +237,7 @@ async function handlePaymentFailed(event: PolarWebhookEvent) {
     console.log('🔍 Payment failed - userId:', userId);
 
     // Payment failed - mark subscription as past due
-    await UserService.updateUserTier(userId, 'free', {
+    await UserServiceV2.updateUserTier(userId, 'free', {
       polarCustomerId: event.data.customer_id,
       status: 'past_due'
     });
@@ -271,7 +271,7 @@ async function handleCustomerUpdated(event: PolarWebhookEvent) {
       if (['free', 'starter', 'pro'].includes(cleanTier)) {
         console.log(`🔍 Updating tier based on customer metadata: ${cleanTier}`);
         
-        await UserService.updateUserTier(userId, cleanTier, {
+        await UserServiceV2.updateUserTier(userId, cleanTier, {
           polarCustomerId: event.data.id,
           status: 'active'
         });
