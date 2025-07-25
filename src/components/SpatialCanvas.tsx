@@ -206,41 +206,56 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor, blocks, viewMode])
 
-  // Handle selection changes
+  // Handle selection changes with click delay detection
   useEffect(() => {
     if (!editor) return
 
-    const handleSelectionChange = () => {
-      // Don't process selections when modal is open
-      if (showModal) return
+    let pointerDownTime: number | null = null
+    let pointerDownShapeId: string | null = null
+
+    const handlePointerDown = () => {
+      // Check if we're pointing at a shape
+      const hoveredShapeId = editor.getHoveredShapeId()
       
-      const selectedShapeIds = editor.getSelectedShapeIds()
-      if (selectedShapeIds.length > 0) {
-        // Find the first block shape (not text shape)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const blockShapeId = Array.from(selectedShapeIds).find((id: any) => id.startsWith('shape:block-'))
-        if (blockShapeId) {
-          // Extract block ID from shape:block-123 format
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const blockId = parseInt((blockShapeId as any).replace('shape:block-', ''))
-          const block = blocks.find(b => b.id === blockId)
-          if (block) {
-            setSelectedBlock(block)
-            setShowModal(true)
-          }
-        } else {
-          setSelectedBlock(null)
-        }
-      } else {
-        setSelectedBlock(null)
+      if (hoveredShapeId && hoveredShapeId.startsWith('shape:block-')) {
+        pointerDownTime = Date.now()
+        pointerDownShapeId = hoveredShapeId
       }
     }
 
-    // Subscribe to selection changes
-    const unsubscribe = editor.store.listen(handleSelectionChange, { source: 'user' })
+    const handlePointerUp = () => {
+      if (!pointerDownTime || !pointerDownShapeId) return
+      
+      const clickDuration = Date.now() - pointerDownTime
+      const currentHoveredShapeId = editor.getHoveredShapeId()
+      
+      // Check if this is the same shape and it was a quick click (not a drag)
+      if (currentHoveredShapeId === pointerDownShapeId && clickDuration < 200) {
+        // Extract block ID from shape:block-123 format
+        const blockId = parseInt(pointerDownShapeId.replace('shape:block-', ''))
+        const block = blocks.find(b => b.id === blockId)
+        
+        if (block) {
+          setSelectedBlock(block)
+          setShowModal(true)
+          
+          // Clear selection to prevent shape from staying selected
+          editor.setSelectedShapes([])
+        }
+      }
+      
+      pointerDownTime = null
+      pointerDownShapeId = null
+    }
+
+    // Subscribe to pointer events on the container
+    const container = editor.getContainer()
+    container.addEventListener('pointerdown', handlePointerDown)
+    container.addEventListener('pointerup', handlePointerUp)
     
     return () => {
-      unsubscribe()
+      container.removeEventListener('pointerdown', handlePointerDown)
+      container.removeEventListener('pointerup', handlePointerUp)
     }
   }, [editor, blocks, showModal])
 
@@ -588,7 +603,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
             Rendering {visibleBlockCount} of {blocks.length} blocks
           </p>
           <p className="text-xs text-muted-foreground">
-            Drag blocks to arrange • Click to select
+            Drag to arrange • Quick click to view details
           </p>
         </div>
       </div>
