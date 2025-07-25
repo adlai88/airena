@@ -42,7 +42,7 @@ export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
   
   // Base URL for auth endpoints
-  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3001",
   
   // Trust the proxy headers and origins
   trustedOrigins: [
@@ -58,7 +58,31 @@ export const auth = betterAuth({
   // Email/password authentication
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false // Simplify for migration
+    requireEmailVerification: false, // Simplify for migration
+    // MVP: Console log password reset emails instead of sending
+    // TODO: Implement real email service (Resend/SendGrid) for production
+    sendResetPassword: async ({ user, url, token }) => {
+      // For development, create a direct link to our reset password page
+      const baseUrl = process.env.BETTER_AUTH_URL || "http://localhost:3001";
+      const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+      
+      console.log('==== PASSWORD RESET EMAIL ====');
+      console.log('To:', user.email);
+      console.log('Reset URL (use this):', resetUrl);
+      console.log('Better Auth URL:', url);
+      console.log('Token:', token);
+      console.log('=============================');
+      
+      // In production, you would send an actual email here
+      // Example with Resend:
+      // await resend.emails.send({
+      //   from: 'noreply@airena.io',
+      //   to: user.email,
+      //   subject: 'Reset your password',
+      //   html: `<p>Click <a href="${resetUrl}">here</a> to reset your password.</p>`
+      // });
+    },
+    resetPasswordTokenExpiresIn: 3600 // 1 hour
   },
   
   // Session configuration
@@ -94,6 +118,15 @@ export const auth = betterAuth({
       refreshToken: "refresh_token",
       idToken: "id_token",
       accessTokenExpiresAt: "expires_at",
+      createdAt: "created_at",
+      updatedAt: "updated_at"
+    }
+  },
+  
+  // Add verification table field mappings
+  verification: {
+    fields: {
+      expiresAt: "expires_at",
       createdAt: "created_at",
       updatedAt: "updated_at"
     }
