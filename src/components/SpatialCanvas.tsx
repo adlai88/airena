@@ -60,6 +60,46 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   const { resolvedTheme } = useTheme()
   const [prevTool, setPrevTool] = useState<string>('select')
   const [isAnimating, setIsAnimating] = useState(false)
+  const [pinnedMessages, setPinnedMessages] = useState<Set<string>>(new Set())
+
+  // Pin message to canvas function
+  const pinToCanvas = (message: { id: string; content: string }) => {
+    if (!editor) return
+    
+    // Get viewport center for initial placement
+    const viewport = editor.getViewportPageBounds()
+    
+    // Place in viewport center
+    const x = viewport.x + viewport.width / 2
+    const y = viewport.y + viewport.height / 2
+    
+    // Create text shape
+    editor.createShape({
+      type: 'text',
+      x,
+      y,
+      props: {
+        richText: toRichText(message.content),
+        w: 300,
+        autoSize: false,
+        font: 'sans',
+        size: 's',
+        textAlign: 'start',
+        color: 'blue', // Different color for AI responses
+      },
+      meta: {
+        type: 'ai-response',
+        messageId: message.id,
+        timestamp: Date.now()
+      }
+    })
+    
+    // Mark message as pinned
+    setPinnedMessages(prev => new Set([...prev, message.id]))
+    
+    // Optional: Close chat to focus on the pinned content
+    // setShowChat(false)
+  }
 
   // Layout calculation functions
   const calculateGridLayout = (blocks: Block[]) => {
@@ -891,6 +931,16 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                         : 'bg-muted'
                     }`}>
                       {msg.content}
+                      {msg.role === 'assistant' && !isLoading && (
+                        <button
+                          onClick={() => pinToCanvas(msg)}
+                          className={`mt-2 text-xs opacity-60 hover:opacity-100 transition-opacity block ${
+                            pinnedMessages.has(msg.id) ? 'opacity-100' : ''
+                          }`}
+                        >
+                          {pinnedMessages.has(msg.id) ? '✓ Pinned' : '📌 Pin to canvas'}
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
