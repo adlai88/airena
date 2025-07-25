@@ -62,6 +62,18 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   const [isAnimating, setIsAnimating] = useState(false)
   const [pinnedMessages, setPinnedMessages] = useState<Set<string>>(new Set())
 
+  // Check if message is an arrangement command
+  const isArrangementCommand = (message: string) => {
+    const triggers = [
+      'arrange by', 'group by', 'organize by', 
+      'layout', 'create a grid', 'sort by',
+      'arrange these', 'organize these'
+    ];
+    return triggers.some(trigger => 
+      message.toLowerCase().includes(trigger)
+    );
+  };
+
   // Pin message to canvas function
   const pinToCanvas = (message: { id: string; content: string }) => {
     if (!editor) return
@@ -972,14 +984,40 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           <div className="flex-1 overflow-y-auto p-4">
             {messages.length === 0 ? (
               <div className="text-center">
-                <p className="text-muted-foreground mb-2">
-                  Ask about the blocks on this canvas
+                <p className="text-muted-foreground mb-4">
+                  Ask about the blocks or arrange them spatially
                 </p>
                 {selectedBlock && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground mb-4">
                     Selected: &quot;{selectedBlock.title || 'Untitled'}&quot;
                   </p>
                 )}
+                <div className="space-y-2 mt-4">
+                  <p className="text-xs text-muted-foreground/70 uppercase tracking-wide">Try these:</p>
+                  {[
+                    "Arrange by theme",
+                    "Group by visual style", 
+                    "Organize by color",
+                    "Sort by type"
+                  ].map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      onClick={() => {
+                        setChatInput(suggestion);
+                        // Auto-submit
+                        setTimeout(() => {
+                          const form = document.querySelector('form');
+                          if (form) {
+                            form.dispatchEvent(new Event('submit', { bubbles: true }));
+                          }
+                        }, 100);
+                      }}
+                      className="block w-full text-left px-3 py-2 text-sm bg-muted/50 hover:bg-muted rounded-md transition-colors"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
@@ -1036,6 +1074,9 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                   `spatial-${Date.now()}-${Math.random().toString(36).substring(2)}`
                 localStorage.setItem('spatial-chat-session', sessionId)
 
+                // Check if this is an arrangement command
+                const isArrangement = isArrangementCommand(userMessage.content)
+
                 // Add spatial context to the message
                 let spatialContext = ''
                 if (selectedBlock) {
@@ -1046,6 +1087,17 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                 const visibleBlockCount = Object.keys(shapePositions).length
                 if (visibleBlockCount > 0) {
                   spatialContext += `\n[${visibleBlockCount} blocks visible on canvas]`
+                }
+
+                // For arrangement commands, add detailed block information
+                if (isArrangement) {
+                  const blockDetails = blocks.map(b => ({
+                    id: b.id,
+                    title: b.title || 'Untitled',
+                    type: b.block_type,
+                    description: b.description?.substring(0, 100)
+                  }))
+                  spatialContext += `\n\n[ARRANGEMENT_REQUEST]\nCanvas blocks:\n${JSON.stringify(blockDetails, null, 2)}\n\nAnalyze these blocks and return ONLY a JSON object with this structure:\n{\n  "groups": [\n    {\n      "theme": "Theme name",\n      "blockIds": [1, 2, 3],\n      "color": "blue"\n    }\n  ]\n}\nGroup blocks by semantic similarity based on the user's request.`
                 }
 
                 const contextualUserMessage = {
@@ -1145,6 +1197,33 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                         // If JSON parsing fails, it might be a plain text chunk
                         console.warn('Failed to parse streaming chunk:', e)
                       }
+                    }
+                  }
+                }
+                
+                // After streaming completes, check if this was an arrangement command
+                if (isArrangement && assistantContent) {
+                  // Try to extract JSON from the response
+                  const jsonMatch = assistantContent.match(/\{[\s\S]*"groups"[\s\S]*\}/);
+                  if (jsonMatch) {
+                    try {
+                      const arrangementData = JSON.parse(jsonMatch[0]);
+                      if (arrangementData.groups && Array.isArray(arrangementData.groups)) {
+                        // Execute the arrangement using existing animation system
+                        const clusters = arrangementData.groups.map((g: any, i: number) => ({
+                          id: i,
+                          label: g.theme,
+                          blockIds: g.blockIds,
+                          blockCount: g.blockIds.length
+                        }));
+                        
+                        // Use the existing similarity layout function!
+                        setTimeout(() => {
+                          applySimilarityLayoutWithData(clusters);
+                        }, 500); // Small delay to let chat update finish
+                      }
+                    } catch (parseError) {
+                      console.error('Failed to parse arrangement JSON:', parseError);
                     }
                   }
                 }
