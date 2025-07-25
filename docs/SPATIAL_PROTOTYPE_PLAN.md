@@ -4,31 +4,40 @@
 **Timeline**: July 25-27, 2025  
 **Goal**: Transform Are.na channels into self-organizing knowledge maps
 
-> **Note**: This feature has been completed and integrated into the main codebase. See [CLAUDE.md](./CLAUDE.md) for the latest project status and upcoming Phase 10.6 (Auth Migration).
+> **Note**: This feature has been completed and integrated into the main codebase. See [CLAUDE.md](../CLAUDE.md) for the latest project status.
 
-## 📊 Current Status (July 24, 2025 - Night)
+## 📊 Current Status (July 25, 2025 - FINAL)
 
 ### ✅ Completed Features
 1. **Three-Way View System**
    - Grid (default) - Clean gallery layout
-   - Similarity - K-means clustering with GPT-4 labels
+   - Similarity - Advanced K-means++ clustering with GPT-4 labels
    - Random - Regenerates on each click
 
 2. **Spatial Intelligence**
-   - pgvector-based semantic clustering
+   - pgvector-based semantic clustering with cosine distance
    - GPT-4 generated theme labels
    - Smooth animated transitions
+   - Cluster validation and merging
 
 3. **Core Canvas Features**
-   - tldraw integration with custom shapes
+   - tldraw integration with invisible shapes (opacity: 0)
    - Thumbnail optimization (Are.na API integration)
    - Spatial-aware chat integration
    - Dark mode support
+   - Modal detail view with proper event handling
 
 4. **Performance & Infrastructure**
    - ✅ Viewport culling (only renders visible blocks)
-   - ✅ Edge Function deployment (caching disabled - Deno KV not available)
+   - ✅ Edge Function deployment with improved clustering algorithm
    - ✅ Semantic clustering processing moved to Edge Function
+
+5. **UI/UX Enhancements**
+   - ✅ Vertical scroll layout for similarity view
+   - ✅ Consistent hexagonal packing pattern
+   - ✅ Fixed modal closing issues
+   - ✅ Smaller thumbnails (40px) in similarity view
+   - ✅ Left-aligned cluster labels
 
 ### 🎯 Updated Strategy: Polish Over Features (July 24, 2025 - Late Night)
 
@@ -70,10 +79,25 @@
 - ⏸️ **Canvas persistence** - Only if polish is complete
 - ⏸️ **Shareable URLs** - Depends on persistence
 
-### ✅ Latest Fixes (July 24, 2025)
+### ✅ Latest Fixes and Improvements (July 24-25, 2025)
+
+#### **July 24, 2025**
 1. **Fixed Deno KV Error** - Removed Deno KV dependencies (not available in project)
 2. **Fixed Similarity Layout** - Now applies immediately when switching from grid view
 3. **Environment Variables** - Properly configured NEXT_PUBLIC_ vars for client access
+
+#### **July 25, 2025 - Major Clustering Improvements**
+1. **K-means++ Initialization** - Implemented better centroid selection algorithm
+2. **Cosine Distance** - Switched from Euclidean to cosine distance for high-dimensional embeddings
+3. **Dynamic K Selection** - Improved formula: k = sqrt(n) * 1.2 for more granular clusters
+4. **Cluster Validation** - Added merge threshold (0.95 similarity) and small cluster handling
+5. **Embedding Parsing** - Fixed string vector parsing in Edge Function
+6. **Vertical Scroll Layout** - Implemented organic arrangement with clusters in a line
+7. **Modal Fixes** - Resolved closing issues with proper tldraw event handling
+8. **Shape Visibility** - Made tldraw shapes invisible using top-level opacity: 0
+9. **Build Warnings** - Fixed tldraw multiple instances and Next.js SWC issues
+
+**Result**: Founder-mode channel now shows 8 distinct, meaningful clusters instead of 1!
 
 ## 🎯 Submission Strategy
 
@@ -694,23 +718,44 @@ The prototype successfully validates that spatial visualization adds significant
 
 ## 🔧 Technical Implementation
 
-### **pgvector Semantic Clustering**
+### **Advanced K-means++ Clustering with pgvector**
+
+#### **Key Improvements**
+1. **K-means++ Initialization**: Better starting centroids for more stable clusters
+2. **Cosine Distance**: More appropriate for high-dimensional embeddings than Euclidean
+3. **Dynamic K Selection**: `k = Math.ceil(Math.sqrt(blocks.length) * 1.2)`
+4. **Cluster Validation**: Merges similar clusters (>0.95 cosine similarity)
+
 ```typescript
-// Fetch blocks with embeddings
-const { data: blocks } = await supabase
-  .from('blocks')
-  .select('*, embedding')
-  .eq('channel_id', channelId)
+// K-means++ initialization for better centroid selection
+function initializeCentroidsKMeansPlusPlus(
+  blocks: Array<{ id: number; embedding: number[] }>,
+  k: number
+): number[][] {
+  // Choose first centroid randomly
+  // Subsequent centroids chosen with probability proportional to squared distance
+  // This ensures better spread and more meaningful clusters
+}
 
-// Calculate similarity matrix
-const similarities = calculateCosineSimilarity(blocks)
+// Calculate cosine similarity between vectors
+function cosineSimilarity(a: number[], b: number[]): number {
+  const dotProduct = a.reduce((sum, val, i) => sum + val * b[i], 0)
+  const normA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0))
+  const normB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0))
+  return dotProduct / (normA * normB)
+}
 
-// Force-directed positioning
-const simulation = d3.forceSimulation(blocks)
-  .force('charge', d3.forceManyBody().strength(d => 
-    -100 * (1 - similarities[d.id])
-  ))
-  .force('center', d3.forceCenter(width/2, height/2))
+// Validate and merge similar clusters
+function validateAndMergeClusters(
+  blocks: Block[],
+  clusters: number[],
+  centroids: number[][],
+  minClusterSize: number = 2
+): { clusters: number[]; centroids: number[][] } {
+  // Merge clusters with >0.95 similarity
+  // Reassign small clusters to nearest large cluster
+  // Ensures meaningful, distinct groupings
+}
 ```
 
 ### **Supabase Edge Function**

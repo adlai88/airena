@@ -110,7 +110,7 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 
 ---
 
-## 🎯 **Latest Update: Phase 10.5 - Spatial Canvas (COMPLETED)**
+## 🎯 **Latest Update: Phase 10.5 - Spatial Canvas (COMPLETED & ENHANCED)**
 
 ### **Supabase LW15 Hackathon Submission**
 
@@ -122,21 +122,34 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 
 #### **🗺️ Spatial Intelligence Canvas**
 - **Three-way view system** - Grid (default), Similarity (semantic clusters), Random (exploration)
-- **K-means clustering** - Automatic semantic grouping with GPT-4 generated labels
+- **Advanced K-means++ clustering** - Improved initialization with cosine distance for better semantic grouping
+- **Organic scroll layout** - Vertical cluster arrangement for intuitive navigation
 - **Viewport culling** - Only renders visible blocks for performance
 - **Edge Function deployment** - Cluster analysis moved to Supabase Edge Function
-- **tldraw integration** - Professional canvas with drag-and-drop spatial manipulation
+- **tldraw integration** - Professional canvas with invisible shapes and drag-and-drop spatial manipulation
+- **Modal detail view** - Click thumbnails for enlarged view with proper event isolation
 - **Spatial-aware chat** - Context-aware AI chat that knows what you're looking at
 
 #### **🚀 Technical Achievements**
-- **pgvector semantic analysis** - Block similarity calculations using embeddings
+- **pgvector semantic analysis** - Block similarity calculations using cosine distance
+- **Improved clustering algorithm** - K-means++ initialization, cluster validation, merge threshold at 0.95
 - **Performance optimized** - Handles 50+ blocks smoothly with viewport culling
 - **Dark mode support** - Seamless theme integration
 - **Mobile responsive** - Works on all devices
+- **Bug fixes** - Resolved tldraw multiple instances warning, Next.js SWC issues, modal closing problems
+
+### **Latest Improvements (July 25, 2025)**
+- **K-means++ initialization** - Better centroid selection for more accurate clusters
+- **Cosine distance** - Replaced Euclidean distance for high-dimensional embeddings
+- **Dynamic k selection** - Uses sqrt(n) * 1.2 formula for optimal cluster count
+- **Cluster validation** - Merges similar clusters (>0.95 similarity) and handles small clusters
+- **Vertical scroll layout** - Organic arrangement with consistent hexagonal packing
+- **Modal enhancements** - Fixed closing issues with proper tldraw event handling
+- **Invisible shapes** - Clean visual appearance using opacity: 0 at top level
 
 ### **Ready for Hackathon**
 - Core features complete and polished
-- Edge cases handled
+- Edge cases handled (8 distinct clusters on founder-mode channel!)
 - Demo channels identified
 - Code cleaned up (removed debug logs, test files)
 
