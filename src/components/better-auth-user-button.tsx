@@ -2,9 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser, getSignOutFunction } from '@/components/auth-provider';
-import { useAuth as useClerkAuth } from '@clerk/nextjs';
-import { useNewAuth } from '@/lib/feature-flags';
+import { useUser } from '@/components/auth-provider';
 import { authClient } from '@/components/auth-provider';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -27,14 +25,10 @@ export function BetterAuthUserButton({ children }: BetterAuthUserButtonProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   
-  const isNewAuth = useNewAuth();
-  const clerkAuth = useClerkAuth();
-  const signOutFn = getSignOutFunction(isNewAuth, clerkAuth.signOut);
-  
   const handleSignOut = async () => {
     setIsLoading(true);
     try {
-      await signOutFn();
+      await authClient.signOut();
       router.push('/');
     } catch (error) {
       console.error('Sign out error:', error);

@@ -2,8 +2,6 @@
 
 import { createAuthClient } from "better-auth/react";
 import { polarClient } from "@polar-sh/better-auth";
-import { useUser as useClerkUser, useAuth as useClerkAuth } from '@clerk/nextjs';
-import { useNewAuth } from '@/lib/feature-flags';
 
 // Create Better Auth client
 // Always use window.location.origin in browser for local development
@@ -38,97 +36,42 @@ export interface AuthState {
 }
 
 /**
- * Unified useUser hook that works with both Clerk and Better Auth
- * Returns consistent User interface regardless of auth provider
+ * Unified useUser hook that uses Better Auth
+ * Returns consistent User interface
  */
 export function useUser(): User | null {
-  const isNewAuth = useNewAuth();
   const { data: session } = authClient.useSession();
-  const clerkUser = useClerkUser();
   
-  if (isNewAuth) {
-    if (!session?.user) return null;
-    
-    // Cast to include our custom fields
-    const userWithCustomFields = session.user as typeof session.user & {
-      arenaApiKey?: string | null;
-      tier?: string;
-      polarCustomerId?: string | null;
-    };
-    
-    return {
-      id: userWithCustomFields.id,
-      email: userWithCustomFields.email,
-      name: userWithCustomFields.name,
-      image: userWithCustomFields.image,
-      arenaApiKey: userWithCustomFields.arenaApiKey,
-      tier: userWithCustomFields.tier || 'free',
-      polarCustomerId: userWithCustomFields.polarCustomerId
-    };
-  } else {
-    if (!clerkUser.user) return null;
-    
-    // Clerk client-side user object may have privateMetadata or unsafeMetadata
-    const userWithMetadata = clerkUser.user as typeof clerkUser.user & { 
-      privateMetadata?: Record<string, unknown>;
-    };
-    const metadata = userWithMetadata.privateMetadata || clerkUser.user.unsafeMetadata || {};
-    
-    return {
-      id: clerkUser.user.id,
-      email: clerkUser.user.emailAddresses?.[0]?.emailAddress,
-      name: `${clerkUser.user.firstName || ''} ${clerkUser.user.lastName || ''}`.trim() || null,
-      image: clerkUser.user.imageUrl,
-      arenaApiKey: metadata.arenaApiKey as string | undefined,
-      tier: (metadata.subscriptionTier as string) || 'free',
-      polarCustomerId: metadata.polarCustomerId as string | undefined
-    };
-  }
+  if (!session?.user) return null;
+  
+  // Cast to include our custom fields
+  const userWithCustomFields = session.user as typeof session.user & {
+    arenaApiKey?: string | null;
+    tier?: string;
+    polarCustomerId?: string | null;
+  };
+  
+  return {
+    id: userWithCustomFields.id,
+    email: userWithCustomFields.email,
+    name: userWithCustomFields.name,
+    image: userWithCustomFields.image,
+    arenaApiKey: userWithCustomFields.arenaApiKey,
+    tier: userWithCustomFields.tier || 'free',
+    polarCustomerId: userWithCustomFields.polarCustomerId
+  };
 }
 
 /**
- * Unified useAuth hook that works with both Clerk and Better Auth
- * Returns consistent AuthState interface regardless of auth provider
+ * Unified useAuth hook that uses Better Auth
+ * Returns consistent auth state
  */
 export function useAuth(): AuthState {
-  const isNewAuth = useNewAuth();
   const { data: session, isPending } = authClient.useSession();
-  const clerkAuth = useClerkAuth();
   
-  if (isNewAuth) {
-    return {
-      userId: session?.user?.id,
-      isSignedIn: !!session,
-      isLoaded: !isPending
-    };
-  } else {
-    return {
-      userId: clerkAuth.userId,
-      isSignedIn: clerkAuth.isSignedIn || false,
-      isLoaded: clerkAuth.isLoaded
-    };
-  }
-}
-
-/**
- * Get sign out function based on auth provider
- * This returns a function rather than being a hook itself
- */
-export function getSignOutFunction(isNewAuth: boolean, clerkSignOut?: () => Promise<void>) {
-  if (isNewAuth) {
-    return () => authClient.signOut();
-  } else if (clerkSignOut) {
-    return clerkSignOut;
-  }
-  return async () => { console.warn('No sign out function available'); };
-}
-
-/**
- * Provider component for Better Auth
- * Only renders when Better Auth is enabled
- */
-export function BetterAuthProvider({ children }: { children: React.ReactNode }) {
-  // Better Auth client is already initialized above
-  // This component is mainly for future extensions if needed
-  return <>{children}</>;
+  return {
+    userId: session?.user?.id || null,
+    isSignedIn: !!session?.user,
+    isLoaded: !isPending
+  };
 }

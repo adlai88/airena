@@ -16,11 +16,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ChevronDown, Cog, MessageSquare, Wand2, BarChart3, CreditCard } from 'lucide-react';
-import { SignInButton, SignUpButton, UserButton as ClerkUserButton } from '@clerk/nextjs';
+import { ChevronDown, Cog, MessageSquare, Wand2, BarChart3 } from 'lucide-react';
 import { BetterAuthUserButton } from '@/components/better-auth-user-button';
 import { useAuth } from '@/components/auth-provider';
-import { useNewAuth } from '@/lib/feature-flags';
 
 interface NavigationProps {
   homeNav?: boolean;
@@ -29,15 +27,11 @@ interface NavigationProps {
 export function Navigation({ homeNav = false }: NavigationProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const isNewAuth = useNewAuth();
   
   // Use unified auth hooks
   const auth = useAuth();
   // const user = useUser(); // Not used currently
   const isSignedIn = auth.isSignedIn;
-  
-  // Choose which UserButton to use
-  const UserButton = isNewAuth ? BetterAuthUserButton : ClerkUserButton;
 
   // const isActive = (path: string) => pathname === path;
   
@@ -214,37 +208,16 @@ export function Navigation({ homeNav = false }: NavigationProps) {
               <div className="hidden sm:flex items-center gap-1 sm:gap-2">
                 <ThemeToggle />
                 {isSignedIn ? (
-                  <UserButton>
-                    <UserButton.MenuItems>
-                      <UserButton.Link
-                        label="Usage"
-                        labelIcon={<BarChart3 size={16} />}
-                        href="/usage"
-                      />
-                      <UserButton.Link
-                        label="Plan"
-                        labelIcon={<CreditCard size={16} />}
-                        href="/pricing"
-                      />
-                    </UserButton.MenuItems>
-                  </UserButton>
+                  <BetterAuthUserButton />
                 ) : (
-                  isNewAuth ? (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="font-medium min-h-[44px] sm:min-h-auto text-sm cursor-pointer"
-                      onClick={() => router.push('/sign-up')}
-                    >
-                      Sign up
-                    </Button>
-                  ) : (
-                    <SignUpButton mode="modal">
-                      <Button variant="ghost" size="sm" className="font-medium min-h-[44px] sm:min-h-auto text-sm cursor-pointer">
-                        Sign up
-                      </Button>
-                    </SignUpButton>
-                  )
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="font-medium min-h-[44px] sm:min-h-auto text-sm cursor-pointer"
+                    onClick={() => router.push('/sign-up')}
+                  >
+                    Sign up
+                  </Button>
                 )}
               </div>
             </>
@@ -256,20 +229,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                 {isSignedIn ? (
                   <div className="flex items-center gap-2">
                     <ThemeToggle />
-                    <UserButton>
-                      <UserButton.MenuItems>
-                        <UserButton.Link
-                          label="Usage"
-                          labelIcon={<BarChart3 size={16} />}
-                          href="/usage"
-                        />
-                        <UserButton.Link
-                          label="Plan"
-                          labelIcon={<CreditCard size={16} />}
-                          href="/pricing"
-                        />
-                      </UserButton.MenuItems>
-                    </UserButton>
+                    <BetterAuthUserButton />
                   </div>
                 ) : (
                   <HamburgerMenu homeNav={false} />
@@ -280,37 +240,16 @@ export function Navigation({ homeNav = false }: NavigationProps) {
               <div className="hidden sm:flex items-center gap-1 sm:gap-3">
                 <ThemeToggle />
                 {isSignedIn ? (
-                  <UserButton>
-                    <UserButton.MenuItems>
-                      <UserButton.Link
-                        label="Usage"
-                        labelIcon={<BarChart3 size={16} />}
-                        href="/usage"
-                      />
-                      <UserButton.Link
-                        label="Plan"
-                        labelIcon={<CreditCard size={16} />}
-                        href="/pricing"
-                      />
-                    </UserButton.MenuItems>
-                  </UserButton>
+                  <BetterAuthUserButton />
                 ) : (
-                  isNewAuth ? (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="font-medium"
-                      onClick={() => router.push('/sign-in')}
-                    >
-                      Sign in
-                    </Button>
-                  ) : (
-                    <SignInButton mode="modal">
-                      <Button variant="ghost" size="sm" className="font-medium">
-                        Sign in
-                      </Button>
-                    </SignInButton>
-                  )
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="font-medium"
+                    onClick={() => router.push('/sign-in')}
+                  >
+                    Sign in
+                  </Button>
                 )}
               </div>
             </>

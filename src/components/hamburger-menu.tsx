@@ -12,7 +12,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Menu, Home, User, Settings, BarChart3 } from 'lucide-react';
-import { SignInButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs';
+import { useAuth } from '@/components/auth-provider';
+import { BetterAuthUserButton } from '@/components/better-auth-user-button';
 
 interface HamburgerMenuProps {
   homeNav?: boolean;
@@ -21,7 +22,7 @@ interface HamburgerMenuProps {
 export function HamburgerMenu({ homeNav = false }: HamburgerMenuProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const { isSignedIn } = useUser();
+  const { isSignedIn } = useAuth();
 
   // Close menu when navigating
   const handleNavigation = (path: string) => {
@@ -49,17 +50,13 @@ export function HamburgerMenu({ homeNav = false }: HamburgerMenuProps) {
             {isSignedIn ? (
               <DropdownMenuItem asChild>
                 <div className="flex items-center">
-                  <UserButton />
+                  <BetterAuthUserButton />
                 </div>
               </DropdownMenuItem>
             ) : (
-              <DropdownMenuItem asChild>
-                <SignUpButton mode="modal">
-                  <div className="flex items-center cursor-pointer">
-                    <User className="mr-2 h-4 w-4" />
-                    Sign up
-                  </div>
-                </SignUpButton>
+              <DropdownMenuItem onClick={() => handleNavigation('/sign-up')}>
+                <User className="mr-2 h-4 w-4" />
+                Sign up
               </DropdownMenuItem>
             )}
           </>
@@ -81,7 +78,7 @@ export function HamburgerMenu({ homeNav = false }: HamburgerMenuProps) {
               <>
                 <DropdownMenuItem asChild>
                   <div className="flex items-center">
-                    <UserButton />
+                    <BetterAuthUserButton />
                   </div>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
@@ -90,13 +87,9 @@ export function HamburgerMenu({ homeNav = false }: HamburgerMenuProps) {
                 </DropdownMenuItem>
               </>
             ) : (
-              <DropdownMenuItem asChild>
-                <SignInButton mode="modal">
-                  <div className="flex items-center cursor-pointer">
-                    <User className="mr-2 h-4 w-4" />
-                    Sign in
-                  </div>
-                </SignInButton>
+              <DropdownMenuItem onClick={() => handleNavigation('/sign-in')}>
+                <User className="mr-2 h-4 w-4" />
+                Sign in
               </DropdownMenuItem>
             )}
           </>
