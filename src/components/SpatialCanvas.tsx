@@ -59,7 +59,6 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   const [visibleBlockCount, setVisibleBlockCount] = useState(0)
   const { resolvedTheme } = useTheme()
   const [prevTool, setPrevTool] = useState<string>('select')
-  const [previousPositions, setPreviousPositions] = useState<Record<string, {x: number, y: number}>>({})
   const [isAnimating, setIsAnimating] = useState(false)
 
   // Layout calculation functions
@@ -277,7 +276,6 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         currentPositions[block.id] = { x: (shape as any).x, y: (shape as any).y }
       }
     })
-    setPreviousPositions(currentPositions)
 
     const blockSpacing = 10 // Tighter spacing for organic feel
     
@@ -317,7 +315,6 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     })
     
     // Track final positions for animation
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const finalPositions: Record<string, {x: number, y: number, clusterId: number, indexInCluster: number}> = {}
     
     // Calculate final positions blocks
