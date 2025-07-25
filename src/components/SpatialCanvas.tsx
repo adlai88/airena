@@ -473,21 +473,45 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         // Animate after delay with smooth transition
         setTimeout(() => {
           const startTime = Date.now()
-          const duration = 800 // Animation duration in ms
+          const duration = 1200 // Longer duration for two-phase animation
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const startX = (shape as any).x
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const startY = (shape as any).y
           
+          // Calculate expansion point (move away from center)
+          const viewportCenter = { x: 700, y: 600 }
+          const directionX = startX - viewportCenter.x
+          const directionY = startY - viewportCenter.y
+          const distance = Math.sqrt(directionX * directionX + directionY * directionY)
+          const normalizedX = distance > 0 ? directionX / distance : 0
+          const normalizedY = distance > 0 ? directionY / distance : 0
+          
+          // Expansion point is 20% further from center
+          const expansionX = startX + normalizedX * 80
+          const expansionY = startY + normalizedY * 80
+          
           const animate = () => {
             const elapsed = Date.now() - startTime
             const progress = Math.min(elapsed / duration, 1)
             
-            // Easing function (ease-out cubic)
-            const eased = 1 - Math.pow(1 - progress, 3)
+            let currentX, currentY
             
-            const currentX = startX + (finalPos.x - startX) * eased
-            const currentY = startY + (finalPos.y - startY) * eased
+            if (progress < 0.4) {
+              // Phase 1: Expand outward (0-40% of animation)
+              const expandProgress = progress / 0.4
+              const eased = 1 - Math.pow(1 - expandProgress, 2) // Ease out quad
+              
+              currentX = startX + (expansionX - startX) * eased
+              currentY = startY + (expansionY - startY) * eased
+            } else {
+              // Phase 2: Contract to final position (40-100% of animation)
+              const contractProgress = (progress - 0.4) / 0.6
+              const eased = 1 - Math.pow(1 - contractProgress, 3) // Ease out cubic
+              
+              currentX = expansionX + (finalPos.x - expansionX) * eased
+              currentY = expansionY + (finalPos.y - expansionY) * eased
+            }
             
             editor.updateShape({
               id: shape.id,
@@ -536,7 +560,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       }, 200)
       
       // Mark animation as complete
-      const totalAnimationTime = clustersData.length * 150 + 1000
+      const totalAnimationTime = clustersData.length * 150 + 1500 // Adjusted for longer animation
       setTimeout(() => {
         setIsAnimating(false)
       }, totalAnimationTime)
