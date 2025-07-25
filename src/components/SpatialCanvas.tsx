@@ -444,6 +444,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     
     // Instead of deleting shapes, update existing ones or create new ones
     const existingShapes = editor.getCurrentPageShapes()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const existingShapeIds = new Set(existingShapes.map((s: any) => s.id))
     
     // Update existing block shapes
@@ -453,7 +454,9 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         const existingShape = editor.getShape(newShape.id)
         if (existingShape) {
           // Keep current position, we'll animate from here
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           newShape.x = (existingShape as any).x
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           newShape.y = (existingShape as any).y
         }
       } else {
@@ -464,6 +467,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     
     // Remove any shapes that shouldn't exist (like old labels)
     const newShapeIds = new Set(shapes.map(s => s.id))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     existingShapes.forEach((shape: any) => {
       if (!newShapeIds.has(shape.id) && shape.id.startsWith('shape:')) {
         editor.deleteShape(shape.id)
