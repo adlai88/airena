@@ -1,16 +1,20 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
-import { UserService } from '@/lib/user-service';
+import { headers } from 'next/headers';
+import { auth } from '@/lib/auth';
+import { UserServiceV2 } from '@/lib/user-service-v2';
 
 export async function GET() {
   try {
-    const { userId } = await auth();
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    const userId = session?.user?.id;
     
     if (!userId) {
       return NextResponse.json({ tier: 'free' });
     }
 
-    const tier = await UserService.getUserTier(userId);
+    const tier = await UserServiceV2.getUserTier(userId);
     
     return NextResponse.json({ tier });
   } catch (error) {

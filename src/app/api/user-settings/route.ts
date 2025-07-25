@@ -1,24 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
-import { auth as betterAuth } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
-import { UserService } from '@/lib/user-service';
 import { UserServiceV2 } from '@/lib/user-service-v2';
 
 export async function GET() {
   try {
-    const isNewAuth = process.env.NEXT_PUBLIC_USE_BETTER_AUTH === 'true';
-    let userId: string | null = null;
-    
-    if (isNewAuth) {
-      const session = await betterAuth.api.getSession({
-        headers: await headers()
-      });
-      userId = session?.user?.id || null;
-    } else {
-      const { userId: clerkUserId } = await auth();
-      userId = clerkUserId;
-    }
+    const session = await auth.api.getSession({
+      headers: await headers()
+    });
+    const userId = session?.user?.id || null;
     
     if (!userId) {
       return NextResponse.json(
@@ -28,14 +18,10 @@ export async function GET() {
     }
 
     // Check if user has an API key stored
-    const arenaApiKey = isNewAuth 
-      ? await UserServiceV2.getArenaApiKey(userId)
-      : await UserService.getUserArenaApiKey(userId);
+    const arenaApiKey = await UserServiceV2.getArenaApiKey(userId);
     const hasApiKey = !!arenaApiKey;
     
-    const tier = isNewAuth
-      ? await UserServiceV2.getUserTier(userId)
-      : (await UserService.getUserSubscription(userId)).tier;
+    const tier = await UserServiceV2.getUserTier(userId);
 
     return NextResponse.json({
       hasApiKey,

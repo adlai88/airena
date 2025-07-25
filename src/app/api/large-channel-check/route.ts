@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { UsageTracker } from '@/lib/usage-tracking';
-import { auth } from '@clerk/nextjs/server';
+import { headers } from 'next/headers';
+import { auth } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
     // Get authentication info (optional for free users)
     let userId: string | undefined = undefined;
     try {
-      const authResult = await auth();
-      userId = authResult.userId || undefined;
+      const session = await auth.api.getSession({
+        headers: await headers(),
+      });
+      userId = session?.user?.id || undefined;
     } catch {
       // No authentication required for free users
       userId = undefined;

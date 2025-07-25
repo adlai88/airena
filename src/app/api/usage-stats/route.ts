@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
 import { UsageTracker } from '@/lib/usage-tracking';
-import { auth } from '@clerk/nextjs/server';
+import { headers } from 'next/headers';
+import { auth } from '@/lib/auth';
 
 export async function GET() {
   try {
-    const { userId } = await auth();
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    const userId = session?.user?.id;
     
     if (!userId) {
       return NextResponse.json(
