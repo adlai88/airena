@@ -17,7 +17,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ChevronDown, Cog, MessageSquare, Wand2, BarChart3, CreditCard } from 'lucide-react';
-import { SignInButton, SignUpButton, UserButton as ClerkUserButton, useUser as useClerkUser } from '@clerk/nextjs';
+import { SignInButton, SignUpButton, UserButton as ClerkUserButton } from '@clerk/nextjs';
 import { BetterAuthUserButton } from '@/components/better-auth-user-button';
 import { useAuth, useUser } from '@/components/auth-provider';
 import { useNewAuth } from '@/lib/feature-flags';
@@ -33,7 +33,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
   
   // Use unified auth hooks
   const auth = useAuth();
-  const user = useUser();
+  // const user = useUser(); // Not used currently
   const isSignedIn = auth.isSignedIn;
   
   // Choose which UserButton to use

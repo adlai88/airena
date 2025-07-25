@@ -24,7 +24,7 @@ export default function BetterAuthSignIn() {
     setLoading(true);
     
     try {
-      const { data, error } = await authClient.signIn.email({
+      const { error } = await authClient.signIn.email({
         email,
         password,
       });
@@ -110,7 +110,7 @@ export default function BetterAuthSignIn() {
       </CardContent>
       <CardFooter>
         <p className="text-center text-sm text-muted-foreground w-full">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Link href="/sign-up" className="text-primary hover:underline">
             Sign up
           </Link>

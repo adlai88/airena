@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Polar } from '@polar-sh/sdk';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const polarClient = new Polar({
       accessToken: process.env.POLAR_API_KEY!,

@@ -9,7 +9,7 @@ export default function TestSignup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
 
   const testSignup = async () => {

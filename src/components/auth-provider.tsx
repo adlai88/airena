@@ -43,9 +43,10 @@ export interface AuthState {
  */
 export function useUser(): User | null {
   const isNewAuth = useNewAuth();
+  const { data: session } = authClient.useSession();
+  const clerkUser = useClerkUser();
   
   if (isNewAuth) {
-    const { data: session } = authClient.useSession();
     if (!session?.user) return null;
     
     return {
@@ -58,19 +59,18 @@ export function useUser(): User | null {
       polarCustomerId: session.user.polarCustomerId
     };
   } else {
-    const clerkUser = useClerkUser();
     if (!clerkUser.user) return null;
     
-    const metadata = clerkUser.user.privateMetadata as any || {};
+    const metadata = clerkUser.user.privateMetadata as Record<string, unknown> || {};
     
     return {
       id: clerkUser.user.id,
       email: clerkUser.user.emailAddresses?.[0]?.emailAddress,
       name: `${clerkUser.user.firstName || ''} ${clerkUser.user.lastName || ''}`.trim() || null,
       image: clerkUser.user.imageUrl,
-      arenaApiKey: metadata.arenaApiKey,
-      tier: metadata.subscriptionTier || 'free',
-      polarCustomerId: metadata.polarCustomerId
+      arenaApiKey: metadata.arenaApiKey as string | undefined,
+      tier: (metadata.subscriptionTier as string) || 'free',
+      polarCustomerId: metadata.polarCustomerId as string | undefined
     };
   }
 }
@@ -81,18 +81,16 @@ export function useUser(): User | null {
  */
 export function useAuth(): AuthState {
   const isNewAuth = useNewAuth();
+  const { data: session, isPending } = authClient.useSession();
+  const clerkAuth = useClerkAuth();
   
   if (isNewAuth) {
-    const { data: session, isPending } = authClient.useSession();
-    
     return {
       userId: session?.user?.id,
       isSignedIn: !!session,
       isLoaded: !isPending
     };
   } else {
-    const clerkAuth = useClerkAuth();
-    
     return {
       userId: clerkAuth.userId,
       isSignedIn: clerkAuth.isSignedIn || false,
@@ -102,17 +100,16 @@ export function useAuth(): AuthState {
 }
 
 /**
- * Sign out function that works with both auth providers
+ * Get sign out function based on auth provider
+ * This returns a function rather than being a hook itself
  */
-export async function signOut() {
-  const isNewAuth = useNewAuth();
-  
+export function getSignOutFunction(isNewAuth: boolean, clerkSignOut?: () => Promise<void>) {
   if (isNewAuth) {
-    await authClient.signOut();
-  } else {
-    const { signOut: clerkSignOut } = useClerkAuth();
-    await clerkSignOut();
+    return () => authClient.signOut();
+  } else if (clerkSignOut) {
+    return clerkSignOut;
   }
+  return async () => { console.warn('No sign out function available'); };
 }
 
 /**

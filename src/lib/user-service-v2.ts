@@ -135,7 +135,7 @@ export class UserServiceV2 {
     }
   ): Promise<void> {
     try {
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         tier,
         updated_at: new Date().toISOString()
       };
@@ -209,7 +209,7 @@ export class UserServiceV2 {
     settings: { arenaApiKey?: string | null }
   ): Promise<void> {
     try {
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         updated_at: new Date().toISOString()
       };
       

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authMinimal } from '@/lib/auth-minimal';
 import { toNextJsHandler } from "better-auth/next-js";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Get the handler
     const handler = toNextJsHandler(authMinimal);

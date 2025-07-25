@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false

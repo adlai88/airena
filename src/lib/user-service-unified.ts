@@ -5,7 +5,7 @@
 
 import { UserService } from './user-service';
 import { UserServiceV2 } from './user-service-v2';
-import { useNewAuth } from './feature-flags';
+import { isNewAuthEnabled } from './feature-flags';
 import { UserTier } from './usage-tracking';
 
 export interface UserSubscription {
@@ -18,7 +18,7 @@ export interface UserSubscription {
 
 export class UnifiedUserService {
   private static get isNewAuth(): boolean {
-    return useNewAuth();
+    return isNewAuthEnabled();
   }
   
   static async getUserTier(userId: string): Promise<UserTier> {

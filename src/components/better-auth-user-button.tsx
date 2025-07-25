@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser, signOut } from '@/components/auth-provider';
+import { useUser, getSignOutFunction, useAuth } from '@/components/auth-provider';
+import { useAuth as useClerkAuth } from '@clerk/nextjs';
+import { useNewAuth } from '@/lib/feature-flags';
 import { authClient } from '@/components/auth-provider';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -13,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { BarChart3, CreditCard, LogOut, Settings, User } from 'lucide-react';
+import { BarChart3, CreditCard, LogOut, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface BetterAuthUserButtonProps {
@@ -25,10 +27,14 @@ export function BetterAuthUserButton({ children }: BetterAuthUserButtonProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   
+  const isNewAuth = useNewAuth();
+  const clerkAuth = useClerkAuth();
+  const signOutFn = getSignOutFunction(isNewAuth, clerkAuth.signOut);
+  
   const handleSignOut = async () => {
     setIsLoading(true);
     try {
-      await signOut();
+      await signOutFn();
       router.push('/');
     } catch (error) {
       console.error('Sign out error:', error);

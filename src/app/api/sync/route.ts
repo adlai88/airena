@@ -5,7 +5,6 @@ import { UsageTracker } from '@/lib/usage-tracking';
 import { auth } from '@clerk/nextjs/server';
 import { auth as betterAuth } from '@/lib/auth';
 import { headers } from 'next/headers';
-import { useNewAuth } from '@/lib/feature-flags';
 
 export async function POST(req: NextRequest) {
   try {

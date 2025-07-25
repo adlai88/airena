@@ -39,7 +39,7 @@ export default function BetterAuthSignUp() {
     setLoading(true);
     
     try {
-      const { data, error } = await authClient.signUp.email({
+      const { error } = await authClient.signUp.email({
         email,
         password,
         name,

@@ -12,7 +12,7 @@ export default function TestAuthPage() {
   const auth = useAuth();
   const user = useUser();
   const authMode = getAuthMode();
-  const [testResult, setTestResult] = useState<any>(null);
+  const [testResult, setTestResult] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
   
   useEffect(() => {

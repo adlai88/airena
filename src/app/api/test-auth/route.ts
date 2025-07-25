@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     const authMode = getAuthMode();
     
     // Basic info
-    const response: any = {
+    const response: Record<string, unknown> = {
       authMode,
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV,
