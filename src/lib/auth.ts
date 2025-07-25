@@ -66,21 +66,53 @@ export const auth = betterAuth({
       const baseUrl = process.env.BETTER_AUTH_URL || "http://localhost:3001";
       const resetUrl = `${baseUrl}/reset-password?token=${token}`;
       
-      console.log('==== PASSWORD RESET EMAIL ====');
-      console.log('To:', user.email);
-      console.log('Reset URL (use this):', resetUrl);
-      console.log('Better Auth URL:', url);
-      console.log('Token:', token);
-      console.log('=============================');
+      // In development, log to console
+      if (process.env.NODE_ENV === 'development') {
+        console.log('==== PASSWORD RESET EMAIL ====');
+        console.log('To:', user.email);
+        console.log('Reset URL (use this):', resetUrl);
+        console.log('Better Auth URL:', url);
+        console.log('Token:', token);
+        console.log('=============================');
+        return;
+      }
       
-      // In production, you would send an actual email here
-      // Example with Resend:
-      // await resend.emails.send({
-      //   from: 'noreply@airena.io',
-      //   to: user.email,
-      //   subject: 'Reset your password',
-      //   html: `<p>Click <a href="${resetUrl}">here</a> to reset your password.</p>`
-      // });
+      // In production, send actual email
+      if (process.env.RESEND_API_KEY) {
+        try {
+          const { Resend } = await import('resend');
+          const resend = new Resend(process.env.RESEND_API_KEY);
+          
+          await resend.emails.send({
+            from: 'Airena <noreply@airena.io>',
+            to: user.email,
+            subject: 'Reset your password',
+            html: `
+              <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2>Reset Your Password</h2>
+                <p>You requested to reset your password. Click the button below to create a new password:</p>
+                <p style="margin: 30px 0;">
+                  <a href="${resetUrl}" style="background: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                    Reset Password
+                  </a>
+                </p>
+                <p style="color: #666; font-size: 14px;">
+                  If you didn't request this, you can safely ignore this email.
+                  <br><br>
+                  This link will expire in 1 hour.
+                </p>
+              </div>
+            `
+          });
+          console.log('Password reset email sent to:', user.email);
+        } catch (error) {
+          console.error('Failed to send password reset email:', error);
+          throw error;
+        }
+      } else {
+        console.error('RESEND_API_KEY not configured - cannot send password reset emails in production');
+        throw new Error('Email service not configured');
+      }
     },
     resetPasswordTokenExpiresIn: 3600 // 1 hour
   },
