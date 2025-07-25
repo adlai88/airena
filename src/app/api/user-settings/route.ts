@@ -39,18 +39,10 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const isNewAuth = process.env.NEXT_PUBLIC_USE_BETTER_AUTH === 'true';
-    let userId: string | null = null;
-    
-    if (isNewAuth) {
-      const session = await betterAuth.api.getSession({
-        headers: await headers()
-      });
-      userId = session?.user?.id || null;
-    } else {
-      const { userId: clerkUserId } = await auth();
-      userId = clerkUserId;
-    }
+    const session = await auth.api.getSession({
+      headers: await headers()
+    });
+    const userId = session?.user?.id || null;
     
     if (!userId) {
       return NextResponse.json(
@@ -69,7 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Store the API key in user metadata
-    await UserService.updateUserSettings(userId, { arenaApiKey });
+    await UserServiceV2.updateUserSettings(userId, { arenaApiKey });
 
     return NextResponse.json({ success: true });
 
@@ -84,7 +76,10 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE() {
   try {
-    const { userId } = await auth();
+    const session = await auth.api.getSession({
+      headers: await headers()
+    });
+    const userId = session?.user?.id || null;
     
     if (!userId) {
       return NextResponse.json(
@@ -94,7 +89,7 @@ export async function DELETE() {
     }
 
     // Remove the API key from user metadata
-    await UserService.updateUserSettings(userId, { arenaApiKey: null });
+    await UserServiceV2.updateUserSettings(userId, { arenaApiKey: null });
 
     return NextResponse.json({ success: true });
 

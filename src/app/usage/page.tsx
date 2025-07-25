@@ -53,7 +53,8 @@ export default function UsagePage() {
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const { isSignedIn, user } = useUser();
+  const user = useUser();
+  const isSignedIn = !!user;
 
   // Fetch usage stats and API key data
   useEffect(() => {
