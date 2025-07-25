@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import { Layout } from '@/components/layout'
 import SpatialCanvas from '@/components/SpatialCanvas'
 import { Spinner } from '@/components/ui/spinner'
+import 'tldraw/tldraw.css'
 
 export default function CanvasPage() {
   const params = useParams()

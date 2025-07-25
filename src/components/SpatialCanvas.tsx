@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Tldraw, toRichText } from 'tldraw'
-import 'tldraw/tldraw.css'
 import { Button } from '@/components/ui/button'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
 import { MessageSquare, X, Grid3X3, Brain, Shuffle, ExternalLink, Calendar, Tag } from 'lucide-react'
