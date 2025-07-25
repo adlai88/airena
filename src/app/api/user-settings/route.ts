@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
-import { UserServiceV2 } from '@/lib/user-service-v2';
+import { UserService } from '@/lib/user-service';
 
 export async function GET() {
   try {
@@ -18,10 +18,10 @@ export async function GET() {
     }
 
     // Check if user has an API key stored
-    const arenaApiKey = await UserServiceV2.getArenaApiKey(userId);
+    const arenaApiKey = await UserService.getArenaApiKey(userId);
     const hasApiKey = !!arenaApiKey;
     
-    const tier = await UserServiceV2.getUserTier(userId);
+    const tier = await UserService.getUserTier(userId);
 
     return NextResponse.json({
       hasApiKey,
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Store the API key in user metadata
-    await UserServiceV2.updateUserSettings(userId, { arenaApiKey });
+    await UserService.updateUserSettings(userId, { arenaApiKey });
 
     return NextResponse.json({ success: true });
 
@@ -89,7 +89,7 @@ export async function DELETE() {
     }
 
     // Remove the API key from user metadata
-    await UserServiceV2.updateUserSettings(userId, { arenaApiKey: null });
+    await UserService.updateUserSettings(userId, { arenaApiKey: null });
 
     return NextResponse.json({ success: true });
 

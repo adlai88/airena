@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
-import { UserServiceV2 } from '@/lib/user-service-v2';
+import { UserService } from '@/lib/user-service';
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     console.log(`🔧 Manual tier update for user ${userId} to ${tier}`);
 
     // Update user tier manually
-    await UserServiceV2.updateUserTier(userId, tier as 'free' | 'starter' | 'pro', {
+    await UserService.updateUserTier(userId, tier as 'free' | 'starter' | 'pro', {
       status: 'active'
     });
 

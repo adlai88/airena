@@ -39,7 +39,7 @@ export interface User {
   updatedAt: Date;
 }
 
-export class UserServiceV2 {
+export class UserService {
   /**
    * Get user by ID
    */

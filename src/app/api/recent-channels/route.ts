@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUserId } from '@/lib/auth-helpers';
 import { createClient } from '@supabase/supabase-js';
-import { UserServiceV2 } from '@/lib/user-service-v2';
+import { UserService } from '@/lib/user-service';
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   try {
     // Get user authentication and tier
     const userId = await getCurrentUserId();
-    const userTier = userId ? await UserServiceV2.getUserTier(userId) : 'free';
+    const userTier = userId ? await UserService.getUserTier(userId) : 'free';
     
     // Parse query params
     const { searchParams } = new URL(request.url);

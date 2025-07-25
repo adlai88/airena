@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
-import { UserServiceV2 } from '@/lib/user-service-v2';
+import { UserService } from '@/lib/user-service';
 
 export async function GET() {
   try {
@@ -14,7 +14,7 @@ export async function GET() {
       return NextResponse.json({ tier: 'free' });
     }
 
-    const tier = await UserServiceV2.getUserTier(userId);
+    const tier = await UserService.getUserTier(userId);
     
     return NextResponse.json({ tier });
   } catch (error) {

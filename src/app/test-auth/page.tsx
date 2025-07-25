@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth, useUser } from '@/components/auth-provider';
-import { getAuthMode } from '@/lib/feature-flags';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +10,6 @@ import { Loader2 } from 'lucide-react';
 export default function TestAuthPage() {
   const auth = useAuth();
   const user = useUser();
-  const authMode = getAuthMode();
   const [testResult, setTestResult] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
   
@@ -46,9 +44,9 @@ export default function TestAuthPage() {
         <CardContent>
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="font-medium">Auth Mode:</span>
-              <Badge variant={authMode === 'better-auth' ? 'default' : 'secondary'}>
-                {authMode}
+              <span className="font-medium">Auth System:</span>
+              <Badge variant="default">
+                Better Auth
               </Badge>
             </div>
             <div className="flex items-center gap-2">
@@ -107,25 +105,6 @@ export default function TestAuthPage() {
           )}
         </CardContent>
       </Card>
-      
-      {/* Migration Instructions */}
-      {authMode === 'clerk' && (
-        <Card className="mt-6 border-orange-200 bg-orange-50">
-          <CardHeader>
-            <CardTitle>Enable Better Auth</CardTitle>
-            <CardDescription>To test Better Auth, follow these steps:</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ol className="list-decimal list-inside space-y-2">
-              <li>Set <code className="bg-white px-1">NEXT_PUBLIC_USE_BETTER_AUTH=true</code> in your .env.local</li>
-              <li>Add required environment variables (see .env.example)</li>
-              <li>Run the database migration to create auth tables</li>
-              <li>Restart your development server</li>
-              <li>Visit this page again to verify setup</li>
-            </ol>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

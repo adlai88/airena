@@ -1,9 +1,9 @@
 /**
- * Unified UserService that now directly uses UserServiceV2 (Better Auth)
+ * Unified UserService that now directly uses UserService (Better Auth)
  * Since Clerk has been removed, this is now a simple re-export
  */
 
-import { UserServiceV2 } from './user-service-v2';
+import { UserService } from './user-service';
 import { UserTier } from './usage-tracking';
 
 export interface UserSubscription {
@@ -16,11 +16,11 @@ export interface UserSubscription {
 
 export class UnifiedUserService {
   static async getUserTier(userId: string): Promise<UserTier> {
-    return UserServiceV2.getUserTier(userId);
+    return UserService.getUserTier(userId);
   }
   
   static async getUserSubscription(userId: string): Promise<UserSubscription> {
-    return UserServiceV2.getUserSubscription(userId);
+    return UserService.getUserSubscription(userId);
   }
   
   static async updateUserTier(
@@ -32,25 +32,25 @@ export class UnifiedUserService {
       status?: string;
     }
   ): Promise<void> {
-    return UserServiceV2.updateUserTier(userId, tier, subscriptionData);
+    return UserService.updateUserTier(userId, tier, subscriptionData);
   }
   
   static async hasActiveSubscription(userId: string): Promise<boolean> {
-    return UserServiceV2.hasActiveSubscription(userId);
+    return UserService.hasActiveSubscription(userId);
   }
   
   static async getUserByEmail(email: string) {
-    return UserServiceV2.getUserByEmail(email);
+    return UserService.getUserByEmail(email);
   }
   
   static async updateUserSettings(
     userId: string,
     settings: { arenaApiKey?: string | null }
   ): Promise<void> {
-    return UserServiceV2.updateUserSettings(userId, settings);
+    return UserService.updateUserSettings(userId, settings);
   }
   
   static async getArenaApiKey(userId: string): Promise<string | null> {
-    return UserServiceV2.getArenaApiKey(userId);
+    return UserService.getArenaApiKey(userId);
   }
 }

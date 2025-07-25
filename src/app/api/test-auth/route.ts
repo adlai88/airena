@@ -1,23 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { getAuthMode } from '@/lib/feature-flags';
 import { Pool } from 'pg';
 
 // Test endpoint to verify Better Auth setup
 export async function GET(request: NextRequest) {
   try {
-    const authMode = getAuthMode();
-    
     // Basic info
     const response: Record<string, unknown> = {
-      authMode,
+      authSystem: 'better-auth',
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV,
     };
     
-    if (authMode === 'better-auth') {
-      // Test Better Auth session
-      try {
+    // Test Better Auth session
+    try {
         const session = await auth.api.getSession({
           headers: request.headers
         });
@@ -86,9 +82,6 @@ export async function GET(request: NextRequest) {
         hasBetterAuthSecret: !!process.env.BETTER_AUTH_SECRET,
         appUrl: process.env.NEXT_PUBLIC_APP_URL || 'not set'
       };
-    } else {
-      response.message = 'Clerk auth mode active. Set NEXT_PUBLIC_USE_BETTER_AUTH=true to test Better Auth.';
-    }
     
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
@@ -96,7 +89,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       error: 'Test failed',
       message: error instanceof Error ? error.message : 'Unknown error',
-      authMode: getAuthMode()
+      authSystem: 'better-auth'
     }, { status: 500 });
   }
 }

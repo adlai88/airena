@@ -1,4 +1,4 @@
-import { UserServiceV2 } from './user-service-v2';
+import { UserService } from './user-service';
 import { ArenaClient } from './arena';
 
 export interface ChannelAccessResult {
@@ -19,7 +19,7 @@ export class ChannelAccessService {
   ): Promise<ChannelAccessResult> {
     try {
       // Get user tier
-      const userTier = userId ? await UserServiceV2.getUserTier(userId) : 'free';
+      const userTier = userId ? await UserService.getUserTier(userId) : 'free';
       
       // Try to access the channel without authentication first (public channels)
       const publicClient = new ArenaClient();
@@ -57,7 +57,7 @@ export class ChannelAccessService {
           let apiKeyToUse = process.env.ARENA_API_KEY;
           
           if (userId) {
-            const userApiKey = await UserServiceV2.getArenaApiKey(userId);
+            const userApiKey = await UserService.getArenaApiKey(userId);
             if (userApiKey) {
               apiKeyToUse = userApiKey;
             }
@@ -80,7 +80,7 @@ export class ChannelAccessService {
               canAccess: false,
               isPrivate: true,
               requiresUpgrade: false,
-              message: userId && !await UserServiceV2.getArenaApiKey(userId) 
+              message: userId && !await UserService.getArenaApiKey(userId) 
                 ? 'Private channel access requires your personal Are.na API key. Configure it in Settings.'
                 : 'Channel not found or not accessible with current API key.',
               userTier
