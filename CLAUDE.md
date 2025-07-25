@@ -329,3 +329,21 @@ Based on pricing strategy: *"Shows specific, personalized value locked behind up
 **Next**: Validate community traction before Intelligence Score development
 **Goal**: Build sustainable community foundation for long-term growth
 
+---
+
+## 📧 Future Enhancements
+
+### **Email Service for Password Reset (Resend)**
+Currently, password reset emails are only logged to console in development. To enable actual email delivery in production:
+
+1. **Sign up for Resend** at https://resend.com
+2. **Verify your domain** (airena.io) in Resend dashboard
+3. **Get your API key** from Resend
+4. **Add to Vercel environment variables**:
+   - `RESEND_API_KEY` = your-resend-api-key
+   - `NODE_ENV` = production
+
+The code is already set up to use Resend when the API key is present. This will enable:
+- Password reset emails
+- Future: Welcome emails, notification emails, weekly digests
+
