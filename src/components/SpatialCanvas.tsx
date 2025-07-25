@@ -1210,7 +1210,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                       const arrangementData = JSON.parse(jsonMatch[0]);
                       if (arrangementData.groups && Array.isArray(arrangementData.groups)) {
                         // Execute the arrangement using existing animation system
-                        const clusters = arrangementData.groups.map((g: any, i: number) => ({
+                        const clusters = arrangementData.groups.map((g: { theme: string; blockIds: number[]; color?: string }, i: number) => ({
                           id: i,
                           label: g.theme,
                           blockIds: g.blockIds,
