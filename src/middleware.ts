@@ -14,8 +14,8 @@ const protectedPaths = [
 // Define auth routes that should redirect if already authenticated
 const authPaths = ['/sign-in', '/sign-up'];
 
-// Define public auth routes that should be accessible without authentication
-const publicAuthPaths = ['/forgot-password', '/reset-password'];
+// Note: /forgot-password and /reset-password are intentionally not in authPaths
+// to allow authenticated users to reset their password if needed
 
 // Check if the current path requires authentication
 function isProtectedPath(pathname: string): boolean {
