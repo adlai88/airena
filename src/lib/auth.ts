@@ -49,7 +49,10 @@ export const auth = betterAuth({
     "http://localhost:3000", 
     "http://localhost:3001", 
     "http://localhost:3002",
-    process.env.BETTER_AUTH_URL || "http://localhost:3000"
+    "https://airena.io",
+    "https://www.airena.io",
+    process.env.BETTER_AUTH_URL || "http://localhost:3000",
+    process.env.NEXT_PUBLIC_APP_URL
   ].filter(Boolean),
   
   // Email/password authentication
