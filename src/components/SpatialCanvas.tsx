@@ -2425,9 +2425,8 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                   onMouseDown={(e) => {
                     // Prevent closing when clicking inside modal
                     e.stopPropagation()
-                }
-              }}
-            >
+                  }}
+                >
               {/* Modal Content */}
               <div 
                 className="relative bg-background border rounded-lg shadow-lg max-w-4xl w-[90%] max-h-[90vh] overflow-hidden flex flex-col mx-4"
