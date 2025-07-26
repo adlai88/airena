@@ -2038,8 +2038,8 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           }
         }}
       />
-      {/* Channel info and status - bottom right */}
-      <div className="absolute bottom-18 right-4 z-50">
+      {/* Channel info and status - responsive positioning */}
+      <div className={`absolute bottom-18 z-50 ${isMobile ? 'left-4' : 'right-4'}`}>
         {isInfoCollapsed ? (
           // Collapsed state - just show icon
           <Button
@@ -2202,50 +2202,96 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         return renderedBlocks
       })()}
 
-      {/* View Mode Toggle - positioned top-center */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 flex bg-background/95 backdrop-blur border rounded-lg p-1">
-        <Button
-          variant={viewMode === 'grid' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => handleViewModeChange('grid')}
-          disabled={blocks.length === 0}
-          className="rounded-r-none"
-        >
-          <Grid3X3 className="h-4 w-4 mr-1" />
-          Grid
-        </Button>
-        <Button
-          variant={viewMode === 'cluster' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => handleViewModeChange('cluster')}
-          disabled={blocks.length === 0 || isArranging || isAnimating}
-          className="rounded-none"
-        >
-          <Network className="h-4 w-4 mr-1" />
-          {isArranging ? 'Analyzing...' : isAnimating ? 'Organizing...' : 'Cluster'}
-        </Button>
-        <Button
-          variant={viewMode === 'mood' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => handleViewModeChange('mood')}
-          disabled={blocks.length === 0}
-          className="rounded-none"
-          title="Mood board layout"
-        >
-          <Layers className="h-4 w-4 mr-1" />
-          Mood
-        </Button>
-        <Button
-          variant={showChat ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setShowChat(!showChat)}
-          className="rounded-l-none"
-          title="Chat with Aryn"
-        >
-          <MessageSquare className="h-4 w-4 mr-1" />
-          Chat
-        </Button>
-      </div>
+      {/* View Mode Toggle - responsive positioning */}
+      {isMobile ? (
+        // Mobile: vertical menu, top-right, icons only
+        <div className="absolute top-4 right-4 z-50 flex flex-col bg-background/95 backdrop-blur border rounded-lg p-1 gap-1">
+          <Button
+            variant={showChat ? 'default' : 'ghost'}
+            size="icon"
+            onClick={() => setShowChat(!showChat)}
+            title="Chat with Aryn"
+            className="h-9 w-9"
+          >
+            <MessageSquare className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewMode === 'grid' ? 'default' : 'ghost'}
+            size="icon"
+            onClick={() => handleViewModeChange('grid')}
+            disabled={blocks.length === 0}
+            title="Grid view"
+            className="h-9 w-9"
+          >
+            <Grid3X3 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewMode === 'cluster' ? 'default' : 'ghost'}
+            size="icon"
+            onClick={() => handleViewModeChange('cluster')}
+            disabled={blocks.length === 0 || isArranging || isAnimating}
+            title={isArranging ? 'Analyzing...' : isAnimating ? 'Organizing...' : 'Cluster view'}
+            className="h-9 w-9"
+          >
+            <Network className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewMode === 'mood' ? 'default' : 'ghost'}
+            size="icon"
+            onClick={() => handleViewModeChange('mood')}
+            disabled={blocks.length === 0}
+            title="Mood board layout"
+            className="h-9 w-9"
+          >
+            <Layers className="h-4 w-4" />
+          </Button>
+        </div>
+      ) : (
+        // Desktop: horizontal menu, top-center, with text
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 flex bg-background/95 backdrop-blur border rounded-lg p-1">
+          <Button
+            variant={viewMode === 'grid' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => handleViewModeChange('grid')}
+            disabled={blocks.length === 0}
+            className="rounded-r-none"
+          >
+            <Grid3X3 className="h-4 w-4 mr-1" />
+            Grid
+          </Button>
+          <Button
+            variant={viewMode === 'cluster' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => handleViewModeChange('cluster')}
+            disabled={blocks.length === 0 || isArranging || isAnimating}
+            className="rounded-none"
+          >
+            <Network className="h-4 w-4 mr-1" />
+            {isArranging ? 'Analyzing...' : isAnimating ? 'Organizing...' : 'Cluster'}
+          </Button>
+          <Button
+            variant={viewMode === 'mood' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => handleViewModeChange('mood')}
+            disabled={blocks.length === 0}
+            className="rounded-none"
+            title="Mood board layout"
+          >
+            <Layers className="h-4 w-4 mr-1" />
+            Mood
+          </Button>
+          <Button
+            variant={showChat ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setShowChat(!showChat)}
+            className="rounded-l-none"
+            title="Chat with Aryn"
+          >
+            <MessageSquare className="h-4 w-4 mr-1" />
+            Chat
+          </Button>
+        </div>
+      )}
 
 
       {/* Floating Chat Panel - Left Side */}
