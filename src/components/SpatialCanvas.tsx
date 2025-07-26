@@ -1274,8 +1274,8 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       const clusterPos = clusterPositions[parseInt(clusterId)]
       
       // Create a clean grid layout for blocks within cluster
-      const blockSize = 20 // Much smaller blocks for cleaner clusters
-      const gridSpacing = 5 // Tighter spacing between blocks in grid
+      const blockSize = 30 // Compact blocks for clean clusters
+      const gridSpacing = 6 // Spacing between blocks in grid
       
       // Calculate grid dimensions for this cluster
       const gridCols = Math.ceil(Math.sqrt(clusterBlocks.length))
