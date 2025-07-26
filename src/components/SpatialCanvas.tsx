@@ -1770,6 +1770,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       const allShapes = editor.getCurrentPageShapes()
       
       // Find shapes that match our block pattern (including duplicates)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       allShapes.forEach((shape: any) => {
         // Match both regular and duplicate shape IDs
         const match = shape.id.match(/shape:block-(\d+)(?:-dup-(\d+))?/)
