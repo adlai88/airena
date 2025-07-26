@@ -237,4 +237,118 @@ Remember: **Judges care more about the demo than the code!**
 
 ---
 
-**Last Updated**: July 26, 2025, 6:00 AM SGT
+## 🎨 Spatial Canvas Commands - Complete Guide
+
+### All Available Spatial Arrangements
+
+#### 1. Timeline Layout 📅
+**Commands**: "timeline", "chronological", "by date", "arrange chronologically"
+- Sorts blocks by creation date (oldest to newest)
+- Horizontal or vertical layout options
+- Date labels for each block
+- Perfect for seeing content evolution over time
+
+#### 2. Importance Layout ⭐
+**Commands**: "important", "larger", "emphasize", "make important items larger"
+- Sizes blocks based on importance score
+- Important items in center, less important on periphery
+- Scoring considers: title+description, content length, media type, recency
+- Creates visual hierarchy automatically
+
+#### 3. Grid Layout (Enhanced) 🔲
+**Commands**: Default view, accessible via Grid button
+- Spacing options: tight, normal, loose
+- Clean, organized arrangement
+- Equal sizing with slight variations
+- Best for overview and comparison
+
+#### 4. Magazine Layout 📰
+**Commands**: "magazine", "editorial", "magazine layout"
+- Hero image zone (2x2 grid)
+- Side columns and bottom row
+- Prioritizes images for visual impact
+- Channel title as magazine header
+- Limited to 6 blocks for clean design
+
+#### 5. Mood Board 🎨
+**Commands**: "mood board", "moodboard", "collage"
+- Organic scatter with golden ratio spiral
+- Overlapping allowed for artistic effect
+- Size variations (images 120-180px, text 60-80px)
+- Random rotation (-15° to +15°)
+- Pinterest-like aesthetic
+
+#### 6. Presentation Flow 📊
+**Commands**: "presentation", "slides", "deck", "create a presentation"
+- Groups blocks into slides (3 per slide)
+- Subtle slide backgrounds
+- Slide numbering (e.g., "Slide 1 of 5")
+- Horizontal or vertical flow
+- Great for storytelling
+
+#### 7. Shape Arrangements 🌟
+**Commands**: "shape of [shape]" or direct shape names
+
+**Available Shapes**:
+- **Circle**: "circle", "arrange in a circle"
+  - Even distribution around circumference
+- **Heart**: "heart", "heart shape"
+  - Romantic parametric heart curve
+- **Star**: "star", "star shape"
+  - 5-pointed star pattern
+- **Spiral**: "spiral", "spiral shape"
+  - Expanding outward from center
+
+#### 8. Similarity Clusters 🧠
+**Commands**: "similarity", "group by theme", "organize by topic"
+- AI-powered semantic clustering
+- Groups similar content together
+- Automatic theme labels
+- Best for discovering patterns
+
+#### 9. Random Layout 🎲
+**Commands**: Click Mood button (regenerates each time)
+- True random scatter/mood board style
+- Different every click
+- Good for breaking mental patterns
+
+### Example Commands
+
+**Basic Commands**:
+- "Arrange these in a timeline"
+- "Make important blocks larger"
+- "Create a magazine layout"
+- "Show as a mood board"
+- "Make a presentation"
+- "Arrange in a heart shape"
+
+**Advanced Commands**:
+- "Organize by visual style"
+- "Group similar content together"
+- "Create a chronological timeline"
+- "Arrange in the shape of a star"
+- "Make a collage of these blocks"
+
+### Tips for Best Results
+
+1. **Timeline**: Best with content created over time
+2. **Importance**: Works well with mixed content types
+3. **Magazine**: Ideal for image-heavy channels
+4. **Mood Board**: Perfect for inspiration/aesthetic channels
+5. **Presentation**: Great for explaining concepts step-by-step
+6. **Shapes**: Fun for special collections or branded content
+7. **Similarity**: Discovers hidden connections in your content
+
+### Technical Implementation Details
+
+- All layouts include smooth animations
+- Automatic zoom-to-fit after arrangement
+- Layouts clear previous arrangements
+- Descriptive labels for context
+- Dark mode compatible
+- Mobile responsive
+- Two-phase execution (explain → execute)
+
+---
+
+**Last Updated**: July 26, 2025, 7:00 AM SGT
