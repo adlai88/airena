@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import { Tldraw, toRichText } from 'tldraw'
 import { Button } from '@/components/ui/button'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
-import { MessageSquare, X, Grid3X3, Network, Layers, ExternalLink, Calendar, Tag, Info, ChevronDown, ChevronUp } from 'lucide-react'
+import { MessageSquare, X, Grid3X3, Network, Layers, ExternalLink, Calendar, Tag, Info, ChevronDown } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
 // Types based on actual database schema
@@ -84,6 +84,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   const dragStartPos = useRef({ x: 0, y: 0 })
   const dragStartChatPos = useRef({ x: 0, y: 0 })
   const [isInfoCollapsed, setIsInfoCollapsed] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
   // Check if message is an arrangement command
   const isArrangementCommand = (message: string) => {
@@ -1956,7 +1957,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
 
   // Handle chat panel dragging
   useEffect(() => {
-    if (!isDraggingChat) return
+    if (!isDraggingChat || isMobile) return
 
     const handleMouseMove = (e: MouseEvent) => {
       const deltaX = e.clientX - dragStartPos.current.x
@@ -1988,7 +1989,19 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [isDraggingChat])
+  }, [isDraggingChat, isMobile])
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   return (
     <div style={{ position: 'fixed', inset: 0 }}>
@@ -2246,11 +2259,12 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           
           {/* Chat Panel */}
           <div 
-            className={`fixed w-96 bg-background/95 backdrop-blur-xl border rounded-xl shadow-2xl z-[100] flex flex-col overflow-hidden animate-in slide-in-from-left-5 duration-200 ${
+            className={`fixed bg-background/95 backdrop-blur-xl border rounded-xl shadow-2xl z-[100] flex flex-col overflow-hidden animate-in slide-in-from-left-5 duration-200 ${
               isDraggingChat ? 'cursor-move shadow-3xl' : ''
-            }`}
+            } ${isMobile ? 'w-[calc(100vw-2rem)]' : 'w-96'}`}
             style={{
-              left: `${chatPosition.x}px`,
+              left: isMobile ? '1rem' : `${chatPosition.x}px`,
+              right: isMobile ? '1rem' : 'auto',
               top: `${chatPosition.y}px`,
               height: 'calc(100vh - 120px)',
               maxHeight: '600px',
@@ -2258,12 +2272,14 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
             }}
           >
           <div 
-            className="p-4 border-b flex items-center justify-between bg-muted/30 cursor-move"
+            className={`p-4 border-b flex items-center justify-between bg-muted/30 ${!isMobile ? 'cursor-move' : ''}`}
             onMouseDown={(e) => {
-              setIsDraggingChat(true)
-              dragStartPos.current = { x: e.clientX, y: e.clientY }
-              dragStartChatPos.current = { ...chatPosition }
-              e.preventDefault()
+              if (!isMobile) {
+                setIsDraggingChat(true)
+                dragStartPos.current = { x: e.clientX, y: e.clientY }
+                dragStartChatPos.current = { ...chatPosition }
+                e.preventDefault()
+              }
             }}
           >
             <h3 className="font-semibold select-none">Chat with Aryn</h3>
