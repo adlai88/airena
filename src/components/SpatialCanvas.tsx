@@ -288,7 +288,6 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     })).sort((a, b) => b.importance - a.importance)
 
     const baseSize = 60
-    const padding = 200
     const viewportWidth = 1600
     
     // Use a circular/spiral layout with important items in center
