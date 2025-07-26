@@ -1230,11 +1230,9 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       }
     })
 
-    const blockSpacing = 10 // Tighter spacing for organic feel
-    
     // Create a vertical scroll layout
     const centerX = 700 // Shifted left to center the cluster + label unit
-    const clusterSpacing = 250 // Reduced vertical spacing between clusters for tighter layout
+    const clusterSpacing = 200 // Vertical spacing between clusters
     const startY = 200 // Starting Y position
     
     const clusterPositions: Record<number, { x: number; y: number }> = {}
@@ -1275,32 +1273,37 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       const cluster = clustersData.find(c => c.id === parseInt(clusterId))
       const clusterPos = clusterPositions[parseInt(clusterId)]
       
-      // Create a more organic, hexagonal packing for blocks within cluster
-      const blockSize = 40 // Even smaller blocks for similarity view
+      // Create a clean grid layout for blocks within cluster
+      const blockSize = 30 // Smaller blocks for cleaner clusters
+      const gridSpacing = 8 // Spacing between blocks in grid
+      
+      // Calculate grid dimensions for this cluster
+      const gridCols = Math.ceil(Math.sqrt(clusterBlocks.length))
+      const gridRows = Math.ceil(clusterBlocks.length / gridCols)
+      
+      // Calculate grid dimensions to center it
+      const gridWidth = gridCols * blockSize + (gridCols - 1) * gridSpacing
+      const gridHeight = gridRows * blockSize + (gridRows - 1) * gridSpacing
+      const gridStartX = -gridWidth / 2
+      const gridStartY = -gridHeight / 2
       
       clusterBlocks.forEach((block, index) => {
-        // Consistent hexagonal packing pattern for all clusters
-        let x = 0
-        let y = 0
+        // Position in grid
+        const col = index % gridCols
+        const row = Math.floor(index / gridCols)
         
-        if (index === 0) {
-          // Center block
-          x = 0
-          y = 0
-        } else {
-          // Calculate position in hexagonal pattern
-          const ringsComplete = Math.floor((Math.sqrt(1 + 8 * index) - 1) / 2)
-          const posInRing = index - (ringsComplete * (ringsComplete + 1) / 2)
-          const totalInRing = ringsComplete * 6
-          
-          const angle = (posInRing / totalInRing) * Math.PI * 2
-          const radius = ringsComplete * (blockSize + blockSpacing)
-          
-          x = Math.cos(angle) * radius
-          y = Math.sin(angle) * radius
+        // Calculate position with proper spacing
+        const x = gridStartX + col * (blockSize + gridSpacing) + blockSize / 2
+        const y = gridStartY + row * (blockSize + gridSpacing) + blockSize / 2
+        
+        // Use fixed size for all blocks in cluster view
+        const typeConfig = {
+          geo: getBlockTypeConfig(block, blockSize).geo,
+          w: blockSize,
+          h: blockSize,
+          color: getBlockTypeConfig(block, blockSize).color,
+          fill: 'none'
         }
-        
-        const typeConfig = getBlockTypeConfig(block, blockSize)
         
         // Store final position
         finalPositions[block.id] = {
@@ -1332,9 +1335,9 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       
       // Add cluster label with consistent left alignment
       if (cluster) {
-        // Calculate max cluster width to position label safely beyond it
-        const maxClusterRadius = Math.ceil(Math.sqrt(clusterBlocks.length)) * (blockSize + blockSpacing)
-        const labelX = centerX + maxClusterRadius + 100 // Increased distance from cluster edge to prevent overlap
+        // Calculate actual cluster width to position label safely beyond it
+        const clusterWidth = gridWidth
+        const labelX = centerX + clusterWidth / 2 + 40 // Position label to the right of the grid
         
         labelShapes.push({
           id: `shape:cluster-label-${cluster.id}`,
