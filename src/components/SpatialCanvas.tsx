@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import { Tldraw, toRichText } from 'tldraw'
 import { Button } from '@/components/ui/button'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
-import { MessageSquare, X, Grid3X3, Network, Layers, ExternalLink, Calendar, Tag } from 'lucide-react'
+import { MessageSquare, X, Grid3X3, Network, Layers, ExternalLink, Calendar, Tag, Info, ChevronDown, ChevronUp } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
 // Types based on actual database schema
@@ -83,6 +83,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   const [isDraggingChat, setIsDraggingChat] = useState(false)
   const dragStartPos = useRef({ x: 0, y: 0 })
   const dragStartChatPos = useRef({ x: 0, y: 0 })
+  const [isInfoCollapsed, setIsInfoCollapsed] = useState(false)
 
   // Check if message is an arrangement command
   const isArrangementCommand = (message: string) => {
@@ -2026,12 +2027,39 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       />
       {/* Channel info and status - bottom right */}
       <div className="absolute bottom-18 right-4 z-50">
-        <div className="bg-background/80 backdrop-blur-sm border rounded-lg px-3 py-2">
-          <h3 className="font-semibold text-sm mb-1">{channelInfo?.title || 'Channel'}</h3>
-          <p className="text-xs text-muted-foreground">{blocks.length} blocks loaded</p>
-          <p className="text-xs text-muted-foreground">Rendering {visibleBlockCount} of {blocks.length}</p>
-          <p className="text-xs text-muted-foreground mt-1">Drag to arrange • Quick click to view</p>
-        </div>
+        {isInfoCollapsed ? (
+          // Collapsed state - just show icon
+          <Button
+            size="icon"
+            variant="outline"
+            className="h-10 w-10 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm hover:shadow-md transition-all"
+            onClick={() => setIsInfoCollapsed(false)}
+            title="Show channel info"
+          >
+            <Info className="h-4 w-4" />
+          </Button>
+        ) : (
+          // Expanded state - full info
+          <div className="bg-background/80 backdrop-blur-sm border rounded-lg shadow-sm animate-in slide-in-from-bottom-2 duration-200">
+            <div className="px-3 pt-2 pb-1">
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="font-semibold text-sm">{channelInfo?.title || 'Channel'}</h3>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-5 w-5 -mt-0.5 -mr-1"
+                  onClick={() => setIsInfoCollapsed(true)}
+                  title="Collapse info"
+                >
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">{blocks.length} blocks loaded</p>
+              <p className="text-xs text-muted-foreground">Rendering {visibleBlockCount} of {blocks.length}</p>
+              <p className="text-xs text-muted-foreground mt-1">Drag to arrange • Quick click to view</p>
+            </div>
+          </div>
+        )}
       </div>
       
       
