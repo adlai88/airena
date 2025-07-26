@@ -1232,7 +1232,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
 
     // Create a vertical scroll layout
     const centerX = 700 // Shifted left to center the cluster + label unit
-    const clusterSpacing = 200 // Vertical spacing between clusters
+    const clusterSpacing = 150 // Reduced vertical spacing for smaller clusters
     const startY = 200 // Starting Y position
     
     const clusterPositions: Record<number, { x: number; y: number }> = {}
@@ -1274,8 +1274,8 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       const clusterPos = clusterPositions[parseInt(clusterId)]
       
       // Create a clean grid layout for blocks within cluster
-      const blockSize = 30 // Smaller blocks for cleaner clusters
-      const gridSpacing = 8 // Spacing between blocks in grid
+      const blockSize = 20 // Much smaller blocks for cleaner clusters
+      const gridSpacing = 5 // Tighter spacing between blocks in grid
       
       // Calculate grid dimensions for this cluster
       const gridCols = Math.ceil(Math.sqrt(clusterBlocks.length))
@@ -1292,16 +1292,19 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         const col = index % gridCols
         const row = Math.floor(index / gridCols)
         
-        // Calculate position with proper spacing
+        // Calculate position with proper spacing - center of each cell
         const x = gridStartX + col * (blockSize + gridSpacing) + blockSize / 2
         const y = gridStartY + row * (blockSize + gridSpacing) + blockSize / 2
         
-        // Use fixed size for all blocks in cluster view
+        // Get basic type config but override size
+        const baseTypeConfig = getBlockTypeConfig(block, blockSize)
+        
+        // Force fixed size for all blocks in cluster view
         const typeConfig = {
-          geo: getBlockTypeConfig(block, blockSize).geo,
-          w: blockSize,
-          h: blockSize,
-          color: getBlockTypeConfig(block, blockSize).color,
+          geo: baseTypeConfig.geo,
+          w: blockSize,  // Force uniform width
+          h: blockSize,  // Force uniform height
+          color: baseTypeConfig.color,
           fill: 'none'
         }
         
@@ -1359,37 +1362,17 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       }
     })
     
-    // Instead of deleting shapes, update existing ones or create new ones
+    // Clear all existing shapes for cluster view to ensure proper sizing
     const existingShapes = editor.getCurrentPageShapes()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const existingShapeIds = new Set(existingShapes.map((s: any) => s.id))
+    const shapesToDelete = existingShapes.filter((shape: any) => shape.id.startsWith('shape:'))
+    if (shapesToDelete.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      editor.deleteShapes(shapesToDelete.map((s: any) => s.id))
+    }
     
-    // Update existing block shapes
-    shapes.forEach(newShape => {
-      if (existingShapeIds.has(newShape.id)) {
-        // Shape exists, just store its target position - we'll animate it
-        const existingShape = editor.getShape(newShape.id)
-        if (existingShape) {
-          // Keep current position, we'll animate from here
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          newShape.x = (existingShape as any).x
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          newShape.y = (existingShape as any).y
-        }
-      } else {
-        // Create new shape at starting position
-        editor.createShape(newShape)
-      }
-    })
-    
-    // Remove any shapes that shouldn't exist (like old labels)
-    const newShapeIds = new Set(shapes.map(s => s.id))
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    existingShapes.forEach((shape: any) => {
-      if (!newShapeIds.has(shape.id) && shape.id.startsWith('shape:')) {
-        editor.deleteShape(shape.id)
-      }
-    })
+    // Create all shapes fresh with correct sizes
+    editor.createShapes(shapes)
     
     // Create label shapes (they're new)
     editor.createShapes(labelShapes)
@@ -2142,17 +2125,26 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                   />
                 </div>
               ) : (
-                <div className="w-full h-full bg-white/90 dark:bg-gray-800/90 border-2 border-gray-300 dark:border-gray-600 p-2 flex flex-col items-center justify-center">
-                  <p className="text-xs text-center line-clamp-2 font-medium mb-1 text-gray-800 dark:text-gray-200">
-                    {block.title || 'Untitled'}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {block.block_type}
-                  </p>
+                <div className="w-full h-full bg-white/90 dark:bg-gray-800/90 border border-gray-300 dark:border-gray-600 flex items-center justify-center">
+                  {/* Only show type icon/letter for very small blocks */}
+                  {screenW < 40 ? (
+                    <span className="text-[10px] font-medium text-gray-600 dark:text-gray-400">
+                      {block.block_type.charAt(0)}
+                    </span>
+                  ) : (
+                    <div className="p-1 flex flex-col items-center justify-center">
+                      <p className="text-xs text-center line-clamp-2 font-medium mb-1 text-gray-800 dark:text-gray-200">
+                        {block.title || 'Untitled'}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {block.block_type}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
-              {/* Title overlay for blocks with thumbnails */}
-              {imageUrl && !brokenImages.has(imageUrl) && (
+              {/* Title overlay for blocks with thumbnails - hide for very small blocks */}
+              {imageUrl && !brokenImages.has(imageUrl) && screenW >= 40 && (
                 <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-1">
                   <p className="text-xs truncate">{block.title || block.block_type}</p>
                 </div>
