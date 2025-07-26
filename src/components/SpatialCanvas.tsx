@@ -2307,13 +2307,15 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           <div 
             className={`fixed bg-background/95 backdrop-blur-xl border rounded-xl shadow-2xl z-[100] flex flex-col overflow-hidden animate-in slide-in-from-left-5 duration-200 ${
               isDraggingChat ? 'cursor-move shadow-3xl' : ''
-            } ${isMobile ? 'w-[calc(100vw-2rem)]' : 'w-96'}`}
+            } ${isMobile ? 'w-[calc(100vw-2rem)]' : 'w-96 resize-y'}`}
             style={{
               left: isMobile ? '1rem' : `${chatPosition.x}px`,
               right: isMobile ? '1rem' : 'auto',
               top: `${chatPosition.y}px`,
               height: isMobile ? 'calc(100vh - 200px)' : 'calc(100vh - 120px)',
-              maxHeight: isMobile ? '400px' : '600px',
+              minHeight: isMobile ? undefined : 'calc(100vh - 120px)',
+              maxHeight: isMobile ? '400px' : '80vh',
+              resize: isMobile ? 'none' : 'vertical',
               transition: isDraggingChat ? 'none' : 'box-shadow 0.2s'
             }}
           >
@@ -2699,6 +2701,13 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
               />
             </form>
           </div>
+        </div>
+          {/* Resize handle - desktop only */}
+          {!isMobile && (
+            <div className="absolute bottom-0 left-0 right-0 h-3 bg-transparent hover:bg-muted/20 cursor-ns-resize transition-colors flex items-center justify-center rounded-b-xl">
+              <div className="w-12 h-0.5 bg-muted-foreground/30 rounded-full" />
+            </div>
+          )}
         </div>
         </>
       )}
