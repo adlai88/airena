@@ -393,7 +393,6 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   const calculateMoodBoardLayout = (blocks: Block[]) => {
     const viewportWidth = 1600
     const viewportHeight = 1200
-    const padding = 100
     
     // Sort blocks - images first and larger
     const sortedBlocks = [...blocks].sort((a, b) => {
@@ -464,6 +463,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       slides.push(blocks.slice(i, i + blocksPerSlide))
     }
     
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const shapes: any[] = []
     
     slides.forEach((slideBlocks, slideIndex) => {
@@ -1862,7 +1862,8 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                   // Determine layout type from message
                   let layoutType = 'similarity'
                   const lowerMessage = userMessage.content.toLowerCase()
-                  let layoutParams: any = {}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  const layoutParams: any = {}
                   
                   if (lowerMessage.includes('timeline') || 
                       lowerMessage.includes('chronological') ||
