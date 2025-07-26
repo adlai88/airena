@@ -213,17 +213,50 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     const baseSize = 80
     const cols = Math.ceil(Math.sqrt(blocks.length))
     
+    // First pass: calculate actual dimensions for each block
+    const blockConfigs = blocks.map(block => getBlockTypeConfig(block, baseSize))
+    
+    // Calculate max width for each column and max height for each row
+    const columnWidths: number[] = Array(cols).fill(0)
+    const rowHeights: number[] = Array(Math.ceil(blocks.length / cols)).fill(0)
+    
+    blocks.forEach((block, index) => {
+      const col = index % cols
+      const row = Math.floor(index / cols)
+      const config = blockConfigs[index]
+      
+      columnWidths[col] = Math.max(columnWidths[col], config.w)
+      rowHeights[row] = Math.max(rowHeights[row], config.h)
+    })
+    
+    // Calculate cumulative positions
+    const columnX: number[] = [padding]
+    for (let i = 1; i < cols; i++) {
+      columnX[i] = columnX[i - 1] + columnWidths[i - 1] + space
+    }
+    
+    const rowY: number[] = [padding]
+    for (let i = 1; i < rowHeights.length; i++) {
+      rowY[i] = rowY[i - 1] + rowHeights[i - 1] + space
+    }
+    
+    // Second pass: position blocks with proper spacing
     return blocks.map((block, index) => {
       const col = index % cols
       const row = Math.floor(index / cols)
+      const typeConfig = blockConfigs[index]
       
-      const typeConfig = getBlockTypeConfig(block, baseSize)
+      // Center blocks within their grid cell
+      const cellWidth = columnWidths[col]
+      const cellHeight = rowHeights[row]
+      const xOffset = (cellWidth - typeConfig.w) / 2
+      const yOffset = (cellHeight - typeConfig.h) / 2
       
       return {
         id: `shape:block-${block.id}`,
         type: 'geo',
-        x: padding + col * (baseSize + space),
-        y: padding + row * (baseSize + space),
+        x: columnX[col] + xOffset,
+        y: rowY[row] + yOffset,
         opacity: 0, // Make shape invisible
         props: {
           geo: typeConfig.geo,
