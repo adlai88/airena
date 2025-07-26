@@ -1672,7 +1672,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           />
           
           {/* Chat Panel */}
-          <div className="fixed left-4 top-20 bottom-4 w-96 bg-background/95 backdrop-blur-xl border rounded-xl shadow-2xl z-[100] flex flex-col overflow-hidden animate-in slide-in-from-left-5 duration-200">
+          <div className="fixed left-4 top-20 bottom-32 w-96 bg-background/95 backdrop-blur-xl border rounded-xl shadow-2xl z-[100] flex flex-col overflow-hidden animate-in slide-in-from-left-5 duration-200">
           <div className="p-4 border-b flex items-center justify-between bg-muted/30">
             <h3 className="font-semibold">Chat with Aryn</h3>
             <Button
