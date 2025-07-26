@@ -216,42 +216,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     })
   }
 
-  const calculateRandomLayout = (blocks: Block[]) => {
-    const viewportWidth = 2000
-    const viewportHeight = 1500
-    const baseSize = 80
-    
-    // Add randomness that changes each time
-    const randomSeed = Date.now()
-    
-    return blocks.map((block) => {
-      // Use combination of block ID and current time for true randomness
-      const seed = block.id + randomSeed
-      const random1 = ((seed * 9301 + 49297) % 233280) / 233280
-      const random2 = ((seed * 49297 + 233280) % 9301) / 9301
-      
-      // Scatter blocks across the viewport
-      const x = 200 + random1 * (viewportWidth - 400)
-      const y = 200 + random2 * (viewportHeight - 400)
-      
-      const typeConfig = getBlockTypeConfig(block, baseSize)
-      
-      return {
-        id: `shape:block-${block.id}`,
-        type: 'geo',
-        x: x,
-        y: y,
-        opacity: 0, // Make shape invisible
-        props: {
-          geo: typeConfig.geo,
-          w: typeConfig.w,
-          h: typeConfig.h,
-          color: typeConfig.color,
-          fill: 'none'
-        }
-      }
-    })
-  }
+  // Removed calculateRandomLayout - using calculateMoodBoardLayout instead for 'mood' view mode
 
   const calculateTimelineLayout = (blocks: Block[], direction: 'horizontal' | 'vertical' = 'horizontal') => {
     // Sort blocks by creation date
