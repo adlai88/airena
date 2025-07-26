@@ -2415,12 +2415,12 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
               <div className="p-4 space-y-4">
                 {messages.map((msg) => (
                   <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[80%] rounded-lg p-3 ${
+                    <div className={`max-w-[80%] rounded-lg p-3 break-words overflow-hidden ${
                       msg.role === 'user' 
                         ? 'bg-primary text-primary-foreground' 
                         : 'bg-muted'
                     }`}>
-                      {msg.content}
+                      <div className="whitespace-pre-wrap break-words">{msg.content}</div>
                       {msg.role === 'assistant' && !isLoading && (
                         <div className="mt-2 space-y-2">
                           {pendingArrangement && pendingArrangement.messageId === msg.id && (
