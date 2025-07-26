@@ -504,173 +504,140 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     return shapes
   }
 
-  // Generate AI annotations for mood board
+  // Generate decorative annotations for mood board
   const generateMoodBoardAnnotations = async (blockShapes: Array<{id: string, x: number, y: number, rotation: number}>) => {
     if (!editor || !blocks.length || !showAnnotations) return
     
     try {
-      // Group blocks by proximity (simple clustering)
-      const clusters: Array<{blocks: Block[], center: {x: number, y: number}, bounds: {minX: number, maxX: number, minY: number, maxY: number}}> = []
-      const clusterRadius = 300
-      
-      blockShapes.forEach((shape, index) => {
-        const block = blocks[index]
-        if (!block) return
-        
-        // Find nearby cluster
-        let foundCluster = false
-        for (const cluster of clusters) {
-          const dx = shape.x - cluster.center.x
-          const dy = shape.y - cluster.center.y
-          const distance = Math.sqrt(dx * dx + dy * dy)
-          
-          if (distance < clusterRadius) {
-            cluster.blocks.push(block)
-            // Update cluster bounds
-            cluster.bounds.minX = Math.min(cluster.bounds.minX, shape.x)
-            cluster.bounds.maxX = Math.max(cluster.bounds.maxX, shape.x + 100)
-            cluster.bounds.minY = Math.min(cluster.bounds.minY, shape.y)
-            cluster.bounds.maxY = Math.max(cluster.bounds.maxY, shape.y + 100)
-            // Update center
-            cluster.center.x = (cluster.bounds.minX + cluster.bounds.maxX) / 2
-            cluster.center.y = (cluster.bounds.minY + cluster.bounds.maxY) / 2
-            foundCluster = true
-            break
-          }
-        }
-        
-        if (!foundCluster) {
-          clusters.push({
-            blocks: [block],
-            center: { x: shape.x, y: shape.y },
-            bounds: { minX: shape.x, maxX: shape.x + 100, minY: shape.y, maxY: shape.y + 100 }
-          })
-        }
-      })
-      
-      // Only annotate if we have meaningful clusters (at least 2 blocks)
-      const meaningfulClusters = clusters.filter(c => c.blocks.length >= 2)
-      if (meaningfulClusters.length === 0) return
-      
-      // Prepare cluster descriptions for AI
-      const clusterDescriptions = meaningfulClusters.map((cluster, i) => ({
-        id: i,
-        blockCount: cluster.blocks.length,
-        types: [...new Set(cluster.blocks.map(b => b.block_type))].join(', '),
-        titles: cluster.blocks.map(b => b.title || 'Untitled').slice(0, 3).join(', '),
-        content: cluster.blocks.map(b => b.content || b.description || '').slice(0, 3).join(' ').substring(0, 200)
-      }))
-      
-      // Call AI to generate labels
-      const prompt = `Analyze these content clusters and suggest very short (1-3 word) theme labels:
-${JSON.stringify(clusterDescriptions, null, 2)}
-
-Return ONLY a JSON array of strings, one label per cluster. Keep labels concise and insightful. Example: ["Design Systems", "Audio Tools", "Inspiration"]`
-      
-      // For now, we'll use the existing chat API with a special system prompt
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [{ role: 'user', content: prompt }],
-          channelSlug: channelInfo.slug,
-          sessionId: 'annotation-' + Date.now(),
-          systemPrompt: 'You are a concise labeling assistant. Return only JSON arrays of short labels.'
-        })
-      })
-      
-      if (!response.ok) throw new Error('Failed to generate annotations')
-      
-      // Parse streaming response
-      const reader = response.body?.getReader()
-      if (!reader) return
-      
-      const decoder = new TextDecoder()
-      let fullResponse = ''
-      
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        
-        const chunk = decoder.decode(value)
-        const lines = chunk.split('\n')
-        
-        for (const line of lines) {
-          if (line.trim()) {
-            try {
-              const data = JSON.parse(line)
-              if (data.type === 'text') {
-                fullResponse += data.content
-              }
-            } catch {
-              // Skip invalid JSON lines
-            }
-          }
-        }
-      }
-      
-      // Extract JSON array from response
-      const jsonMatch = fullResponse.match(/\[[^\]]*\]/)
-      if (!jsonMatch) return
-      
-      const labels = JSON.parse(jsonMatch[0]) as string[]
-      
-      // Create annotation shapes
+      // Create decorative annotation shapes
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const annotationShapes: Array<any> = []
       
-      meaningfulClusters.forEach((cluster, i) => {
-        const label = labels[i] || 'Group ' + (i + 1)
-        
-        // Add cluster boundary (subtle ellipse)
-        const width = cluster.bounds.maxX - cluster.bounds.minX + 60
-        const height = cluster.bounds.maxY - cluster.bounds.minY + 60
-        
-        annotationShapes.push({
-          id: `shape:annotation-boundary-${i}`,
-          type: 'geo',
-          x: cluster.bounds.minX - 30,
-          y: cluster.bounds.minY - 30,
-          opacity: 0.1,
-          props: {
-            geo: 'ellipse',
-            w: width,
-            h: height,
-            color: 'grey',
-            fill: 'solid',
-            dash: 'draw'
-          }
-        })
-        
-        // Add label
-        annotationShapes.push({
-          id: `shape:annotation-label-${i}`,
-          type: 'text',
-          x: cluster.center.x - 50,
-          y: cluster.bounds.minY - 60,
-          opacity: 0.7,
-          props: {
-            richText: toRichText(label),
-            color: 'grey',
-            size: 'm',
-            font: 'serif',
-            textAlign: 'middle'
-          }
-        })
+      // Get canvas bounds from block positions
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
+      blockShapes.forEach(shape => {
+        minX = Math.min(minX, shape.x)
+        maxX = Math.max(maxX, shape.x + 150)
+        minY = Math.min(minY, shape.y)
+        maxY = Math.max(maxY, shape.y + 150)
       })
       
-      // Add a subtle "AI insights" indicator
+      // Add random decorative elements
+      const elementCount = Math.min(8, Math.floor(blocks.length / 4))
+      
+      for (let i = 0; i < elementCount; i++) {
+        const elementType = Math.floor(Math.random() * 4)
+        
+        switch (elementType) {
+          case 0: // Highlight circles
+            const circleX = minX + Math.random() * (maxX - minX)
+            const circleY = minY + Math.random() * (maxY - minY)
+            annotationShapes.push({
+              id: `shape:annotation-circle-${i}`,
+              type: 'geo',
+              x: circleX,
+              y: circleY,
+              rotation: Math.random() * Math.PI * 2,
+              opacity: 0.1,
+              props: {
+                geo: 'ellipse',
+                w: 100 + Math.random() * 100,
+                h: 100 + Math.random() * 100,
+                color: ['red', 'blue', 'green', 'violet', 'orange'][Math.floor(Math.random() * 5)],
+                fill: 'solid',
+                dash: 'draw'
+              }
+            })
+            break
+            
+          case 1: // Connecting lines
+            if (blockShapes.length > 1) {
+              const fromBlock = blockShapes[Math.floor(Math.random() * blockShapes.length)]
+              const toBlock = blockShapes[Math.floor(Math.random() * blockShapes.length)]
+              if (fromBlock !== toBlock) {
+                // Create a simple line using a thin rectangle
+                const dx = toBlock.x - fromBlock.x
+                const dy = toBlock.y - fromBlock.y
+                const length = Math.sqrt(dx * dx + dy * dy)
+                const angle = Math.atan2(dy, dx)
+                
+                annotationShapes.push({
+                  id: `shape:annotation-line-${i}`,
+                  type: 'geo',
+                  x: fromBlock.x + 50,
+                  y: fromBlock.y + 50,
+                  rotation: angle,
+                  opacity: 0.2,
+                  props: {
+                    geo: 'rectangle',
+                    w: length,
+                    h: 2,
+                    color: 'grey',
+                    fill: 'solid',
+                    dash: 'draw'
+                  }
+                })
+              }
+            }
+            break
+            
+          case 2: // Text annotations
+            const words = ['explore', 'connect', 'inspire', 'create', 'discover', 'imagine', 'build', 'design']
+            const word = words[Math.floor(Math.random() * words.length)]
+            const textX = minX + Math.random() * (maxX - minX)
+            const textY = minY + Math.random() * (maxY - minY)
+            annotationShapes.push({
+              id: `shape:annotation-text-${i}`,
+              type: 'text',
+              x: textX,
+              y: textY,
+              rotation: (Math.random() - 0.5) * 0.3,
+              opacity: 0.3,
+              props: {
+                richText: toRichText(word),
+                color: 'grey',
+                size: 'l',
+                font: 'serif',
+                textAlign: 'middle'
+              }
+            })
+            break
+            
+          case 3: // Accent rectangles
+            const rectX = minX + Math.random() * (maxX - minX)
+            const rectY = minY + Math.random() * (maxY - minY)
+            annotationShapes.push({
+              id: `shape:annotation-rect-${i}`,
+              type: 'geo',
+              x: rectX,
+              y: rectY,
+              rotation: Math.random() * Math.PI * 2,
+              opacity: 0.05,
+              props: {
+                geo: 'rectangle',
+                w: 80 + Math.random() * 120,
+                h: 80 + Math.random() * 120,
+                color: 'yellow',
+                fill: 'solid',
+                dash: 'solid'
+              }
+            })
+            break
+        }
+      }
+      
+      // Add mood indicator
       annotationShapes.push({
         id: 'shape:ai-indicator',
         type: 'text',
         x: 100,
         y: 50,
-        opacity: 0.5,
+        opacity: 0.4,
         props: {
-          richText: toRichText('✨ AI-discovered themes'),
+          richText: toRichText('✨ mood board'),
           color: 'grey',
           size: 's',
-          font: 'sans',
+          font: 'serif',
           textAlign: 'start'
         }
       })
@@ -685,7 +652,7 @@ Return ONLY a JSON array of strings, one label per cluster. Keep labels concise 
     }
   }
 
-  // Toggle AI annotations visibility
+  // Toggle decorative annotations visibility
   const toggleAnnotations = () => {
     if (!editor) return
     
@@ -695,13 +662,13 @@ Return ONLY a JSON array of strings, one label per cluster. Keep labels concise 
       shape.id.includes('annotation-') || shape.id === 'shape:ai-indicator'
     )
     
-    if (showAnnotations && annotationShapes.length > 0) {
+    if (annotationShapes.length > 0) {
       // Hide annotations
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       editor.deleteShapes(annotationShapes.map((shape: any) => shape.id))
       setShowAnnotations(false)
-    } else if (!showAnnotations && viewMode === 'mood') {
-      // Re-generate annotations
+    } else {
+      // Generate new annotations
       setShowAnnotations(true)
       const blockShapes = allShapes
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1828,7 +1795,7 @@ Return ONLY a JSON array of strings, one label per cluster. Keep labels concise 
               onClick={toggleAnnotations}
             >
               <Sparkles className="h-3 w-3 mr-1" />
-              {showAnnotations ? 'Hide AI Themes' : 'Show AI Themes'}
+              {showAnnotations ? 'Hide Decorations' : 'Show Decorations'}
             </Button>
           )}
         </div>
