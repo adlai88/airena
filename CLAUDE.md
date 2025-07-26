@@ -13,9 +13,10 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 ## Tech Stack
 - **Frontend**: Next.js 15 + React with Vercel AI SDK
 - **Backend**: Vercel Edge Functions + Supabase (pgvector)
-- **AI**: OpenAI embeddings + GPT-4 generation + GPT-4V vision
+- **AI**: Supabase AI embeddings (384-dim) + GPT-4 generation + GPT-4V vision
 - **Content**: Are.na API + Jina AI extraction + vision analysis
 - **UI**: shadcn/ui design system with mobile-responsive foundation
+- **Embeddings**: Supabase AI Session API (LW15 feature) - migrated from OpenAI
 
 ## 📈 Current Status: Open Source Launched Successfully 🎉
 
@@ -41,12 +42,45 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 ✅ **Phase 10.4c: Enhanced User Experience & Block Selection** (COMPLETED - Preset-based block limits + Customer portal fixes + UI polish)
 ✅ **Phase 10.5: Spatial Canvas** (COMPLETED - Supabase LW15 Hackathon Feature) - [See detailed plan](./docs/SPATIAL_PROTOTYPE_PLAN.md)
 ✅ **Phase 10.6: Better Auth + Polar Migration** (COMPLETED - Unified auth/billing system)
+✅ **Phase 10.7: Supabase AI Migration** (COMPLETED - Full migration to Supabase AI embeddings)
 🎯 **Current Phase**: Phase 10.4d - Template Enhancement + System Testing
 
 **Live Application**: https://www.airena.io/  
 **Open Source Repository**: https://github.com/adlai88/airena
 
-## Latest Updates (Phase 10.4c: Enhanced User Experience & Block Selection - COMPLETED ✅)
+## Latest Updates (Phase 10.7: Supabase AI Migration - COMPLETED ✅)
+
+### 🚀 **Complete Migration to Supabase AI Embeddings**
+
+**Implementation Date**: July 26, 2025  
+**Status**: **LIVE - All embeddings now use Supabase AI**  
+**Impact**: **Native Supabase integration with LW15 AI Session API**
+
+### ✅ **What Was Accomplished**
+
+#### **🧠 Supabase AI Session Integration**
+- **Full migration** - Switched from OpenAI embeddings (1536-dim) to Supabase AI (384-dim)
+- **Database schema update** - Modified pgvector column and all RPC functions for 384 dimensions
+- **Edge Function deployment** - `/supabase/functions/generate-embedding/` using AI Session API
+- **Application integration** - Updated embedding service with Supabase AI + OpenAI fallback
+- **Production tested** - Successfully re-embedded all channels with Supabase AI
+
+#### **🔧 Technical Implementation**
+- **Model**: `gte-small` via Supabase.ai.Session
+- **Dimensions**: 384 (vs OpenAI's 1536) - smaller, faster, more efficient
+- **Feature flag**: `NEXT_PUBLIC_USE_SUPABASE_AI=true` enables Supabase AI
+- **Migration SQL**: `/supabase/migrations/20250726_migrate_to_supabase_ai.sql`
+- **Zero downtime**: Clean migration with data reset approach
+
+#### **🎯 Benefits**
+- **Native integration** - No external AI API dependencies
+- **Performance** - Smaller vectors = faster similarity searches
+- **Cost efficiency** - Free during LW15 (pricing TBD)
+- **Future-proof** - Ready for Supabase AI enhancements
+
+---
+
+## Previous Updates (Phase 10.4c: Enhanced User Experience & Block Selection - COMPLETED ✅)
 
 ### 🎯 **Major UX Enhancement: Smart Block Selection & Customer Portal**
 

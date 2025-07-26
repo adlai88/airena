@@ -27,6 +27,36 @@ export class EmbeddingService {
       return cached;
     }
 
+    // Use Supabase AI if enabled
+    const USE_SUPABASE_AI = process.env.NEXT_PUBLIC_USE_SUPABASE_AI === 'true';
+    
+    if (USE_SUPABASE_AI) {
+      try {
+        console.log('🚀 Using Supabase AI for embeddings');
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/generate-embedding`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({ text })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Supabase AI error: ${response.statusText}`);
+        }
+        
+        const { embedding } = await response.json();
+        
+        // Cache the result
+        embeddingCache.set(text, embedding);
+        return embedding;
+      } catch (error) {
+        console.error('Supabase AI failed, falling back to OpenAI:', error);
+        // Fall through to OpenAI
+      }
+    }
+
     try {
       const { embedding } = await embed({
         model: openai.textEmbedding(this.model),
