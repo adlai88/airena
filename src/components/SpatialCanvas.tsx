@@ -973,6 +973,13 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
 
     editor.createShapes(shapes)
     
+    // Generate decorations for mood board
+    if (viewMode === 'mood') {
+      setTimeout(async () => {
+        await generateMoodBoardAnnotations(shapes)
+      }, 50)
+    }
+    
     setTimeout(() => {
       editor.zoomToFit({ duration: 200 })
     }, 100)
