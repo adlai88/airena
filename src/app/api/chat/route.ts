@@ -10,7 +10,8 @@ import { UsageTracker } from '@/lib/usage-tracking';
 
 export async function POST(req: Request) {
   try {
-    const { messages, channelSlug, sessionId } = await req.json();
+    const body = await req.json();
+    const { messages, channelSlug, sessionId } = body;
 
     if (!messages || messages.length === 0) {
       return new Response('Messages are required', { status: 400 });
