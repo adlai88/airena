@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import { Tldraw, toRichText } from 'tldraw'
 import { Button } from '@/components/ui/button'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
-import { MessageSquare, X, Grid3X3, Brain, Layers, ExternalLink, Calendar, Tag } from 'lucide-react'
+import { MessageSquare, X, Grid3X3, Brain, Layers, ExternalLink, Calendar, Tag, Sparkles } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
 // Types based on actual database schema
@@ -78,6 +78,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   const [isAnimating, setIsAnimating] = useState(false)
   const [pinnedMessages, setPinnedMessages] = useState<Set<string>>(new Set())
   const [pendingArrangement, setPendingArrangement] = useState<ArrangementData | null>(null)
+  const [showAnnotations, setShowAnnotations] = useState(true)
 
   // Check if message is an arrangement command
   const isArrangementCommand = (message: string) => {
@@ -501,6 +502,214 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     })
     
     return shapes
+  }
+
+  // Generate AI annotations for mood board
+  const generateMoodBoardAnnotations = async (blockShapes: Array<{id: string, x: number, y: number, rotation: number}>) => {
+    if (!editor || !blocks.length || !showAnnotations) return
+    
+    try {
+      // Group blocks by proximity (simple clustering)
+      const clusters: Array<{blocks: Block[], center: {x: number, y: number}, bounds: {minX: number, maxX: number, minY: number, maxY: number}}> = []
+      const clusterRadius = 300
+      
+      blockShapes.forEach((shape, index) => {
+        const block = blocks[index]
+        if (!block) return
+        
+        // Find nearby cluster
+        let foundCluster = false
+        for (const cluster of clusters) {
+          const dx = shape.x - cluster.center.x
+          const dy = shape.y - cluster.center.y
+          const distance = Math.sqrt(dx * dx + dy * dy)
+          
+          if (distance < clusterRadius) {
+            cluster.blocks.push(block)
+            // Update cluster bounds
+            cluster.bounds.minX = Math.min(cluster.bounds.minX, shape.x)
+            cluster.bounds.maxX = Math.max(cluster.bounds.maxX, shape.x + 100)
+            cluster.bounds.minY = Math.min(cluster.bounds.minY, shape.y)
+            cluster.bounds.maxY = Math.max(cluster.bounds.maxY, shape.y + 100)
+            // Update center
+            cluster.center.x = (cluster.bounds.minX + cluster.bounds.maxX) / 2
+            cluster.center.y = (cluster.bounds.minY + cluster.bounds.maxY) / 2
+            foundCluster = true
+            break
+          }
+        }
+        
+        if (!foundCluster) {
+          clusters.push({
+            blocks: [block],
+            center: { x: shape.x, y: shape.y },
+            bounds: { minX: shape.x, maxX: shape.x + 100, minY: shape.y, maxY: shape.y + 100 }
+          })
+        }
+      })
+      
+      // Only annotate if we have meaningful clusters (at least 2 blocks)
+      const meaningfulClusters = clusters.filter(c => c.blocks.length >= 2)
+      if (meaningfulClusters.length === 0) return
+      
+      // Prepare cluster descriptions for AI
+      const clusterDescriptions = meaningfulClusters.map((cluster, i) => ({
+        id: i,
+        blockCount: cluster.blocks.length,
+        types: [...new Set(cluster.blocks.map(b => b.block_type))].join(', '),
+        titles: cluster.blocks.map(b => b.title || 'Untitled').slice(0, 3).join(', '),
+        content: cluster.blocks.map(b => b.content || b.description || '').slice(0, 3).join(' ').substring(0, 200)
+      }))
+      
+      // Call AI to generate labels
+      const prompt = `Analyze these content clusters and suggest very short (1-3 word) theme labels:
+${JSON.stringify(clusterDescriptions, null, 2)}
+
+Return ONLY a JSON array of strings, one label per cluster. Keep labels concise and insightful. Example: ["Design Systems", "Audio Tools", "Inspiration"]`
+      
+      // For now, we'll use the existing chat API with a special system prompt
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: prompt }],
+          channelSlug: channelInfo.slug,
+          sessionId: 'annotation-' + Date.now(),
+          systemPrompt: 'You are a concise labeling assistant. Return only JSON arrays of short labels.'
+        })
+      })
+      
+      if (!response.ok) throw new Error('Failed to generate annotations')
+      
+      // Parse streaming response
+      const reader = response.body?.getReader()
+      if (!reader) return
+      
+      const decoder = new TextDecoder()
+      let fullResponse = ''
+      
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        
+        const chunk = decoder.decode(value)
+        const lines = chunk.split('\n')
+        
+        for (const line of lines) {
+          if (line.trim()) {
+            try {
+              const data = JSON.parse(line)
+              if (data.type === 'text') {
+                fullResponse += data.content
+              }
+            } catch (e) {
+              // Skip invalid JSON lines
+            }
+          }
+        }
+      }
+      
+      // Extract JSON array from response
+      const jsonMatch = fullResponse.match(/\[.*\]/s)
+      if (!jsonMatch) return
+      
+      const labels = JSON.parse(jsonMatch[0]) as string[]
+      
+      // Create annotation shapes
+      const annotationShapes: Array<any> = []
+      
+      meaningfulClusters.forEach((cluster, i) => {
+        const label = labels[i] || 'Group ' + (i + 1)
+        
+        // Add cluster boundary (subtle ellipse)
+        const width = cluster.bounds.maxX - cluster.bounds.minX + 60
+        const height = cluster.bounds.maxY - cluster.bounds.minY + 60
+        
+        annotationShapes.push({
+          id: `shape:annotation-boundary-${i}`,
+          type: 'geo',
+          x: cluster.bounds.minX - 30,
+          y: cluster.bounds.minY - 30,
+          opacity: 0.1,
+          props: {
+            geo: 'ellipse',
+            w: width,
+            h: height,
+            color: 'grey',
+            fill: 'solid',
+            dash: 'draw'
+          }
+        })
+        
+        // Add label
+        annotationShapes.push({
+          id: `shape:annotation-label-${i}`,
+          type: 'text',
+          x: cluster.center.x - 50,
+          y: cluster.bounds.minY - 60,
+          opacity: 0.7,
+          props: {
+            richText: toRichText(label),
+            color: 'grey',
+            size: 'm',
+            font: 'serif',
+            textAlign: 'middle'
+          }
+        })
+      })
+      
+      // Add a subtle "AI insights" indicator
+      annotationShapes.push({
+        id: 'shape:ai-indicator',
+        type: 'text',
+        x: 100,
+        y: 50,
+        opacity: 0.5,
+        props: {
+          richText: toRichText('✨ AI-discovered themes'),
+          color: 'grey',
+          size: 's',
+          font: 'sans',
+          textAlign: 'start'
+        }
+      })
+      
+      // Create all annotation shapes
+      if (annotationShapes.length > 0) {
+        editor.createShapes(annotationShapes)
+      }
+    } catch (error) {
+      console.error('Failed to generate mood board annotations:', error)
+      // Fail silently - annotations are enhancement, not critical
+    }
+  }
+
+  // Toggle AI annotations visibility
+  const toggleAnnotations = () => {
+    if (!editor) return
+    
+    const allShapes = editor.getCurrentPageShapes()
+    const annotationShapes = allShapes.filter((shape: any) => 
+      shape.id.includes('annotation-') || shape.id === 'shape:ai-indicator'
+    )
+    
+    if (showAnnotations && annotationShapes.length > 0) {
+      // Hide annotations
+      editor.deleteShapes(annotationShapes.map((shape: any) => shape.id))
+      setShowAnnotations(false)
+    } else if (!showAnnotations && viewMode === 'mood') {
+      // Re-generate annotations
+      setShowAnnotations(true)
+      const blockShapes = allShapes
+        .filter((shape: any) => shape.id.startsWith('shape:block-'))
+        .map((shape: any) => ({
+          id: shape.id,
+          x: shape.x,
+          y: shape.y,
+          rotation: shape.rotation || 0
+        }))
+      generateMoodBoardAnnotations(blockShapes)
+    }
   }
 
   const calculatePresentationLayout = (blocks: Block[], direction: 'horizontal' | 'vertical' = 'horizontal') => {
@@ -1285,7 +1494,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   }
 
   // Apply mood board layout
-  const applyMoodBoardLayout = () => {
+  const applyMoodBoardLayout = async () => {
     if (!editor || !blocks.length) return
 
     setIsAnimating(true)
@@ -1303,7 +1512,9 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     // Create shapes
     editor.createShapes(shapes)
     
-    setTimeout(() => {
+    // Generate AI annotations after positioning
+    setTimeout(async () => {
+      await generateMoodBoardAnnotations(shapes)
       editor.zoomToFit({ duration: 800 })
       setIsAnimating(false)
     }, 100)
@@ -1602,6 +1813,19 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           <p className="text-xs text-muted-foreground">{blocks.length} blocks loaded</p>
           <p className="text-xs text-muted-foreground">Rendering {visibleBlockCount} of {blocks.length}</p>
           <p className="text-xs text-muted-foreground mt-1">Drag to arrange • Quick click to view</p>
+          
+          {/* Show annotations toggle in mood view */}
+          {viewMode === 'mood' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mt-2 w-full text-xs"
+              onClick={toggleAnnotations}
+            >
+              <Sparkles className="h-3 w-3 mr-1" />
+              {showAnnotations ? 'Hide AI Themes' : 'Show AI Themes'}
+            </Button>
+          )}
         </div>
       </div>
       
