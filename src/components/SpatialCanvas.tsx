@@ -832,7 +832,20 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         // Duplicate each block multiple times for dense spiral
         const duplicateCount = 15 // Each block appears 15 times
         const smallerBaseSize = baseSize * 0.25 // 25% of normal size
-        const spiralBlocks = []
+        const spiralBlocks: Array<{
+          id: string
+          type: string
+          x: number
+          y: number
+          opacity: number
+          props: {
+            geo: string
+            w: number
+            h: number
+            color: string
+            fill: string
+          }
+        }> = []
         
         // Create duplicates
         for (let dup = 0; dup < duplicateCount; dup++) {
