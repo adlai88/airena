@@ -85,6 +85,10 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   const dragStartChatPos = useRef({ x: 0, y: 0 })
   const [isInfoCollapsed, setIsInfoCollapsed] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [isResizingChat, setIsResizingChat] = useState(false)
+  const [chatHeight, setChatHeight] = useState<number | null>(null)
+  const resizeStartY = useRef(0)
+  const resizeStartHeight = useRef(0)
 
   // Check if message is an arrangement command
   const isArrangementCommand = (message: string) => {
@@ -1991,6 +1995,35 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     }
   }, [isDraggingChat, isMobile])
 
+  // Handle chat panel resizing
+  useEffect(() => {
+    if (!isResizingChat || isMobile) return
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const deltaY = e.clientY - resizeStartY.current
+      const newHeight = resizeStartHeight.current + deltaY
+      
+      // Clamp height between min and max
+      const minHeight = 400
+      const maxHeight = window.innerHeight * 0.8
+      const clampedHeight = Math.max(minHeight, Math.min(maxHeight, newHeight))
+      
+      setChatHeight(clampedHeight)
+    }
+
+    const handleMouseUp = () => {
+      setIsResizingChat(false)
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isResizingChat, isMobile])
+
   // Detect mobile viewport
   useEffect(() => {
     const checkMobile = () => {
@@ -2307,16 +2340,15 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           <div 
             className={`fixed bg-background/95 backdrop-blur-xl border rounded-xl shadow-2xl z-[100] flex flex-col overflow-hidden animate-in slide-in-from-left-5 duration-200 ${
               isDraggingChat ? 'cursor-move shadow-3xl' : ''
-            } ${isMobile ? 'w-[calc(100vw-2rem)]' : 'w-96 resize-y'}`}
+            } ${isMobile ? 'w-[calc(100vw-2rem)]' : 'w-96'}`}
             style={{
               left: isMobile ? '1rem' : `${chatPosition.x}px`,
               right: isMobile ? '1rem' : 'auto',
               top: `${chatPosition.y}px`,
-              height: isMobile ? 'calc(100vh - 200px)' : 'calc(100vh - 120px)',
-              minHeight: isMobile ? undefined : 'calc(100vh - 120px)',
+              height: isMobile ? 'calc(100vh - 200px)' : (chatHeight ? `${chatHeight}px` : 'calc(100vh - 120px)'),
+              minHeight: isMobile ? undefined : '400px',
               maxHeight: isMobile ? '400px' : '80vh',
-              resize: isMobile ? 'none' : 'vertical',
-              transition: isDraggingChat ? 'none' : 'box-shadow 0.2s'
+              transition: (isDraggingChat || isResizingChat) ? 'none' : 'box-shadow 0.2s'
             }}
           >
           <div 
@@ -2703,8 +2735,20 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           </div>
           {/* Resize handle - desktop only */}
           {!isMobile && (
-            <div className="absolute bottom-0 left-0 right-0 h-3 bg-transparent hover:bg-muted/20 cursor-ns-resize transition-colors flex items-center justify-center rounded-b-xl">
-              <div className="w-12 h-0.5 bg-muted-foreground/30 rounded-full" />
+            <div 
+              className="absolute bottom-0 left-0 right-0 h-6 bg-transparent hover:bg-muted/10 cursor-ns-resize transition-colors flex items-center justify-center group"
+              onMouseDown={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setIsResizingChat(true)
+                resizeStartY.current = e.clientY
+                const chatEl = e.currentTarget.parentElement
+                if (chatEl) {
+                  resizeStartHeight.current = chatEl.offsetHeight
+                }
+              }}
+            >
+              <div className="w-12 h-1 bg-muted-foreground/20 group-hover:bg-muted-foreground/40 rounded-full transition-colors" />
             </div>
           )}
         </div>
