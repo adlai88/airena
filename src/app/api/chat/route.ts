@@ -51,6 +51,9 @@ export async function POST(req: Request) {
       return new Response('Channel not found', { status: 404 });
     }
 
+    // TEMPORARILY DISABLED: Chat limit check bypassed for testing
+    // TODO: Re-enable chat limits after pricing restructure
+    /*
     // Check chat limits for free tier users
     const chatLimitCheck = await UsageTracker.checkChatGenerationLimits(
       channel.id,
@@ -76,6 +79,7 @@ export async function POST(req: Request) {
         }
       );
     }
+    */
 
     // Check if this is a casual greeting or conversation that doesn't need content search
     const casualPatterns = /^(yo|hey|hi|hello|sup|what's up|thanks|thx|bye|goodbye)$/i;
@@ -331,6 +335,9 @@ export async function POST(req: Request) {
       },
     });
 
+    // TEMPORARILY DISABLED: Chat usage recording bypassed for testing
+    // TODO: Re-enable chat usage recording after pricing restructure
+    /*
     // Record chat usage for free tier users (async, don't await)
     UsageTracker.recordChatGenerationUsage(
       channel.id,
@@ -340,6 +347,7 @@ export async function POST(req: Request) {
     ).catch(error => {
       console.error('Failed to record chat usage:', error);
     });
+    */
 
     return new Response(stream, {
       headers: {

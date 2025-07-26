@@ -258,6 +258,9 @@ export class SyncService {
         throw new Error(accessResult.message || 'Channel not accessible');
       }
 
+      // TEMPORARILY DISABLED: Channel limit check bypassed for testing
+      // TODO: Re-enable channel limits after pricing restructure
+      /*
       // Stage 1.5: Check channel count limits for free tier users
       this.reportProgress({
         stage: 'fetching',
@@ -270,6 +273,7 @@ export class SyncService {
       if (!channelLimitResult.canAddChannel) {
         throw new Error(channelLimitResult.message || 'Channel limit exceeded');
       }
+      */
 
       // Stage 2: Fetch channel and contents
       this.reportProgress({
@@ -382,7 +386,20 @@ export class SyncService {
       );
       console.log(`Processing ${newBlocks.length} blocks (${newBlocks.filter(b => !existingBlocks.has(b.id)).length} new, ${newBlocks.filter(b => blocksMissingThumbnails.has(b.id)).length} missing thumbnails):`, newBlocks.map(b => b.id));
 
-      // Check usage limits now that we know how many blocks will be processed
+      // TEMPORARILY DISABLED: Usage limits bypassed for testing
+      // TODO: Re-enable usage limits after pricing restructure
+      const usageInfo = {
+        canProcess: true,
+        blocksProcessed: 0,
+        blocksRemaining: 999999,
+        isFirstTime: false,
+        blocksToProcess: newBlocks.length,
+        tier: 'pro' as const,
+        message: undefined
+      };
+      
+      // Original usage check code (commented out for now):
+      /*
       const usageInfo = await UsageTracker.checkUsageLimit(
         dbChannelId,
         sessionId,
@@ -411,6 +428,7 @@ export class SyncService {
           errors.push(usageInfo.message);
         }
       }
+      */
 
       // Apply user-selected block limit if provided (from large channel preset selection)
       if (blockLimit && blockLimit > 0 && blockLimit < newBlocks.length) {
@@ -860,6 +878,9 @@ export class SyncService {
 
       console.log('✅ Completion signal sent successfully');
 
+      // TEMPORARILY DISABLED: Usage recording bypassed for testing
+      // TODO: Re-enable usage recording after pricing restructure
+      /*
       // Record usage after successful processing (use actually stored blocks)
       if (actuallyStoredBlocks > 0) {
         await UsageTracker.recordUsage(
@@ -870,6 +891,7 @@ export class SyncService {
           userId
         );
       }
+      */
 
       return {
         success: actuallyStoredBlocks > 0,
