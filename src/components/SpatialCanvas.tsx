@@ -610,7 +610,7 @@ Return ONLY a JSON array of strings, one label per cluster. Keep labels concise 
       }
       
       // Extract JSON array from response
-      const jsonMatch = fullResponse.match(/\[.*\]/s)
+      const jsonMatch = fullResponse.match(/\[[^\]]*\]/)
       if (!jsonMatch) return
       
       const labels = JSON.parse(jsonMatch[0]) as string[]
