@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import { Tldraw, toRichText } from 'tldraw'
 import { Button } from '@/components/ui/button'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
-import { MessageSquare, X, Grid3X3, Brain, Layers, ExternalLink, Calendar, Tag, Sparkles } from 'lucide-react'
+import { MessageSquare, X, Grid3X3, Brain, Layers, ExternalLink, Calendar, Tag } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
 // Types based on actual database schema
@@ -78,7 +78,6 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   const [isAnimating, setIsAnimating] = useState(false)
   const [pinnedMessages, setPinnedMessages] = useState<Set<string>>(new Set())
   const [pendingArrangement, setPendingArrangement] = useState<ArrangementData | null>(null)
-  const [showAnnotations, setShowAnnotations] = useState(true)
 
   // Check if message is an arrangement command
   const isArrangementCommand = (message: string) => {
@@ -432,11 +431,11 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       // Size variations with hero emphasis
       let sizeMultiplier = 1
       if (isHero) {
-        sizeMultiplier = 1.5 + Math.random() * 0.5 // 1.5x to 2x
+        sizeMultiplier = 1.5 + Math.random() * 1.0 // 1.5x to 2.5x (larger heroes)
       } else if (block.block_type === 'Text' || block.block_type === 'Link') {
-        sizeMultiplier = 0.7 + Math.random() * 0.2 // 0.7x to 0.9x
+        sizeMultiplier = 0.5 + Math.random() * 0.3 // 0.5x to 0.8x (smaller text)
       } else {
-        sizeMultiplier = 0.9 + Math.random() * 0.3 // 0.9x to 1.2x
+        sizeMultiplier = 0.8 + Math.random() * 0.7 // 0.8x to 1.5x (more variation)
       }
       
       const baseSize = 80 * sizeMultiplier
@@ -504,11 +503,65 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     return shapes
   }
 
+  // Extract meaningful keywords from blocks
+  const extractKeywords = (blocks: Block[]): string[] => {
+    const wordFrequency = new Map<string, number>()
+    const stopWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were', 'been', 'be', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'can', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'them', 'their', 'what', 'which', 'who', 'when', 'where', 'why', 'how', 'all', 'each', 'every', 'some', 'any', 'few', 'more', 'most', 'other', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'between', 'under', 'again', 'further', 'then', 'once'])
+    const filePatterns = /\.(jpg|jpeg|png|gif|pdf|doc|docx|txt|mp4|mov|avi)$/i
+    const unwantedPatterns = /^(untitled|screenshot|img_|image|file|document|\d+)[-_]?/i
+    
+    blocks.forEach(block => {
+      // Extract words from different sources
+      const sources: string[] = []
+      
+      // Prioritize description and content
+      if (block.description) sources.push(block.description)
+      if (block.content) sources.push(block.content)
+      
+      // Only use title if it doesn't look like a filename
+      if (block.title && !filePatterns.test(block.title) && !unwantedPatterns.test(block.title)) {
+        sources.push(block.title)
+      }
+      
+      // Process all text
+      sources.forEach(text => {
+        // Extract words (alphanumeric, 3+ chars)
+        const words = text.toLowerCase().match(/\b[a-z]{3,}\b/g) || []
+        words.forEach(word => {
+          if (!stopWords.has(word) && word.length <= 15) {
+            wordFrequency.set(word, (wordFrequency.get(word) || 0) + 1)
+          }
+        })
+      })
+    })
+    
+    // Sort by frequency and take top words
+    const sortedWords = Array.from(wordFrequency.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([word]) => word)
+      .slice(0, 20) // Get top 20 words
+    
+    // If we don't have enough words, add some thematic defaults
+    if (sortedWords.length < 8) {
+      const defaults = ['creative', 'ideas', 'design', 'explore', 'inspire', 'connect', 'discover', 'build']
+      defaults.forEach(word => {
+        if (!sortedWords.includes(word)) {
+          sortedWords.push(word)
+        }
+      })
+    }
+    
+    return sortedWords
+  }
+
   // Generate decorative annotations for mood board
   const generateMoodBoardAnnotations = async (blockShapes: Array<{id: string, x: number, y: number, rotation: number}>) => {
-    if (!editor || !blocks.length || !showAnnotations) return
+    if (!editor || !blocks.length) return
     
     try {
+      // Extract keywords from blocks
+      const keywords = extractKeywords(blocks)
+      
       // Create decorative annotation shapes
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const annotationShapes: Array<any> = []
@@ -523,7 +576,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       })
       
       // Add random decorative elements
-      const elementCount = Math.min(8, Math.floor(blocks.length / 4))
+      const elementCount = Math.min(15, Math.floor(blocks.length / 3) + 4)
       
       for (let i = 0; i < elementCount; i++) {
         const elementType = Math.floor(Math.random() * 4)
@@ -538,7 +591,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
               x: circleX,
               y: circleY,
               rotation: Math.random() * Math.PI * 2,
-              opacity: 0.1,
+              opacity: 0.25,
               props: {
                 geo: 'ellipse',
                 w: 100 + Math.random() * 100,
@@ -567,7 +620,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                   x: fromBlock.x + 50,
                   y: fromBlock.y + 50,
                   rotation: angle,
-                  opacity: 0.2,
+                  opacity: 0.35,
                   props: {
                     geo: 'rectangle',
                     w: length,
@@ -582,8 +635,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
             break
             
           case 2: // Text annotations
-            const words = ['explore', 'connect', 'inspire', 'create', 'discover', 'imagine', 'build', 'design']
-            const word = words[Math.floor(Math.random() * words.length)]
+            const word = keywords[Math.floor(Math.random() * keywords.length)]
             const textX = minX + Math.random() * (maxX - minX)
             const textY = minY + Math.random() * (maxY - minY)
             annotationShapes.push({
@@ -592,7 +644,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
               x: textX,
               y: textY,
               rotation: (Math.random() - 0.5) * 0.3,
-              opacity: 0.3,
+              opacity: 0.45,
               props: {
                 richText: toRichText(word),
                 color: 'grey',
@@ -612,7 +664,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
               x: rectX,
               y: rectY,
               rotation: Math.random() * Math.PI * 2,
-              opacity: 0.05,
+              opacity: 0.15,
               props: {
                 geo: 'rectangle',
                 w: 80 + Math.random() * 120,
@@ -652,37 +704,6 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     }
   }
 
-  // Toggle decorative annotations visibility
-  const toggleAnnotations = () => {
-    if (!editor) return
-    
-    const allShapes = editor.getCurrentPageShapes()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const annotationShapes = allShapes.filter((shape: any) => 
-      shape.id.includes('annotation-') || shape.id === 'shape:ai-indicator'
-    )
-    
-    if (annotationShapes.length > 0) {
-      // Hide annotations
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      editor.deleteShapes(annotationShapes.map((shape: any) => shape.id))
-      setShowAnnotations(false)
-    } else {
-      // Generate new annotations
-      setShowAnnotations(true)
-      const blockShapes = allShapes
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .filter((shape: any) => shape.id.startsWith('shape:block-'))
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .map((shape: any) => ({
-          id: shape.id,
-          x: shape.x,
-          y: shape.y,
-          rotation: shape.rotation || 0
-        }))
-      generateMoodBoardAnnotations(blockShapes)
-    }
-  }
 
   const calculatePresentationLayout = (blocks: Block[], direction: 'horizontal' | 'vertical' = 'horizontal') => {
     const slideWidth = 800
@@ -1785,19 +1806,6 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           <p className="text-xs text-muted-foreground">{blocks.length} blocks loaded</p>
           <p className="text-xs text-muted-foreground">Rendering {visibleBlockCount} of {blocks.length}</p>
           <p className="text-xs text-muted-foreground mt-1">Drag to arrange • Quick click to view</p>
-          
-          {/* Show annotations toggle in mood view */}
-          {viewMode === 'mood' && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="mt-2 w-full text-xs"
-              onClick={toggleAnnotations}
-            >
-              <Sparkles className="h-3 w-3 mr-1" />
-              {showAnnotations ? 'Hide Decorations' : 'Show Decorations'}
-            </Button>
-          )}
         </div>
       </div>
       
