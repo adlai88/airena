@@ -1847,6 +1847,10 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           const pos = shapePositions[block.id]
           if (!pos) return null
           
+          // Get the shape to check for rotation
+          const shape = editor.getShape(`shape:block-${block.id}`)
+          const rotation = shape?.rotation || 0
+          
           // Get the viewport bounds for culling
           const viewportBounds = editor.getViewportScreenBounds()
           
@@ -1894,6 +1898,8 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                 height: `${screenH}px`,
                 zIndex: 10,
                 borderRadius: '8px', // Match tldraw's default shape radius
+                transform: `rotate(${rotation}rad)`,
+                transformOrigin: 'center',
               }}
             >
               {imageUrl && !brokenImages.has(imageUrl) ? (
