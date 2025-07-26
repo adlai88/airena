@@ -1507,21 +1507,13 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           }
         }}
       />
-      {/* Channel info overlay - top left */}
-      <div className="absolute top-4 left-4 z-50">
-        <div className="bg-background/95 backdrop-blur border rounded-lg px-4 py-2">
-          <h2 className="font-semibold">{channelInfo?.title || 'Channel'}</h2>
-          <p className="text-xs text-muted-foreground">
-            Drag to arrange • Quick click to view details
-          </p>
-        </div>
-      </div>
-      
-      {/* Status info - bottom right */}
+      {/* Channel info and status - bottom right */}
       <div className="absolute bottom-20 right-4 z-50">
-        <div className="bg-background/80 backdrop-blur-sm border rounded-lg px-3 py-2 text-xs text-muted-foreground">
-          <p>{blocks.length} blocks loaded</p>
-          <p>Rendering {visibleBlockCount} of {blocks.length}</p>
+        <div className="bg-background/80 backdrop-blur-sm border rounded-lg px-3 py-2">
+          <h3 className="font-semibold text-sm mb-1">{channelInfo?.title || 'Channel'}</h3>
+          <p className="text-xs text-muted-foreground">{blocks.length} blocks loaded</p>
+          <p className="text-xs text-muted-foreground">Rendering {visibleBlockCount} of {blocks.length}</p>
+          <p className="text-xs text-muted-foreground mt-1">Drag to arrange • Quick click to view</p>
         </div>
       </div>
       
