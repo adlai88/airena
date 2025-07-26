@@ -829,28 +829,39 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         })
         
       case 'spiral':
-        return blocks.map((block, index) => {
-          const angle = index * 0.5
-          const radius = index * 15
-          const x = centerX + Math.cos(angle) * radius
-          const y = centerY + Math.sin(angle) * radius
-          const typeConfig = getBlockTypeConfig(block, baseSize)
-          
-          return {
-            id: `shape:block-${block.id}`,
-            type: 'geo',
-            x: x - typeConfig.w / 2,
-            y: y - typeConfig.h / 2,
-            opacity: 0,
-            props: {
-              geo: typeConfig.geo,
-              w: typeConfig.w,
-              h: typeConfig.h,
-              color: typeConfig.color,
-              fill: 'none'
-            }
-          }
-        })
+        // Duplicate each block multiple times for dense spiral
+        const duplicateCount = 15 // Each block appears 15 times
+        const smallerBaseSize = baseSize * 0.25 // 25% of normal size
+        const spiralBlocks = []
+        
+        // Create duplicates
+        for (let dup = 0; dup < duplicateCount; dup++) {
+          blocks.forEach((block, blockIndex) => {
+            const index = dup * blocks.length + blockIndex
+            const angle = index * 0.15 // Even tighter spiral
+            const radius = index * 2 // Much closer spacing
+            const x = centerX + Math.cos(angle) * radius
+            const y = centerY + Math.sin(angle) * radius
+            const typeConfig = getBlockTypeConfig(block, smallerBaseSize)
+            
+            spiralBlocks.push({
+              id: `shape:block-${block.id}-dup-${dup}`,
+              type: 'geo',
+              x: x - typeConfig.w / 2,
+              y: y - typeConfig.h / 2,
+              opacity: 0,
+              props: {
+                geo: typeConfig.geo,
+                w: typeConfig.w,
+                h: typeConfig.h,
+                color: typeConfig.color,
+                fill: 'none'
+              }
+            })
+          })
+        }
+        
+        return spiralBlocks
         
       case 'star':
         return blocks.map((block, index) => {
@@ -1754,12 +1765,22 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       
       lastUpdateTime = now
       const positions: Record<string, {x: number, y: number, w: number, h: number}> = {}
-      blocks.forEach(block => {
-        const shape = editor.getShape(`shape:block-${block.id}`)
-        if (shape) {
+      
+      // Get all shapes on the page
+      const allShapes = editor.getCurrentPageShapes()
+      
+      // Find shapes that match our block pattern (including duplicates)
+      allShapes.forEach((shape: any) => {
+        // Match both regular and duplicate shape IDs
+        const match = shape.id.match(/shape:block-(\d+)(?:-dup-(\d+))?/)
+        if (match) {
+          const blockId = match[1]
+          const dupIndex = match[2] || '0'
           const bounds = editor.getShapePageBounds(shape)
           if (bounds) {
-            positions[block.id] = { 
+            // Store position with unique key for duplicates
+            const positionKey = dupIndex === '0' ? blockId : `${blockId}-dup-${dupIndex}`
+            positions[positionKey] = { 
               x: bounds.x, 
               y: bounds.y,
               w: bounds.w,
@@ -1841,12 +1862,23 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       {editor && (() => {
         let visibleCount = 0
         
-        const renderedBlocks = blocks.map((block) => {
-          const pos = shapePositions[block.id]
-          if (!pos) return null
+        // Render all shapes including duplicates
+        const renderedBlocks = Object.entries(shapePositions).map(([posKey, pos]) => {
+          // Extract block ID from position key
+          const blockIdMatch = posKey.match(/^(\d+)(?:-dup-\d+)?$/)
+          if (!blockIdMatch) return null
+          
+          const blockId = parseInt(blockIdMatch[1])
+          const block = blocks.find(b => b.id === blockId)
+          if (!block) return null
+          
+          // Get the shape ID (might be duplicate)
+          const shapeId = posKey.includes('-dup-') 
+            ? `shape:block-${posKey}` 
+            : `shape:block-${blockId}`
           
           // Get the shape to check for rotation
-          const shape = editor.getShape(`shape:block-${block.id}`)
+          const shape = editor.getShape(shapeId)
           const rotation = shape?.rotation || 0
           
           // Get the viewport bounds for culling
@@ -1887,7 +1919,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           
           return (
             <div
-              key={block.id}
+              key={posKey}
               className={`absolute pointer-events-none overflow-hidden ${isSelected ? 'ring-2 ring-primary ring-offset-2' : ''}`}
               style={{
                 left: `${screenX}px`,
