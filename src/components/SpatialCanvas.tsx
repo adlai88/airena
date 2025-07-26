@@ -2701,7 +2701,6 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
               />
             </form>
           </div>
-        </div>
           {/* Resize handle - desktop only */}
           {!isMobile && (
             <div className="absolute bottom-0 left-0 right-0 h-3 bg-transparent hover:bg-muted/20 cursor-ns-resize transition-colors flex items-center justify-center rounded-b-xl">
