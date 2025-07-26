@@ -394,3 +394,22 @@ The code is already set up to use Resend when the API key is present. This will 
 - Password reset emails
 - Future: Welcome emails, notification emails, weekly digests
 
+### **Image Generation in Spatial Canvas**
+Future enhancement idea for the spatial canvas: Allow users to generate new images using existing blocks as visual references.
+
+**Interaction concept:**
+- User selects multiple image blocks on the canvas
+- Opens a generation panel showing selected images as references
+- User provides text prompt (e.g., "combine these aesthetics into a new mood board image")
+- System generates new images that blend visual elements from references
+- Generated images appear on canvas and can be saved back to Are.na
+
+**Technical considerations:**
+- Use image-to-image generation APIs (DALL-E 3, Stable Diffusion XL, Midjourney)
+- Extract style characteristics (colors, composition, textures) from source images
+- Leverage existing embeddings for semantic understanding
+- Support iterative refinement and variations
+- Enable mask/inpainting for combining specific elements
+
+This would transform the spatial canvas from an organizational tool into a generative creative companion, extending the "curation to creation" philosophy.
+
