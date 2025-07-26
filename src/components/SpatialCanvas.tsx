@@ -46,6 +46,13 @@ interface ArrangementData {
     color?: string
   }>
   messageId: string
+  layoutType?: 'similarity' | 'timeline' | 'importance' | 'magazine' | 'moodboard' | 'presentation' | 'shape' | 'story'
+  layoutParams?: {
+    shape?: string // for shape arrangements
+    spacing?: number // for grid variations
+    sizeVariation?: boolean // for importance-based sizing
+    direction?: 'horizontal' | 'vertical' // for timeline/presentation
+  }
 }
 
 export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProps) {
@@ -77,7 +84,11 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     const triggers = [
       'arrange by', 'group by', 'organize by', 
       'layout', 'create a grid', 'sort by',
-      'arrange these', 'organize these'
+      'arrange these', 'organize these',
+      'timeline', 'chronological', 'by date',
+      'make important', 'make larger', 'emphasize',
+      'magazine', 'mood board', 'presentation',
+      'in the shape of', 'story flow', 'narrative'
     ];
     return triggers.some(trigger => 
       message.toLowerCase().includes(trigger)
@@ -88,15 +99,32 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   const executePendingArrangement = () => {
     if (!pendingArrangement) return
     
-    const clusters = pendingArrangement.groups.map((g, i) => ({
-      id: i,
-      label: g.theme,
-      blockIds: g.blockIds,
-      blockCount: g.blockIds.length
-    }))
+    const layoutType = pendingArrangement.layoutType || 'similarity'
     
-    // Use the existing similarity layout function with animation
-    applySimilarityLayoutWithData(clusters)
+    switch (layoutType) {
+      case 'timeline':
+        applyTimelineLayout(pendingArrangement.layoutParams?.direction || 'horizontal')
+        break
+        
+      case 'importance':
+        applyImportanceLayout()
+        break
+        
+      case 'magazine':
+        applyMagazineLayout()
+        break
+      
+      case 'similarity':
+      default:
+        const clusters = pendingArrangement.groups.map((g, i) => ({
+          id: i,
+          label: g.theme,
+          blockIds: g.blockIds,
+          blockCount: g.blockIds.length
+        }))
+        applySimilarityLayoutWithData(clusters)
+        break
+    }
     
     // Clear pending arrangement after execution
     setPendingArrangement(null)
@@ -142,9 +170,14 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   }
 
   // Layout calculation functions
-  const calculateGridLayout = (blocks: Block[]) => {
+  const calculateGridLayout = (blocks: Block[], spacing: 'tight' | 'normal' | 'loose' = 'normal') => {
     const padding = 150
-    const spacing = 20
+    const spacingValues = {
+      tight: 10,
+      normal: 20,
+      loose: 40
+    }
+    const space = spacingValues[spacing]
     const baseSize = 80
     const cols = Math.ceil(Math.sqrt(blocks.length))
     
@@ -157,8 +190,8 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       return {
         id: `shape:block-${block.id}`,
         type: 'geo',
-        x: padding + col * (baseSize + spacing),
-        y: padding + row * (baseSize + spacing),
+        x: padding + col * (baseSize + space),
+        y: padding + row * (baseSize + space),
         opacity: 0, // Make shape invisible
         props: {
           geo: typeConfig.geo,
@@ -208,9 +241,147 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     })
   }
 
-  const getBlockTypeConfig = (block: Block, baseSize: number) => {
+  const calculateTimelineLayout = (blocks: Block[], direction: 'horizontal' | 'vertical' = 'horizontal') => {
+    // Sort blocks by creation date
+    const sortedBlocks = [...blocks].sort((a, b) => 
+      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    )
+
+    const baseSize = 80
+    const spacing = 120 // More spacing for timeline
+    const padding = 200
+    
+    return sortedBlocks.map((block, index) => {
+      const typeConfig = getBlockTypeConfig(block, baseSize)
+      
+      let x, y
+      if (direction === 'horizontal') {
+        x = padding + index * spacing
+        y = 400 // Center vertically
+      } else {
+        x = 400 // Center horizontally
+        y = padding + index * spacing
+      }
+      
+      return {
+        id: `shape:block-${block.id}`,
+        type: 'geo',
+        x,
+        y,
+        opacity: 0,
+        props: {
+          geo: typeConfig.geo,
+          w: typeConfig.w,
+          h: typeConfig.h,
+          color: typeConfig.color,
+          fill: 'none'
+        }
+      }
+    })
+  }
+
+  const calculateImportanceLayout = (blocks: Block[]) => {
+    // Sort blocks by importance score
+    const blocksWithImportance = blocks.map(block => ({
+      block,
+      importance: getBlockImportance(block)
+    })).sort((a, b) => b.importance - a.importance)
+
+    const baseSize = 60
+    const padding = 200
+    const viewportWidth = 1600
+    
+    // Use a circular/spiral layout with important items in center
+    const centerX = viewportWidth / 2
+    const centerY = 600
+    
+    return blocksWithImportance.map(({ block, importance }, index) => {
+      // Place most important items in center, less important further out
+      const ring = Math.floor(index / 6) // 6 items per ring
+      const posInRing = index % 6
+      const angleStep = (Math.PI * 2) / 6
+      const angle = posInRing * angleStep
+      const radius = ring * 150 + 100 // Start 100px from center
+      
+      const x = centerX + Math.cos(angle) * radius
+      const y = centerY + Math.sin(angle) * radius
+      
+      const typeConfig = getBlockTypeConfig(block, baseSize, importance)
+      
+      return {
+        id: `shape:block-${block.id}`,
+        type: 'geo',
+        x,
+        y,
+        opacity: 0,
+        props: {
+          geo: typeConfig.geo,
+          w: typeConfig.w,
+          h: typeConfig.h,
+          color: typeConfig.color,
+          fill: 'none'
+        }
+      }
+    })
+  }
+
+  const calculateMagazineLayout = (blocks: Block[]) => {
+    const padding = 150
+    const pageWidth = 1200
+    const pageHeight = 800
+    
+    // Define magazine-style grid zones
+    const zones = [
+      // Hero image zone
+      { x: 0, y: 0, width: 2, height: 2, maxBlocks: 1 },
+      // Side column
+      { x: 2, y: 0, width: 1, height: 1, maxBlocks: 1 },
+      { x: 2, y: 1, width: 1, height: 1, maxBlocks: 1 },
+      // Bottom row
+      { x: 0, y: 2, width: 1, height: 1, maxBlocks: 1 },
+      { x: 1, y: 2, width: 1, height: 1, maxBlocks: 1 },
+      { x: 2, y: 2, width: 1, height: 1, maxBlocks: 1 },
+    ]
+    
+    const cellWidth = pageWidth / 3
+    const cellHeight = pageHeight / 3
+    
+    // Prioritize image blocks for visual impact
+    const sortedBlocks = [...blocks].sort((a, b) => {
+      if (a.block_type === 'Image' && b.block_type !== 'Image') return -1
+      if (a.block_type !== 'Image' && b.block_type === 'Image') return 1
+      return 0
+    })
+    
+    return sortedBlocks.slice(0, zones.length).map((block, index) => {
+      const zone = zones[index]
+      const x = padding + zone.x * cellWidth
+      const y = padding + zone.y * cellHeight
+      
+      // Larger sizes for magazine layout
+      const baseSize = Math.min(zone.width * cellWidth * 0.8, zone.height * cellHeight * 0.8)
+      const typeConfig = getBlockTypeConfig(block, baseSize)
+      
+      return {
+        id: `shape:block-${block.id}`,
+        type: 'geo',
+        x: x + (zone.width * cellWidth - typeConfig.w) / 2,
+        y: y + (zone.height * cellHeight - typeConfig.h) / 2,
+        opacity: 0,
+        props: {
+          geo: typeConfig.geo,
+          w: typeConfig.w,
+          h: typeConfig.h,
+          color: typeConfig.color,
+          fill: 'none'
+        }
+      }
+    })
+  }
+
+  const getBlockTypeConfig = (block: Block, baseSize: number, importanceMultiplier: number = 1) => {
     const sizeVariation = 0.8 + (block.id % 5) * 0.1
-    const size = baseSize * sizeVariation
+    const size = baseSize * sizeVariation * importanceMultiplier
     
     const imageAspectRatios = [
       { w: 1, h: 1 },
@@ -244,6 +415,27 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     }
 
     return typeConfig[block.block_type] || { color: 'black', geo: 'rectangle', w: size, h: size }
+  }
+
+  // Calculate importance score for a block
+  const getBlockImportance = (block: Block): number => {
+    let score = 1
+    
+    // Blocks with both title and description are more important
+    if (block.title && block.description) score += 0.3
+    
+    // Videos and images are visually important
+    if (block.block_type === 'Video' || block.block_type === 'Image') score += 0.2
+    
+    // Blocks with longer content are more important
+    if (block.content && block.content.length > 200) score += 0.2
+    if (block.content && block.content.length > 500) score += 0.2
+    
+    // Recent blocks might be more important (within last 30 days)
+    const daysSinceCreated = (Date.now() - new Date(block.created_at).getTime()) / (1000 * 60 * 60 * 24)
+    if (daysSinceCreated < 30) score += 0.2
+    
+    return Math.min(score, 2) // Cap at 2x size
   }
 
   // Apply layout based on view mode
@@ -647,6 +839,139 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   const applySimilarityLayout = () => {
     if (!editor || !blocks.length || !clusters.length) return
     applySimilarityLayoutWithData(clusters)
+  }
+
+  // Apply timeline layout with animation
+  const applyTimelineLayout = (direction: 'horizontal' | 'vertical' = 'horizontal') => {
+    if (!editor || !blocks.length) return
+
+    setIsAnimating(true)
+
+    // Clear existing shapes
+    const allShapes = editor.getCurrentPageShapes()
+    if (allShapes.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      editor.deleteShapes(allShapes.map((shape: any) => shape.id))
+    }
+
+    // Calculate timeline positions
+    const shapes = calculateTimelineLayout(blocks, direction)
+    
+    // Create shapes
+    editor.createShapes(shapes)
+    
+    // Add date labels
+    const sortedBlocks = [...blocks].sort((a, b) => 
+      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    )
+    
+    const dateLabels = sortedBlocks.map((block, index) => {
+      const date = new Date(block.created_at)
+      const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      
+      let labelX, labelY
+      if (direction === 'horizontal') {
+        labelX = 200 + index * 120
+        labelY = 350 // Above the blocks
+      } else {
+        labelX = 300 // Left of the blocks
+        labelY = 200 + index * 120
+      }
+      
+      return {
+        id: `shape:date-label-${block.id}`,
+        type: 'text',
+        x: labelX,
+        y: labelY,
+        opacity: 0.7,
+        props: {
+          richText: toRichText(dateStr),
+          color: 'grey',
+          size: 's',
+          font: 'sans',
+          textAlign: 'center',
+          w: 100,
+          autoSize: true,
+        }
+      }
+    })
+    
+    editor.createShapes(dateLabels)
+    
+    setTimeout(() => {
+      editor.zoomToFit({ duration: 800 })
+      setIsAnimating(false)
+    }, 100)
+  }
+
+  // Apply importance-based layout
+  const applyImportanceLayout = () => {
+    if (!editor || !blocks.length) return
+
+    setIsAnimating(true)
+
+    // Clear existing shapes
+    const allShapes = editor.getCurrentPageShapes()
+    if (allShapes.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      editor.deleteShapes(allShapes.map((shape: any) => shape.id))
+    }
+
+    // Calculate importance positions
+    const shapes = calculateImportanceLayout(blocks)
+    
+    // Create shapes
+    editor.createShapes(shapes)
+    
+    setTimeout(() => {
+      editor.zoomToFit({ duration: 800 })
+      setIsAnimating(false)
+    }, 100)
+  }
+
+  // Apply magazine layout
+  const applyMagazineLayout = () => {
+    if (!editor || !blocks.length) return
+
+    setIsAnimating(true)
+
+    // Clear existing shapes
+    const allShapes = editor.getCurrentPageShapes()
+    if (allShapes.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      editor.deleteShapes(allShapes.map((shape: any) => shape.id))
+    }
+
+    // Calculate magazine positions
+    const shapes = calculateMagazineLayout(blocks)
+    
+    // Create shapes
+    editor.createShapes(shapes)
+    
+    // Add page title
+    const titleShape = {
+      id: 'shape:magazine-title',
+      type: 'text',
+      x: 150,
+      y: 50,
+      opacity: 0.9,
+      props: {
+        richText: toRichText(channelInfo?.title || 'Magazine Layout'),
+        color: 'black',
+        size: 'xl',
+        font: 'serif',
+        textAlign: 'left',
+        w: 600,
+        autoSize: true,
+      }
+    }
+    
+    editor.createShape(titleShape)
+    
+    setTimeout(() => {
+      editor.zoomToFit({ duration: 800 })
+      setIsAnimating(false)
+    }, 100)
   }
 
   // Handle view mode changes
@@ -1148,9 +1473,28 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                     id: b.id,
                     title: b.title || 'Untitled',
                     type: b.block_type,
-                    description: b.description?.substring(0, 100)
+                    description: b.description?.substring(0, 100),
+                    created_at: b.created_at
                   }))
-                  spatialContext += `\n\n[ARRANGEMENT_REQUEST]\nCanvas blocks:\n${JSON.stringify(blockDetails, null, 2)}\n\nAnalyze these blocks and return ONLY a JSON object with this structure:\n{\n  "groups": [\n    {\n      "theme": "Theme name",\n      "blockIds": [1, 2, 3],\n      "color": "blue"\n    }\n  ]\n}\nGroup blocks by semantic similarity based on the user's request.`
+                  
+                  // Determine layout type from message
+                  let layoutType = 'similarity'
+                  const lowerMessage = userMessage.content.toLowerCase()
+                  
+                  if (lowerMessage.includes('timeline') || 
+                      lowerMessage.includes('chronological') ||
+                      lowerMessage.includes('by date')) {
+                    layoutType = 'timeline'
+                  } else if (lowerMessage.includes('important') ||
+                             lowerMessage.includes('larger') ||
+                             lowerMessage.includes('emphasize')) {
+                    layoutType = 'importance'
+                  } else if (lowerMessage.includes('magazine') ||
+                             lowerMessage.includes('editorial')) {
+                    layoutType = 'magazine'
+                  }
+                  
+                  spatialContext += `\n\n[ARRANGEMENT_REQUEST]\nCanvas blocks:\n${JSON.stringify(blockDetails, null, 2)}\n\nAnalyze these blocks and return ONLY a JSON object with this structure:\n{\n  "layoutType": "${layoutType}",\n  "groups": [\n    {\n      "theme": "Theme name",\n      "blockIds": [1, 2, 3],\n      "color": "blue"\n    }\n  ],\n  "layoutParams": {\n    "direction": "horizontal"\n  }\n}\nFor timeline layouts, group all blocks in one group. For other layouts, group blocks by semantic similarity based on the user's request.`
                 }
 
                 const contextualUserMessage = {
@@ -1265,7 +1609,9 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                         // Store the arrangement for user confirmation instead of auto-executing
                         setPendingArrangement({
                           groups: arrangementData.groups,
-                          messageId: assistantMessage.id
+                          messageId: assistantMessage.id,
+                          layoutType: arrangementData.layoutType || 'similarity',
+                          layoutParams: arrangementData.layoutParams || {}
                         });
                       }
                     } catch (parseError) {
