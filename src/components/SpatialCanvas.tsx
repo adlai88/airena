@@ -2733,6 +2733,8 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
               />
             </form>
           </div>
+          {/* Spacer for resize handle */}
+          {!isMobile && <div className="h-2" />}
           {/* Resize handle - desktop only */}
           {!isMobile && (
             <div 
