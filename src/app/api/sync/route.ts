@@ -1,35 +1,28 @@
 // API route for channel synchronization with streaming progress
 import { NextRequest } from 'next/server';
 import { SyncService, SyncProgress } from '@/lib/sync';
-import { UsageTracker } from '@/lib/usage-tracking';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 
 export async function POST(req: NextRequest) {
   try {
-    const { channelSlug, sessionId, blockLimit } = await req.json();
+    const { channelSlug, blockLimit } = await req.json();
 
     if (!channelSlug) {
       return Response.json({ error: 'Channel slug is required' }, { status: 400 });
     }
 
-    // Get authentication info (optional for free users)
-    let userId: string | null = null;
+    // Authentication is now required
+    const session = await auth.api.getSession({
+      headers: await headers()
+    });
     
-    try {
-      // Use Better Auth
-      const session = await auth.api.getSession({
-        headers: await headers()
-      });
-      userId = session?.user?.id || null;
-    } catch {
-      // No authentication required for free users
-      userId = null;
+    if (!session?.user?.id) {
+      return Response.json({ error: 'Authentication required' }, { status: 401 });
     }
     
-    // Get or generate session ID for usage tracking
-    const userSessionId = sessionId || UsageTracker.generateSessionId();
-    const ipAddress = UsageTracker.getIpAddress(req);
+    const userId = session.user.id;
+    const ipAddress = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
 
     // Create a readable stream for Server-Sent Events
     const stream = new ReadableStream({
@@ -46,20 +39,19 @@ export async function POST(req: NextRequest) {
           // Create sync service instance with progress callback
           const syncService = new SyncService(sendProgress);
 
-          // Start sync process with usage tracking
+          // Start sync process (userId is now required)
           const result = await syncService.syncChannel(
             channelSlug,
-            userSessionId,
+            userId, // sessionId parameter removed
             ipAddress,
-            userId || undefined,
+            userId, // userId is no longer optional
             blockLimit
           );
 
-          // Send final result with session ID
+          // Send final result
           const finalData = `data: ${JSON.stringify({ 
             type: 'complete', 
-            result,
-            sessionId: userSessionId
+            result
           })}\n\n`;
           controller.enqueue(encoder.encode(finalData));
           

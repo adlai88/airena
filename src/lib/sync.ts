@@ -3,8 +3,7 @@ import { supabase } from './supabase';
 import { arenaClient, ArenaChannel } from './arena';
 import { contentExtractor, ProcessedAnyBlock } from './extraction';
 import { embeddingService } from './embeddings';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { UsageTracker, UsageCheckResult } from './usage-tracking';
+import { SimpleUsageTracker } from './simple-usage';
 import { ChannelAccessService } from './channel-access';
 
 export interface SyncProgress {
@@ -26,7 +25,8 @@ export interface SyncResult {
   deletedBlocks: number; // blocks removed from Are.na
   errors: string[];
   duration: number; // milliseconds
-  usageInfo?: UsageCheckResult;
+  blocksUsed?: number;
+  blocksRemaining?: number;
 }
 
 export class SyncService {
@@ -234,9 +234,9 @@ export class SyncService {
    */
   async syncChannel(
     channelSlug: string,
-    sessionId: string,
+    userId: string, // Now required
     ipAddress: string,
-    userId?: string,
+    userIdParam?: string, // Keep for compatibility, but not used
     blockLimit?: number
   ): Promise<SyncResult> {
     const startTime = Date.now();
@@ -350,6 +350,8 @@ export class SyncService {
       }
 
       if (processableBlocks.length === 0) {
+        // Get current usage stats
+        const currentStats = await SimpleUsageTracker.getUserStats(userId);
         return {
           success: true,
           channelId: dbChannelId,
@@ -359,6 +361,8 @@ export class SyncService {
           deletedBlocks,
           errors: ['No processable blocks found (no links or images with URLs)'],
           duration: Date.now() - startTime,
+          blocksUsed: currentStats.blocksUsed,
+          blocksRemaining: currentStats.blocksRemaining
         };
       }
 
@@ -387,49 +391,31 @@ export class SyncService {
       );
       console.log(`Processing ${newBlocks.length} blocks (${newBlocks.filter(b => !existingBlocks.has(b.id)).length} new, ${newBlocks.filter(b => blocksMissingThumbnails.has(b.id)).length} missing thumbnails):`, newBlocks.map(b => b.id));
 
-      // TEMPORARILY DISABLED: Usage limits bypassed for testing
-      // TODO: Re-enable usage limits after pricing restructure
-      const usageInfo = {
-        canProcess: true,
-        blocksProcessed: 0,
-        blocksRemaining: 999999,
-        isFirstTime: false,
-        blocksToProcess: newBlocks.length,
-        tier: 'pro' as const,
-        message: undefined
-      };
+      // Check usage limits with new simple system
+      const usageCheck = await SimpleUsageTracker.checkUsage(userId);
       
-      // Original usage check code (commented out for now):
-      /*
-      const usageInfo = await UsageTracker.checkUsageLimit(
-        dbChannelId,
-        sessionId,
-        userId,
-        newBlocks.length
-      );
-
-      if (!usageInfo.canProcess) {
+      if (!usageCheck.canProcess) {
         return {
           success: false,
           channelId: dbChannelId,
+          channelTitle: channel.title,
           totalBlocks: processableBlocks.length,
           processedBlocks: 0,
           skippedBlocks: processableBlocks.length,
           deletedBlocks,
-          errors: [usageInfo.message || 'Usage limit exceeded'],
+          errors: [usageCheck.message || 'Usage limit exceeded'],
           duration: Date.now() - startTime,
-          usageInfo
+          blocksUsed: usageCheck.blocksUsed,
+          blocksRemaining: usageCheck.blocksRemaining
         };
       }
-
-      // If usage info suggests limiting blocks, apply that limit
-      if (usageInfo.blocksToProcess && usageInfo.blocksToProcess < newBlocks.length) {
-        newBlocks = newBlocks.slice(0, usageInfo.blocksToProcess);
-        if (usageInfo.message) {
-          errors.push(usageInfo.message);
-        }
+      
+      // For free users, limit processing to remaining blocks
+      if (usageCheck.blocksRemaining < newBlocks.length) {
+        const limitMessage = `Processing limited to ${usageCheck.blocksRemaining} blocks (${usageCheck.blocksUsed}/50 lifetime limit)`;
+        errors.push(limitMessage);
+        newBlocks = newBlocks.slice(0, usageCheck.blocksRemaining);
       }
-      */
 
       // Apply user-selected block limit if provided (from large channel preset selection)
       if (blockLimit && blockLimit > 0 && blockLimit < newBlocks.length) {
@@ -439,6 +425,8 @@ export class SyncService {
       }
 
       if (newBlocks.length === 0) {
+        // Get current usage stats even if no processing needed
+        const currentStats = await SimpleUsageTracker.getUserStats(userId);
         return {
           success: true,
           channelId: dbChannelId,
@@ -448,6 +436,8 @@ export class SyncService {
           deletedBlocks,
           errors: ['All blocks already processed with thumbnails'],
           duration: Date.now() - startTime,
+          blocksUsed: currentStats.blocksUsed,
+          blocksRemaining: currentStats.blocksRemaining
         };
       }
 
@@ -485,7 +475,7 @@ export class SyncService {
       const detailedErrors: Array<{blockId: number, stage: string, error: string, url?: string}> = [];
 
       // Tier-aware parallel processing configuration
-      const userTier = usageInfo.tier || 'free';
+      const userTier = accessResult.userTier || 'free';
       let BATCH_SIZE = 5; // Default for free tier
       let BLOCK_TIMEOUT = 45000; // 45 seconds per block
       let BATCH_DELAY = 1000; // 1 second between batches
@@ -650,6 +640,8 @@ export class SyncService {
           errorMessage = `Rate limit exceeded. Please wait 5-10 minutes before retrying. Are.na allows limited requests per hour for large channels.`;
         }
 
+        // Get current usage stats
+        const currentStats = await SimpleUsageTracker.getUserStats(userId);
         return {
           success: false,
           channelId: dbChannelId,
@@ -659,6 +651,8 @@ export class SyncService {
           deletedBlocks,
           errors: [errorMessage],
           duration: Date.now() - startTime,
+          blocksUsed: currentStats.blocksUsed,
+          blocksRemaining: currentStats.blocksRemaining
         };
       }
 
@@ -839,6 +833,14 @@ export class SyncService {
 
       console.log(`Preparing completion signal: actuallyStoredBlocks=${actuallyStoredBlocks}, processedBlocksList.length=${processedBlocksList.length}`);
       
+      // Record usage with new simple system
+      if (actuallyStoredBlocks > 0) {
+        await SimpleUsageTracker.recordUsage(userId, actuallyStoredBlocks);
+      }
+      
+      // Get updated usage stats
+      const finalUsageStats = await SimpleUsageTracker.getUserStats(userId);
+
       // Report detailed completion status
       if (actuallyStoredBlocks === 0 && processedBlocksList.length > 0) {
         // All blocks failed during embedding/storage phase
@@ -863,7 +865,8 @@ export class SyncService {
           deletedBlocks,
           errors: errors.length > 0 ? errors : ['All blocks failed during embedding/storage'],
           duration: Date.now() - startTime,
-          usageInfo
+          blocksUsed: finalUsageStats.blocksUsed,
+          blocksRemaining: finalUsageStats.blocksRemaining
         };
       }
 
@@ -879,21 +882,6 @@ export class SyncService {
 
       console.log('✅ Completion signal sent successfully');
 
-      // TEMPORARILY DISABLED: Usage recording bypassed for testing
-      // TODO: Re-enable usage recording after pricing restructure
-      /*
-      // Record usage after successful processing (use actually stored blocks)
-      if (actuallyStoredBlocks > 0) {
-        await UsageTracker.recordUsage(
-          dbChannelId,
-          actuallyStoredBlocks,
-          sessionId,
-          ipAddress,
-          userId
-        );
-      }
-      */
-
       return {
         success: actuallyStoredBlocks > 0,
         channelId: dbChannelId,
@@ -904,7 +892,8 @@ export class SyncService {
         deletedBlocks,
         errors,
         duration: Date.now() - startTime,
-        usageInfo
+        blocksUsed: finalUsageStats.blocksUsed,
+        blocksRemaining: finalUsageStats.blocksRemaining
       };
 
     } catch (error) {
@@ -918,6 +907,17 @@ export class SyncService {
         errors,
       });
 
+      // Try to get usage stats even on error
+      let blocksUsed = 0;
+      let blocksRemaining = 0;
+      try {
+        const stats = await SimpleUsageTracker.getUserStats(userId);
+        blocksUsed = stats.blocksUsed;
+        blocksRemaining = stats.blocksRemaining;
+      } catch (statsError) {
+        console.error('Failed to get usage stats:', statsError);
+      }
+
       return {
         success: false,
         channelId: 0,
@@ -927,6 +927,8 @@ export class SyncService {
         deletedBlocks: 0,
         errors,
         duration: Date.now() - startTime,
+        blocksUsed,
+        blocksRemaining
       };
     }
   }

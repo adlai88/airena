@@ -3,13 +3,14 @@ import type { NextRequest } from 'next/server';
 
 // Define protected routes that require authentication
 const protectedPaths = [
-  '/generate',  // Requires user account for generation limits
+  '/channels',  // Requires authentication - no more anonymous access
+  '/canvas',    // Requires authentication
+  '/generate',  // Requires user account
   '/usage',     // User-specific usage data
   '/settings'   // User settings
-  // '/canvas' removed - canvas is now public like channels
 ];
 
-// Note: /channels is intentionally not protected to allow anonymous demo access
+// Note: All features now require authentication - no anonymous access
 
 // Define auth routes that should redirect if already authenticated
 const authPaths = ['/sign-in', '/sign-up'];

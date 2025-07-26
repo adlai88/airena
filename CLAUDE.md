@@ -413,3 +413,33 @@ Future enhancement idea for the spatial canvas: Allow users to generate new imag
 
 This would transform the spatial canvas from an organizational tool into a generative creative companion, extending the "curation to creation" philosophy.
 
+---
+
+## ⚠️ TEMPORARY: Usage Caps Disabled (July 26, 2025)
+
+**Context**: All usage limits and tracking have been temporarily disabled to allow for pricing restructure planning.
+
+**What's Disabled**:
+1. **Block processing limits** - No 25-block free tier limit
+2. **Channel count limits** - No 3-channel free tier limit
+3. **Chat message limits** - No 10 messages/month limit
+4. **Generation limits** - No 2 generations/month limit
+5. **Usage tracking** - No recording of usage to database
+
+**Files Modified** (search for "TEMPORARILY DISABLED"):
+- `/src/lib/sync.ts` - Block and channel limit checks bypassed
+- `/src/app/api/chat/route.ts` - Chat limits and recording bypassed
+- `/src/app/api/generate/route.ts` - Generation limits and recording bypassed
+
+**ESLint Suppressions Added**:
+- Unused variables (`userId`, `userSessionId`, `UsageTracker`) have eslint-disable comments
+
+**To Re-enable**:
+1. Search codebase for "TEMPORARILY DISABLED"
+2. Uncomment the original code blocks
+3. Remove the temporary mock `usageInfo` object
+4. Remove eslint-disable comments for the variables
+5. Test all limit enforcement and recording
+
+**Why**: User reported being on Starter plan but system treating as Free tier. Decision made to disable all caps while redesigning pricing structure.
+

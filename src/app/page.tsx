@@ -27,9 +27,9 @@ export default function HomePage() {
           <div className="mb-16">
             <div className="inline-flex flex-col w-full sm:w-auto">
               <Button variant="default" size="lg" className="font-medium min-h-[52px] px-8 min-w-[220px] w-full sm:w-auto" asChild>
-                <Link href="/channels">Try Demo</Link>
+                <Link href="/sign-up">Get Started Free</Link>
               </Button>
-              <p className="text-xs text-muted-foreground text-center mt-2">No signup required</p>
+              <p className="text-xs text-muted-foreground text-center mt-2">50 blocks free • No credit card required</p>
             </div>
           </div>
 
@@ -47,8 +47,8 @@ export default function HomePage() {
             <h2 className="text-2xl font-bold mb-4 text-foreground">Airena is:</h2>
             <ul className="list-disc pl-6 space-y-2 text-foreground">
               <li>Your taste, amplified: Every answer is informed by your personally curated knowledge</li>
-              <li>Zero setup: Just connect an Are.na channel and start chatting</li>
-              <li>Open source: Self-host for free or use our hosted service for $5/month</li>
+              <li>Simple start: Sign up free and get 50 blocks to explore the power of AI-enhanced curation</li>
+              <li>Open source: Self-host for free or upgrade to Starter ($5/month) for 200 blocks monthly</li>
             </ul>
             <p className="mt-6 text-foreground text-base font-medium">
               Join researchers, designers, and strategists who are turning their Are.na channels into competitive intelligence.
