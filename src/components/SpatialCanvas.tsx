@@ -888,7 +888,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           color: 'grey',
           size: 's',
           font: 'sans',
-          textAlign: 'center',
+          textAlign: 'middle',
           w: 100,
           autoSize: true,
         }
@@ -959,7 +959,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         color: 'black',
         size: 'xl',
         font: 'serif',
-        textAlign: 'left',
+        textAlign: 'start',
         w: 600,
         autoSize: true,
       }
