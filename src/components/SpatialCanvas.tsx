@@ -474,23 +474,8 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       x = Math.max(50, Math.min(viewportWidth - typeConfig.w - 50, x))
       y = Math.max(50, Math.min(viewportHeight - typeConfig.h - 50, y))
       
-      // Dramatic rotation variations
-      let rotation = 0
-      const rotationChance = Math.random()
-      if (rotationChance < 0.3) {
-        rotation = 0 // 30% straight
-      } else if (rotationChance < 0.6) {
-        rotation = (Math.random() - 0.5) * 30 * (Math.PI / 180) // 30% slight tilt (±15°)
-      } else if (rotationChance < 0.85) {
-        rotation = (Math.random() - 0.5) * 60 * (Math.PI / 180) // 25% medium tilt (±30°)
-      } else {
-        rotation = (Math.random() - 0.5) * 90 * (Math.PI / 180) // 15% dramatic tilt (±45°)
-      }
-      
-      // Heroes get less rotation
-      if (isHero) {
-        rotation = rotation * 0.5
-      }
+      // No rotation for cleaner appearance
+      const rotation = 0
       
       placedPositions.push({ x, y, w: typeConfig.w, h: typeConfig.h })
       
@@ -655,10 +640,10 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
               x: textX,
               y: textY,
               rotation: 0, // No rotation for text
-              opacity: 0, // 0% opacity
+              opacity: 1, // 100% opacity
               props: {
                 richText: toRichText(word),
-                color: 'white', // White color
+                color: 'grey', // Grey color for subtlety
                 size: 'l',
                 font: 'sans', // Sans-serif font
                 textAlign: 'middle'
@@ -696,7 +681,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         x: 100,
         y: 50,
         rotation: 0, // No rotation
-        opacity: 0, // 0% opacity
+        opacity: 1, // 100% opacity
         props: {
           richText: toRichText('✨ mood board'),
           color: 'white', // White color
