@@ -1974,13 +1974,28 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           <div className="fixed left-4 top-20 bottom-18 w-96 bg-background/95 backdrop-blur-xl border rounded-xl shadow-2xl z-[100] flex flex-col overflow-hidden animate-in slide-in-from-left-5 duration-200">
           <div className="p-4 border-b flex items-center justify-between bg-muted/30">
             <h3 className="font-semibold">Chat with Aryn</h3>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => setShowChat(false)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-2">
+              {messages.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    setMessages([])
+                    setChatInput('')
+                  }}
+                  className="text-xs"
+                >
+                  New chat
+                </Button>
+              )}
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => setShowChat(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
           
           <div className="flex-1 overflow-y-auto">
