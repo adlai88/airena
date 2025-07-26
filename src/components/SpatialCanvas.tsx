@@ -356,48 +356,120 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   }
 
   const calculateMoodBoardLayout = (blocks: Block[]) => {
-    const viewportWidth = 1600
-    const viewportHeight = 1200
+    const viewportWidth = 2000
+    const viewportHeight = 1400
     
-    // Sort blocks - images first and larger
-    const sortedBlocks = [...blocks].sort((a, b) => {
-      if (a.block_type === 'Image' && b.block_type !== 'Image') return -1
-      if (a.block_type !== 'Image' && b.block_type === 'Image') return 1
-      return 0
-    })
+    // Categorize blocks by type and importance
+    const categorizedBlocks = blocks.map(block => ({
+      block,
+      importance: getBlockImportance(block),
+      isHero: false
+    }))
     
-    // Create organic scatter with overlapping
-    return sortedBlocks.map((block, index) => {
-      // Use golden ratio spiral for organic placement
-      const goldenAngle = 137.5 * (Math.PI / 180)
-      const angle = index * goldenAngle
-      const radius = Math.sqrt(index) * 80
+    // Select 2-3 hero blocks (highest importance images/videos)
+    const heroCount = Math.min(3, Math.floor(blocks.length / 8) + 1)
+    categorizedBlocks
+      .filter(b => b.block.block_type === 'Image' || b.block.block_type === 'Video')
+      .sort((a, b) => b.importance - a.importance)
+      .slice(0, heroCount)
+      .forEach(b => b.isHero = true)
+    
+    // Define gravity points for clusters (asymmetrical distribution)
+    const gravityPoints = [
+      { x: viewportWidth * 0.25, y: viewportHeight * 0.3, weight: 1.2 },
+      { x: viewportWidth * 0.7, y: viewportHeight * 0.25, weight: 1.0 },
+      { x: viewportWidth * 0.15, y: viewportHeight * 0.7, weight: 0.8 },
+      { x: viewportWidth * 0.8, y: viewportHeight * 0.65, weight: 0.9 },
+      { x: viewportWidth * 0.45, y: viewportHeight * 0.85, weight: 0.7 }
+    ]
+    
+    // Distribute blocks to clusters
+    const shapes = []
+    const placedPositions: Array<{x: number, y: number, w: number, h: number}> = []
+    
+    categorizedBlocks.forEach((item, index) => {
+      const { block, isHero } = item
       
-      // Add randomness for organic feel
-      const randomOffset = {
-        x: (Math.random() - 0.5) * 100,
-        y: (Math.random() - 0.5) * 100
+      // Select a gravity point (cycle through them with some randomness)
+      const gravityIndex = (index + Math.floor(Math.random() * 2)) % gravityPoints.length
+      const gravity = gravityPoints[gravityIndex]
+      
+      // Calculate base position with organic offset
+      const angleVariation = (Math.random() * Math.PI * 2)
+      const distanceFromGravity = isHero 
+        ? 50 + Math.random() * 100  // Heroes closer to gravity points
+        : 120 + Math.random() * 200 // Others more spread out
+      
+      let x = gravity.x + Math.cos(angleVariation) * distanceFromGravity
+      let y = gravity.y + Math.sin(angleVariation) * distanceFromGravity
+      
+      // Add edge attraction (some blocks go to edges)
+      if (Math.random() < 0.3 && !isHero) {
+        const edge = Math.floor(Math.random() * 4)
+        switch(edge) {
+          case 0: x = 100 + Math.random() * 200; break // left
+          case 1: x = viewportWidth - 300 + Math.random() * 200; break // right
+          case 2: y = 100 + Math.random() * 200; break // top
+          case 3: y = viewportHeight - 300 + Math.random() * 200; break // bottom
+        }
       }
       
-      const x = viewportWidth / 2 + Math.cos(angle) * radius + randomOffset.x
-      const y = viewportHeight / 2 + Math.sin(angle) * radius + randomOffset.y
-      
-      // Size variations - images larger
-      const baseSizes = {
-        'Image': 120 + Math.random() * 60,
-        'Video': 100 + Math.random() * 40,
-        'Link': 60 + Math.random() * 20,
-        'Text': 60 + Math.random() * 20,
-        'Attachment': 70 + Math.random() * 30
+      // Size variations with hero emphasis
+      let sizeMultiplier = 1
+      if (isHero) {
+        sizeMultiplier = 1.5 + Math.random() * 0.5 // 1.5x to 2x
+      } else if (block.block_type === 'Text' || block.block_type === 'Link') {
+        sizeMultiplier = 0.7 + Math.random() * 0.2 // 0.7x to 0.9x
+      } else {
+        sizeMultiplier = 0.9 + Math.random() * 0.3 // 0.9x to 1.2x
       }
       
-      const baseSize = baseSizes[block.block_type] || 80
+      const baseSize = 80 * sizeMultiplier
       const typeConfig = getBlockTypeConfig(block, baseSize)
       
-      // Slight rotation for dynamic feel (-15 to 15 degrees)
-      const rotation = (Math.random() - 0.5) * 30 * (Math.PI / 180)
+      // Check for overlaps and adjust (allow some controlled overlapping)
+      let attempts = 0
+      while (attempts < 10) {
+        const overlap = placedPositions.find(pos => {
+          const dx = Math.abs(x - pos.x)
+          const dy = Math.abs(y - pos.y)
+          const minDistance = (typeConfig.w + pos.w) * 0.4 // Allow 60% overlap
+          return dx < minDistance && dy < minDistance
+        })
+        
+        if (!overlap || Math.random() < 0.3) break // 30% chance to allow overlap
+        
+        // Adjust position
+        x += (Math.random() - 0.5) * 100
+        y += (Math.random() - 0.5) * 100
+        attempts++
+      }
       
-      return {
+      // Ensure within viewport bounds
+      x = Math.max(50, Math.min(viewportWidth - typeConfig.w - 50, x))
+      y = Math.max(50, Math.min(viewportHeight - typeConfig.h - 50, y))
+      
+      // Dramatic rotation variations
+      let rotation = 0
+      const rotationChance = Math.random()
+      if (rotationChance < 0.3) {
+        rotation = 0 // 30% straight
+      } else if (rotationChance < 0.6) {
+        rotation = (Math.random() - 0.5) * 30 * (Math.PI / 180) // 30% slight tilt (±15°)
+      } else if (rotationChance < 0.85) {
+        rotation = (Math.random() - 0.5) * 60 * (Math.PI / 180) // 25% medium tilt (±30°)
+      } else {
+        rotation = (Math.random() - 0.5) * 90 * (Math.PI / 180) // 15% dramatic tilt (±45°)
+      }
+      
+      // Heroes get less rotation
+      if (isHero) {
+        rotation = rotation * 0.5
+      }
+      
+      placedPositions.push({ x, y, w: typeConfig.w, h: typeConfig.h })
+      
+      shapes.push({
         id: `shape:block-${block.id}`,
         type: 'geo',
         x,
@@ -411,8 +483,10 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           color: typeConfig.color,
           fill: 'none'
         }
-      }
+      })
     })
+    
+    return shapes
   }
 
   const calculatePresentationLayout = (blocks: Block[], direction: 'horizontal' | 'vertical' = 'horizontal') => {
