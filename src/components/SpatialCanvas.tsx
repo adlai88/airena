@@ -39,6 +39,15 @@ interface SpatialCanvasProps {
 
 type ViewMode = 'grid' | 'similarity' | 'random'
 
+interface ArrangementData {
+  groups: Array<{
+    theme: string
+    blockIds: number[]
+    color?: string
+  }>
+  messageId: string
+}
+
 export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [editor, setEditor] = useState<any>(null)
@@ -61,6 +70,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   const [prevTool, setPrevTool] = useState<string>('select')
   const [isAnimating, setIsAnimating] = useState(false)
   const [pinnedMessages, setPinnedMessages] = useState<Set<string>>(new Set())
+  const [pendingArrangement, setPendingArrangement] = useState<ArrangementData | null>(null)
 
   // Check if message is an arrangement command
   const isArrangementCommand = (message: string) => {
@@ -73,6 +83,24 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       message.toLowerCase().includes(trigger)
     );
   };
+
+  // Execute pending arrangement
+  const executePendingArrangement = () => {
+    if (!pendingArrangement) return
+    
+    const clusters = pendingArrangement.groups.map((g, i) => ({
+      id: i,
+      label: g.theme,
+      blockIds: g.blockIds,
+      blockCount: g.blockIds.length
+    }))
+    
+    // Use the existing similarity layout function with animation
+    applySimilarityLayoutWithData(clusters)
+    
+    // Clear pending arrangement after execution
+    setPendingArrangement(null)
+  }
 
   // Pin message to canvas function
   const pinToCanvas = (message: { id: string; content: string }) => {
@@ -1030,14 +1058,26 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                     }`}>
                       {msg.content}
                       {msg.role === 'assistant' && !isLoading && (
-                        <button
-                          onClick={() => pinToCanvas(msg)}
-                          className={`mt-2 text-xs opacity-60 hover:opacity-100 transition-opacity block ${
-                            pinnedMessages.has(msg.id) ? 'opacity-100' : ''
-                          }`}
-                        >
-                          {pinnedMessages.has(msg.id) ? '✓ Pinned' : '📌 Pin to canvas'}
-                        </button>
+                        <div className="mt-2 space-y-2">
+                          {pendingArrangement && pendingArrangement.messageId === msg.id && (
+                            <Button
+                              onClick={executePendingArrangement}
+                              size="sm"
+                              disabled={isAnimating}
+                              className="w-full"
+                            >
+                              {isAnimating ? 'Arranging...' : 'Execute Arrangement'}
+                            </Button>
+                          )}
+                          <button
+                            onClick={() => pinToCanvas(msg)}
+                            className={`text-xs opacity-60 hover:opacity-100 transition-opacity block ${
+                              pinnedMessages.has(msg.id) ? 'opacity-100' : ''
+                            }`}
+                          >
+                            {pinnedMessages.has(msg.id) ? '✓ Pinned' : '📌 Pin to canvas'}
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -1209,18 +1249,11 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                     try {
                       const arrangementData = JSON.parse(jsonMatch[0]);
                       if (arrangementData.groups && Array.isArray(arrangementData.groups)) {
-                        // Execute the arrangement using existing animation system
-                        const clusters = arrangementData.groups.map((g: { theme: string; blockIds: number[]; color?: string }, i: number) => ({
-                          id: i,
-                          label: g.theme,
-                          blockIds: g.blockIds,
-                          blockCount: g.blockIds.length
-                        }));
-                        
-                        // Use the existing similarity layout function!
-                        setTimeout(() => {
-                          applySimilarityLayoutWithData(clusters);
-                        }, 500); // Small delay to let chat update finish
+                        // Store the arrangement for user confirmation instead of auto-executing
+                        setPendingArrangement({
+                          groups: arrangementData.groups,
+                          messageId: assistantMessage.id
+                        });
                       }
                     } catch (parseError) {
                       console.error('Failed to parse arrangement JSON:', parseError);

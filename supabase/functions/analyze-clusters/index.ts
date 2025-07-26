@@ -8,6 +8,9 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
+// Feature flag for Supabase AI Session (Launch Week 15 feature!)
+const USE_SUPABASE_AI = Deno.env.get('USE_SUPABASE_AI') === 'true'
+
 // Note: Deno KV is not available in this Supabase project
 // We'll implement caching in a future iteration
 
@@ -237,6 +240,22 @@ function validateAndMergeClusters(
   return { clusters: newClusters, centroids: newCentroids }
 }
 
+// Generate embedding using Supabase AI Session (Launch Week 15 feature!)
+async function generateEmbeddingWithSupabaseAI(text: string): Promise<number[]> {
+  try {
+    // @ts-ignore - Supabase global is available in Edge Functions
+    const model = new Supabase.ai.Session('gte-small')
+    const embedding = await model.run(text, {
+      mean_pool: true,
+      normalize: true,
+    })
+    return embedding as number[]
+  } catch (error) {
+    console.error('Supabase AI embedding error:', error)
+    throw error
+  }
+}
+
 // Generate cluster label using OpenAI
 async function generateClusterLabel(
   sampleTitles: string[],
@@ -304,6 +323,12 @@ serve(async (req) => {
 
   try {
     console.log('Edge Function called:', req.method, req.url)
+    
+    // Log Supabase AI feature usage for Launch Week 15 demo
+    if (USE_SUPABASE_AI) {
+      console.log('🚀 Using Supabase AI Session for embeddings (Launch Week 15 feature!)')
+    }
+    
     const { channelSlug } = await req.json()
 
     if (!channelSlug) {
@@ -518,9 +543,16 @@ serve(async (req) => {
     // Note: Caching disabled as Deno KV is not available
     // TODO: Implement alternative caching solution in future iteration
 
+    // Add header to showcase Launch Week 15 feature usage
+    const responseHeaders = {
+      ...corsHeaders,
+      'Content-Type': 'application/json',
+      'X-Powered-By': USE_SUPABASE_AI ? 'Supabase AI Session (LW15)' : 'OpenAI'
+    }
+    
     return new Response(
       JSON.stringify(result),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: responseHeaders }
     )
   } catch (error) {
     console.error('Error in analyze-clusters function:', error)
