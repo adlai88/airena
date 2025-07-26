@@ -964,7 +964,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         // Create a filled area by distributing blocks within the shape
         let blockIndex = 0
         for (let dup = 0; dup < supabaseDuplicateCount; dup++) {
-          blocks.forEach((block, originalIndex) => {
+          blocks.forEach((block) => {
             // Distribute blocks across the shape area
             const t = (blockIndex % (supabasePoints.length * 10)) / (supabasePoints.length * 10)
             
