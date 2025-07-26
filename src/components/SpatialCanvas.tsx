@@ -2038,8 +2038,8 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           }
         }}
       />
-      {/* Channel info and status - responsive positioning */}
-      <div className={`absolute bottom-18 z-50 ${isMobile ? 'left-4' : 'right-4'}`}>
+      {/* Channel info and status - always on right side */}
+      <div className="absolute bottom-18 right-4 z-50">
         {isInfoCollapsed ? (
           // Collapsed state - just show icon
           <Button
