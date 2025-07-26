@@ -88,6 +88,11 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   const isArrangementCommand = (message: string) => {
     const lowercaseMessage = message.toLowerCase()
     
+    // Special commands
+    if (message.startsWith('/supabase')) {
+      return true
+    }
+    
     // Shape commands
     if (lowercaseMessage.includes('show as a') || 
         lowercaseMessage.includes('arrange in a') ||
@@ -103,7 +108,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       'make important', 'make larger', 'emphasize',
       'magazine', 'mood board', 'presentation',
       'story flow', 'narrative', 'spiral', 'circle',
-      'heart', 'star'
+      'heart', 'star', 'supabase', 'lightning bolt'
     ];
     return triggers.some(trigger => 
       lowercaseMessage.includes(trigger)
@@ -909,6 +914,105 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
             }
           }
         })
+        
+      case 'supabase':
+        // Supabase logo - lightning bolt shape with duplicates for density
+        const supabaseDuplicateCount = 12 // Each block appears 12 times
+        const supabaseBlockSize = baseSize * 0.3 // 30% of normal size
+        const supabaseBlocks: Array<{
+          id: string
+          type: string
+          x: number
+          y: number
+          opacity: number
+          props: {
+            geo: string
+            w: number
+            h: number
+            color: string
+            fill: string
+          }
+        }> = []
+        
+        // Define the Supabase lightning bolt path points
+        // The logo is like a arrow/lightning bolt pointing right
+        const logoWidth = 400
+        const logoHeight = 300
+        const logoStartX = centerX - logoWidth / 2
+        const logoStartY = centerY - logoHeight / 2
+        
+        // Define key points of the lightning bolt (normalized 0-1)
+        const supabasePoints = [
+          // Top part of arrow
+          { x: 0.3, y: 0 },
+          { x: 0.7, y: 0 },
+          { x: 1, y: 0.3 },
+          { x: 1, y: 0.4 },
+          // Right side indent
+          { x: 0.6, y: 0.4 },
+          // Bottom part of arrow
+          { x: 0.8, y: 1 },
+          { x: 0.4, y: 1 },
+          { x: 0, y: 0.6 },
+          { x: 0, y: 0.5 },
+          // Left side indent
+          { x: 0.4, y: 0.5 },
+          // Close the shape
+          { x: 0.3, y: 0 }
+        ]
+        
+        // Create a filled area by distributing blocks within the shape
+        let blockIndex = 0
+        for (let dup = 0; dup < supabaseDuplicateCount; dup++) {
+          blocks.forEach((block, originalIndex) => {
+            // Distribute blocks across the shape area
+            const t = (blockIndex % (supabasePoints.length * 10)) / (supabasePoints.length * 10)
+            
+            // Find which segment we're on
+            const segmentIndex = Math.floor(t * (supabasePoints.length - 1))
+            const segmentT = (t * (supabasePoints.length - 1)) - segmentIndex
+            
+            const p1 = supabasePoints[segmentIndex]
+            const p2 = supabasePoints[Math.min(segmentIndex + 1, supabasePoints.length - 1)]
+            
+            // Interpolate along the edge
+            let edgeX = p1.x + (p2.x - p1.x) * segmentT
+            let edgeY = p1.y + (p2.y - p1.y) * segmentT
+            
+            // Add some inward offset to fill the shape
+            const inwardOffset = (Math.random() * 0.3 + 0.1) * (dup % 3 === 0 ? 1 : dup % 3 === 1 ? 0.6 : 0.3)
+            const centerBiasX = 0.5 - edgeX
+            const centerBiasY = 0.5 - edgeY
+            
+            edgeX += centerBiasX * inwardOffset
+            edgeY += centerBiasY * inwardOffset
+            
+            // Convert to actual coordinates
+            const x = logoStartX + edgeX * logoWidth + (Math.random() - 0.5) * 20
+            const y = logoStartY + edgeY * logoHeight + (Math.random() - 0.5) * 20
+            
+            const typeConfig = getBlockTypeConfig(block, supabaseBlockSize)
+            
+            supabaseBlocks.push({
+              id: `shape:block-${block.id}-dup-${dup}`,
+              type: 'geo',
+              x: x - typeConfig.w / 2,
+              y: y - typeConfig.h / 2,
+              opacity: 0,
+              props: {
+                geo: typeConfig.geo,
+                w: typeConfig.w,
+                h: typeConfig.h,
+                color: typeConfig.color,
+                fill: 'none'
+              }
+            })
+            
+            blockIndex++
+          })
+        }
+        
+        return supabaseBlocks
         
       default:
         // Fallback to circle
@@ -2327,6 +2431,11 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                     else if (lowerMessage.includes('heart')) layoutParams.shape = 'heart'
                     else if (lowerMessage.includes('star')) layoutParams.shape = 'star'
                     else if (lowerMessage.includes('spiral')) layoutParams.shape = 'spiral'
+                  } else if (userMessage.content.startsWith('/supabase') ||
+                             lowerMessage.includes('supabase') ||
+                             lowerMessage.includes('lightning bolt')) {
+                    layoutType = 'shape'
+                    layoutParams.shape = 'supabase'
                   }
                   
                   spatialContext += `\n\n[ARRANGEMENT_REQUEST]\nCanvas blocks:\n${JSON.stringify(blockDetails, null, 2)}\n\nAnalyze these blocks and return ONLY a JSON object with this structure:\n{\n  "layoutType": "${layoutType}",\n  "groups": [\n    {\n      "theme": "Theme name",\n      "blockIds": [1, 2, 3],\n      "color": "blue"\n    }\n  ],\n  "layoutParams": ${JSON.stringify(layoutParams)}\n}\nFor timeline layouts, group all blocks in one group. For shape-based, mood board, magazine, and presentation layouts, group all blocks in one group. For similarity/importance layouts, group blocks by semantic similarity based on the user's request.`
