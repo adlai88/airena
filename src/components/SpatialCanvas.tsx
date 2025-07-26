@@ -384,7 +384,21 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     ]
     
     // Distribute blocks to clusters
-    const shapes = []
+    const shapes: Array<{
+      id: string
+      type: string
+      x: number
+      y: number
+      rotation: number
+      opacity: number
+      props: {
+        geo: string
+        w: number
+        h: number
+        color: string
+        fill: string
+      }
+    }> = []
     const placedPositions: Array<{x: number, y: number, w: number, h: number}> = []
     
     categorizedBlocks.forEach((item, index) => {
