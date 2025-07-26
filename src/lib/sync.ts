@@ -3,6 +3,7 @@ import { supabase } from './supabase';
 import { arenaClient, ArenaChannel } from './arena';
 import { contentExtractor, ProcessedAnyBlock } from './extraction';
 import { embeddingService } from './embeddings';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { UsageTracker, UsageCheckResult } from './usage-tracking';
 import { ChannelAccessService } from './channel-access';
 

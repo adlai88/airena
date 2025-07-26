@@ -22,6 +22,7 @@ export async function POST(req: Request) {
     }
 
     // Get authentication info (optional for free users)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let userId: string | null = null;
     try {
       const session = await auth.api.getSession({
@@ -32,6 +33,7 @@ export async function POST(req: Request) {
       // No authentication required for free users
       userId = null;
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const userSessionId = sessionId || UsageTracker.generateSessionId();
 
     // Get the latest user message
