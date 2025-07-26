@@ -602,7 +602,7 @@ Return ONLY a JSON array of strings, one label per cluster. Keep labels concise 
               if (data.type === 'text') {
                 fullResponse += data.content
               }
-            } catch (e) {
+            } catch {
               // Skip invalid JSON lines
             }
           }
@@ -616,6 +616,7 @@ Return ONLY a JSON array of strings, one label per cluster. Keep labels concise 
       const labels = JSON.parse(jsonMatch[0]) as string[]
       
       // Create annotation shapes
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const annotationShapes: Array<any> = []
       
       meaningfulClusters.forEach((cluster, i) => {
@@ -689,19 +690,23 @@ Return ONLY a JSON array of strings, one label per cluster. Keep labels concise 
     if (!editor) return
     
     const allShapes = editor.getCurrentPageShapes()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const annotationShapes = allShapes.filter((shape: any) => 
       shape.id.includes('annotation-') || shape.id === 'shape:ai-indicator'
     )
     
     if (showAnnotations && annotationShapes.length > 0) {
       // Hide annotations
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       editor.deleteShapes(annotationShapes.map((shape: any) => shape.id))
       setShowAnnotations(false)
     } else if (!showAnnotations && viewMode === 'mood') {
       // Re-generate annotations
       setShowAnnotations(true)
       const blockShapes = allShapes
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .filter((shape: any) => shape.id.startsWith('shape:block-'))
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .map((shape: any) => ({
           id: shape.id,
           x: shape.x,
