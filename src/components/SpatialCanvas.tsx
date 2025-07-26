@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import { Tldraw, toRichText } from 'tldraw'
 import { Button } from '@/components/ui/button'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
-import { MessageSquare, X, Grid3X3, Brain, Shuffle, ExternalLink, Calendar, Tag } from 'lucide-react'
+import { MessageSquare, X, Grid3X3, Brain, Layers, ExternalLink, Calendar, Tag } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
 // Types based on actual database schema
@@ -37,7 +37,7 @@ interface SpatialCanvasProps {
   channelInfo: Channel
 }
 
-type ViewMode = 'grid' | 'similarity' | 'random'
+type ViewMode = 'grid' | 'cluster' | 'mood'
 
 interface ArrangementData {
   groups: Array<{
@@ -709,10 +709,10 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     let shapes
     if (viewMode === 'grid') {
       shapes = calculateGridLayout(blocks)
-    } else if (viewMode === 'random') {
-      shapes = calculateRandomLayout(blocks)
+    } else if (viewMode === 'mood') {
+      shapes = calculateMoodBoardLayout(blocks)
     } else {
-      // Similarity view will be handled by handleAutoArrange
+      // Cluster view will be handled by handleAutoArrange
       return
     }
 
@@ -727,10 +727,10 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   useEffect(() => {
     if (!editor || !blocks.length) return
     
-    if (viewMode === 'similarity' && clusters.length > 0) {
-      // Re-apply similarity layout if we have clusters
+    if (viewMode === 'cluster' && clusters.length > 0) {
+      // Re-apply cluster layout if we have clusters
       applySimilarityLayout()
-    } else if (viewMode !== 'similarity') {
+    } else if (viewMode !== 'cluster') {
       applyLayout()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1358,16 +1358,16 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
 
   // Handle view mode changes
   const handleViewModeChange = async (mode: ViewMode) => {
-    // If clicking the same mode as current (only applies to random), regenerate
-    if (mode === 'random' && viewMode === 'random') {
-      applyLayout() // This will generate new random positions
+    // If clicking the same mode as current (applies to mood), regenerate
+    if (mode === 'mood' && viewMode === 'mood') {
+      applyLayout() // This will generate new mood board positions
       return
     }
     
     setViewMode(mode)
     
-    // If switching to similarity and we don't have clusters yet, fetch them
-    if (mode === 'similarity' && clusters.length === 0) {
+    // If switching to cluster and we don't have clusters yet, fetch them
+    if (mode === 'cluster' && clusters.length === 0) {
       setIsArranging(true)
       
       try {
@@ -1670,39 +1670,40 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           Grid
         </Button>
         <Button
-          variant={viewMode === 'similarity' ? 'default' : 'ghost'}
+          variant={viewMode === 'cluster' ? 'default' : 'ghost'}
           size="sm"
-          onClick={() => handleViewModeChange('similarity')}
+          onClick={() => handleViewModeChange('cluster')}
           disabled={blocks.length === 0 || isArranging || isAnimating}
-          className="rounded-none border-x"
+          className="rounded-none"
         >
           <Brain className="h-4 w-4 mr-1" />
-          {isArranging ? 'Analyzing...' : isAnimating ? 'Organizing...' : 'Similarity'}
+          {isArranging ? 'Analyzing...' : isAnimating ? 'Organizing...' : 'Cluster'}
         </Button>
         <Button
-          variant={viewMode === 'random' ? 'default' : 'ghost'}
+          variant={viewMode === 'mood' ? 'default' : 'ghost'}
           size="sm"
-          onClick={() => handleViewModeChange('random')}
+          onClick={() => handleViewModeChange('mood')}
           disabled={blocks.length === 0}
-          className="rounded-l-none"
-          title={viewMode === 'random' ? 'Click again for new pattern' : 'Random layout'}
+          className="rounded-none"
+          title="Mood board layout"
         >
-          <Shuffle className="h-4 w-4 mr-1" />
-          Random
+          <Layers className="h-4 w-4 mr-1" />
+          Mood
+        </Button>
+        <Button
+          variant={showChat ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setShowChat(!showChat)}
+          className="rounded-l-none"
+          title="Chat with Aryn"
+        >
+          <MessageSquare className="h-4 w-4 mr-1" />
+          Chat
         </Button>
       </div>
 
-      {/* Chat Toggle Button - positioned middle-right to avoid UI overlaps */}
-      <Button
-        className="absolute top-1/2 -translate-y-1/2 right-4 z-[100] shadow-lg"
-        size="icon"
-        onClick={() => setShowChat(!showChat)}
-        title="Chat with Aryn"
-      >
-        <MessageSquare className="h-5 w-5" />
-      </Button>
 
-      {/* Floating Chat Panel */}
+      {/* Floating Chat Panel - Left Side */}
       {showChat && (
         <>
           {/* Backdrop - click to close */}
@@ -1712,7 +1713,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           />
           
           {/* Chat Panel */}
-          <div className="fixed right-20 top-1/2 -translate-y-1/2 w-96 max-h-[80vh] bg-background border rounded-xl shadow-2xl z-[100] flex flex-col overflow-hidden animate-in slide-in-from-right-5 duration-200">
+          <div className="fixed left-4 top-20 bottom-4 w-96 bg-background/95 backdrop-blur-xl border rounded-xl shadow-2xl z-[100] flex flex-col overflow-hidden animate-in slide-in-from-left-5 duration-200">
           <div className="p-4 border-b flex items-center justify-between bg-muted/30">
             <h3 className="font-semibold">Chat with Aryn</h3>
             <Button
