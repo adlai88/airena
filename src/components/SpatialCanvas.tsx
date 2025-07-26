@@ -2489,8 +2489,8 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                     </div>
                   )}
                   
-                  {/* Content (for text blocks or AI-generated content) */}
-                  {selectedBlock.content && selectedBlock.block_type !== 'Image' && (
+                  {/* Content (only for text blocks) */}
+                  {selectedBlock.content && selectedBlock.block_type === 'Text' && (
                     <div>
                       <h3 className="font-medium mb-2">Content</h3>
                       <p className="text-sm text-muted-foreground whitespace-pre-wrap">
