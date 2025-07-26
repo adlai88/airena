@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Tldraw, toRichText } from 'tldraw'
 import { Button } from '@/components/ui/button'
@@ -79,6 +79,10 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   const [isAnimating, setIsAnimating] = useState(false)
   const [pinnedMessages, setPinnedMessages] = useState<Set<string>>(new Set())
   const [pendingArrangement, setPendingArrangement] = useState<ArrangementData | null>(null)
+  const [chatPosition, setChatPosition] = useState({ x: 20, y: 80 }) // Default position
+  const [isDraggingChat, setIsDraggingChat] = useState(false)
+  const dragStartPos = useRef({ x: 0, y: 0 })
+  const dragStartChatPos = useRef({ x: 0, y: 0 })
 
   // Check if message is an arrangement command
   const isArrangementCommand = (message: string) => {
@@ -1826,6 +1830,42 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     }
   }, [editor, blocks])
 
+  // Handle chat panel dragging
+  useEffect(() => {
+    if (!isDraggingChat) return
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const deltaX = e.clientX - dragStartPos.current.x
+      const deltaY = e.clientY - dragStartPos.current.y
+      
+      // Calculate new position
+      let newX = dragStartChatPos.current.x + deltaX
+      let newY = dragStartChatPos.current.y + deltaY
+      
+      // Keep chat panel within viewport bounds
+      const chatWidth = 384 // w-96 = 24rem = 384px
+      const chatHeight = 600 // max height
+      const padding = 20
+      
+      newX = Math.max(padding, Math.min(window.innerWidth - chatWidth - padding, newX))
+      newY = Math.max(padding, Math.min(window.innerHeight - chatHeight - padding, newY))
+      
+      setChatPosition({ x: newX, y: newY })
+    }
+
+    const handleMouseUp = () => {
+      setIsDraggingChat(false)
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isDraggingChat])
+
   return (
     <div style={{ position: 'fixed', inset: 0 }}>
       <Tldraw 
@@ -2045,9 +2085,28 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           />
           
           {/* Chat Panel */}
-          <div className="fixed left-4 top-20 bottom-18 w-96 bg-background/95 backdrop-blur-xl border rounded-xl shadow-2xl z-[100] flex flex-col overflow-hidden animate-in slide-in-from-left-5 duration-200">
-          <div className="p-4 border-b flex items-center justify-between bg-muted/30">
-            <h3 className="font-semibold">Chat with Aryn</h3>
+          <div 
+            className={`fixed w-96 bg-background/95 backdrop-blur-xl border rounded-xl shadow-2xl z-[100] flex flex-col overflow-hidden animate-in slide-in-from-left-5 duration-200 ${
+              isDraggingChat ? 'cursor-move shadow-3xl' : ''
+            }`}
+            style={{
+              left: `${chatPosition.x}px`,
+              top: `${chatPosition.y}px`,
+              height: 'calc(100vh - 120px)',
+              maxHeight: '600px',
+              transition: isDraggingChat ? 'none' : 'box-shadow 0.2s'
+            }}
+          >
+          <div 
+            className="p-4 border-b flex items-center justify-between bg-muted/30 cursor-move"
+            onMouseDown={(e) => {
+              setIsDraggingChat(true)
+              dragStartPos.current = { x: e.clientX, y: e.clientY }
+              dragStartChatPos.current = { ...chatPosition }
+              e.preventDefault()
+            }}
+          >
+            <h3 className="font-semibold select-none">Chat with Aryn</h3>
             <div className="flex items-center gap-2">
               {messages.length > 0 && (
                 <Button
