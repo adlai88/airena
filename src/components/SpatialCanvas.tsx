@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import { Tldraw, toRichText } from 'tldraw'
 import { Button } from '@/components/ui/button'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
-import { MessageSquare, X, Grid3X3, Brain, Layers, ExternalLink, Calendar, Tag } from 'lucide-react'
+import { MessageSquare, X, Grid3X3, Network, Layers, ExternalLink, Calendar, Tag } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
 // Types based on actual database schema
@@ -1927,7 +1927,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           disabled={blocks.length === 0 || isArranging || isAnimating}
           className="rounded-none"
         >
-          <Brain className="h-4 w-4 mr-1" />
+          <Network className="h-4 w-4 mr-1" />
           {isArranging ? 'Analyzing...' : isAnimating ? 'Organizing...' : 'Cluster'}
         </Button>
         <Button
@@ -1994,10 +1994,10 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                   <p className="text-xs text-muted-foreground/70 uppercase tracking-wide text-center">Suggested actions</p>
                   <div className="grid grid-cols-2 gap-2">
                     {[
-                      "Arrange by theme",
-                      "Group by visual style", 
-                      "Organize by color",
-                      "Sort by type"
+                      "Arrange in a timeline",
+                      "What patterns do you see?", 
+                      "Create a presentation",
+                      "Show as a spiral"
                     ].map((suggestion) => (
                       <button
                         key={suggestion}
