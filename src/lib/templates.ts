@@ -95,7 +95,8 @@ Newsletter:`;
     userMessage: string,
     context: ContextBlock[],
     channelTitle: string,
-    conversationHistory: Array<{ role: string; content: string }> = []
+    conversationHistory: Array<{ role: string; content: string }> = [],
+    isSpatialCanvas: boolean = false
   ): string {
     const contextText = context.map((block, i) => 
       `[${i + 1}] ${block.title}\nURL: ${block.url}\nContent: ${block.content.substring(0, 800)}...\n`
@@ -130,6 +131,21 @@ RESPONSE GUIDELINES:
 - Match tone to channel vibe: ${channelVibe}
 - ALWAYS format URLs as clickable markdown links [Title](URL) - never use bare URLs
 
+${isSpatialCanvas ? `SPATIAL ARRANGEMENT COMMANDS:
+If the user asks to arrange blocks spatially (e.g., "show as a spiral", "arrange in a timeline", "create a presentation"):
+- Recognize these as ARRANGEMENT COMMANDS requiring a specific JSON response
+- Available arrangements: timeline, importance, magazine, mood board, presentation, circle, heart, star, spiral
+- Respond with: "I'll arrange your blocks in [pattern]. [Brief description of what this arrangement does]"
+- Then IMMEDIATELY follow with the JSON on a new line:
+\`\`\`json
+{
+  "type": "arrangement",
+  "layoutType": "[appropriate layout]",
+  "description": "[what this arrangement will show]"
+}
+\`\`\`
+- Keep the explanation brief - focus on the visual arrangement, not content analysis
+` : ''}
 ${isExploratoryQuery ? this.getExploratoryInstructions(channelVibe) : this.getSpecificInstructions()}
 
 CORE MISSION: Help users discover insights from this curated collection FIRST, but provide helpful general knowledge when needed. Always distinguish between curated content and general knowledge. Act as a knowledgeable guide, not a presumptuous curator.

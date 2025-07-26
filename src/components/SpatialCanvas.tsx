@@ -82,6 +82,15 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
 
   // Check if message is an arrangement command
   const isArrangementCommand = (message: string) => {
+    const lowercaseMessage = message.toLowerCase()
+    
+    // Shape commands
+    if (lowercaseMessage.includes('show as a') || 
+        lowercaseMessage.includes('arrange in a') ||
+        lowercaseMessage.includes('shape of')) {
+      return true
+    }
+    
     const triggers = [
       'arrange by', 'group by', 'organize by', 
       'layout', 'create a grid', 'sort by',
@@ -89,10 +98,11 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       'timeline', 'chronological', 'by date',
       'make important', 'make larger', 'emphasize',
       'magazine', 'mood board', 'presentation',
-      'in the shape of', 'story flow', 'narrative'
+      'story flow', 'narrative', 'spiral', 'circle',
+      'heart', 'star'
     ];
     return triggers.some(trigger => 
-      message.toLowerCase().includes(trigger)
+      lowercaseMessage.includes(trigger)
     );
   };
 
@@ -644,13 +654,13 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
               type: 'text',
               x: textX,
               y: textY,
-              rotation: (Math.random() - 0.5) * 0.3,
-              opacity: 0.45,
+              rotation: 0, // No rotation for text
+              opacity: 0, // 0% opacity
               props: {
                 richText: toRichText(word),
-                color: 'grey',
+                color: 'white', // White color
                 size: 'l',
-                font: 'serif',
+                font: 'sans', // Sans-serif font
                 textAlign: 'middle'
               }
             })
@@ -685,12 +695,13 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         type: 'text',
         x: 100,
         y: 50,
-        opacity: 0.4,
+        rotation: 0, // No rotation
+        opacity: 0, // 0% opacity
         props: {
           richText: toRichText('✨ mood board'),
-          color: 'grey',
+          color: 'white', // White color
           size: 's',
-          font: 'serif',
+          font: 'sans', // Sans-serif font
           textAlign: 'start'
         }
       })
@@ -1157,6 +1168,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           type: 'geo',
           x: startPos.x, // Start at current position
           y: startPos.y,
+          rotation: 0, // Reset rotation for clean cluster appearance
           opacity: 0, // Make shape invisible
           props: {
             geo: typeConfig.geo,
@@ -1172,7 +1184,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       if (cluster) {
         // Calculate max cluster width to position label safely beyond it
         const maxClusterRadius = Math.ceil(Math.sqrt(clusterBlocks.length)) * (blockSize + blockSpacing)
-        const labelX = centerX + maxClusterRadius + 50 // Safe distance from cluster edge
+        const labelX = centerX + maxClusterRadius + 100 // Increased distance from cluster edge to prevent overlap
         
         labelShapes.push({
           id: `shape:cluster-label-${cluster.id}`,
@@ -1306,6 +1318,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
               type: shape.type,
               x: currentX,
               y: currentY,
+              rotation: 0, // Reset rotation for clean cluster appearance
             })
             
             if (progress < 1) {
@@ -2028,7 +2041,20 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
             </div>
           </div>
           
-          <div className="flex-1 overflow-y-auto">
+          <div 
+            className="flex-1 overflow-y-auto 
+              [&::-webkit-scrollbar]:w-[3px] 
+              [&::-webkit-scrollbar-track]:bg-transparent 
+              [&::-webkit-scrollbar-thumb]:bg-transparent
+              [&::-webkit-scrollbar-thumb]:rounded-full 
+              [&::-webkit-scrollbar-thumb]:transition-colors
+              [&:hover::-webkit-scrollbar-thumb]:bg-muted-foreground/20
+              [&::-webkit-scrollbar-thumb:hover]:bg-muted-foreground/30
+              [scrollbar-width:thin] 
+              [scrollbar-color:transparent_transparent]
+              hover:[scrollbar-color:rgba(128,128,128,0.2)_transparent]
+              scroll-smooth"
+          >
             {messages.length === 0 ? (
               <div className="p-4 space-y-4">
                 <div className="text-center">
@@ -2233,6 +2259,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   channelSlug: (channelInfo as any).channelSlug || channelInfo.slug, // Handle both formats
                   sessionId: sessionId,
+                  isSpatialCanvas: true,
                 }
                 console.log('Chat request:', requestBody)
                 console.log('Channel info:', channelInfo)
@@ -2296,18 +2323,8 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                           )
                         } else if (data.type === 'images' && data.content) {
                           // Handle image context from the chat API
-                          // For now, we'll just append a note about the images
-                          const imageCount = data.content.length
-                          if (imageCount > 0) {
-                            assistantContent += `\n\n[Referenced ${imageCount} block${imageCount > 1 ? 's' : ''} with thumbnails]`
-                            setMessages(prev => 
-                              prev.map(msg => 
-                                msg.id === assistantMessage.id 
-                                  ? { ...msg, content: assistantContent }
-                                  : msg
-                              )
-                            )
-                          }
+                          // In spatial canvas, we don't need to show the thumbnail reference
+                          // since blocks are already visible on the canvas
                         }
                       } catch (e) {
                         // If JSON parsing fails, it might be a plain text chunk
@@ -2371,21 +2388,43 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
 
       {/* Block Detail Modal - Use portal to escape tldraw's event system */}
       {showModal && selectedBlock && typeof window !== 'undefined' && createPortal(
-            <div 
-              className="fixed inset-0 flex items-center justify-center"
-              style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                zIndex: 9999,
-                pointerEvents: 'auto'
-              }}
-              onMouseDown={(e) => {
-                // Only close if clicking directly on the backdrop
-                if (e.target === e.currentTarget) {
-                  setShowModal(false)
+            <>
+              {/* Backdrop with blur and darkening */}
+              <div 
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in-0 duration-200"
+                style={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  zIndex: 9998,
+                  pointerEvents: 'auto'
+                }}
+                onMouseDown={() => setShowModal(false)}
+              />
+              
+              {/* Modal Content */}
+              <div 
+                className="fixed inset-0 flex items-center justify-center"
+                style={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  zIndex: 9999,
+                  pointerEvents: 'none'
+                }}
+              >
+                <div
+                  className="animate-in zoom-in-95 fade-in-0 duration-200"
+                  style={{
+                    pointerEvents: 'auto'
+                  }}
+                  onMouseDown={(e) => {
+                    // Prevent closing when clicking inside modal
+                    e.stopPropagation()
                 }
               }}
             >

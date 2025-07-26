@@ -226,12 +226,16 @@ export async function POST(req: Request) {
       content: msg.content.substring(0, 500) // Truncate long messages
     }));
 
+    // Check if this is from spatial canvas
+    const isSpatialCanvas = body.isSpatialCanvas || false;
+    
     // Generate optimized prompt
     const systemPrompt = PromptTemplates.chat(
       lastMessage.content,
       relevantBlocks,
       channel.title,
-      conversationHistory.slice(0, -1)
+      conversationHistory.slice(0, -1),
+      isSpatialCanvas
     );
 
     // Stream optimized response
