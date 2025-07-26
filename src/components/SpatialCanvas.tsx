@@ -987,19 +987,27 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
 
       {/* Chat Toggle Button - positioned middle-right to avoid UI overlaps */}
       <Button
-        className="absolute top-1/2 -translate-y-1/2 right-4 z-50"
+        className="absolute top-1/2 -translate-y-1/2 right-4 z-[100] shadow-lg"
         size="icon"
         onClick={() => setShowChat(!showChat)}
-        title="Open chat"
+        title="Chat with Aryn"
       >
         <MessageSquare className="h-5 w-5" />
       </Button>
 
-      {/* Chat Panel */}
+      {/* Floating Chat Panel */}
       {showChat && (
-        <div className="absolute right-0 top-0 bottom-0 w-96 bg-background border-l z-50 flex flex-col">
-          <div className="p-4 border-b flex items-center justify-between">
-            <h3 className="font-semibold">Chat with Canvas</h3>
+        <>
+          {/* Backdrop - click to close */}
+          <div 
+            className="fixed inset-0 z-[99]" 
+            onClick={() => setShowChat(false)}
+          />
+          
+          {/* Chat Panel */}
+          <div className="fixed right-20 top-1/2 -translate-y-1/2 w-96 max-h-[80vh] bg-background border rounded-xl shadow-2xl z-[100] flex flex-col overflow-hidden animate-in slide-in-from-right-5 duration-200">
+          <div className="p-4 border-b flex items-center justify-between bg-muted/30">
+            <h3 className="font-semibold">Chat with Aryn</h3>
             <Button
               size="icon"
               variant="ghost"
@@ -1009,46 +1017,51 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
             </Button>
           </div>
           
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex-1 overflow-y-auto">
             {messages.length === 0 ? (
-              <div className="text-center">
-                <p className="text-muted-foreground mb-4">
-                  Ask about the blocks or arrange them spatially
-                </p>
-                {selectedBlock && (
-                  <p className="text-xs text-muted-foreground mb-4">
-                    Selected: &quot;{selectedBlock.title || 'Untitled'}&quot;
+              <div className="p-4 space-y-4">
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    I can help you understand and organize your blocks. Try asking me to arrange them by theme, style, or any other criteria.
                   </p>
-                )}
-                <div className="space-y-2 mt-4">
-                  <p className="text-xs text-muted-foreground/70 uppercase tracking-wide">Try these:</p>
-                  {[
-                    "Arrange by theme",
-                    "Group by visual style", 
-                    "Organize by color",
-                    "Sort by type"
-                  ].map((suggestion) => (
-                    <button
-                      key={suggestion}
-                      onClick={() => {
-                        setChatInput(suggestion);
-                        // Auto-submit
-                        setTimeout(() => {
-                          const form = document.querySelector('form');
-                          if (form) {
-                            form.dispatchEvent(new Event('submit', { bubbles: true }));
-                          }
-                        }, 100);
-                      }}
-                      className="block w-full text-left px-3 py-2 text-sm bg-muted/50 hover:bg-muted rounded-md transition-colors"
-                    >
-                      {suggestion}
-                    </button>
-                  ))}
+                  {selectedBlock && (
+                    <p className="text-xs text-muted-foreground mt-2 bg-muted/50 rounded-md p-2">
+                      Selected: &quot;{selectedBlock.title || 'Untitled'}&quot;
+                    </p>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground/70 uppercase tracking-wide text-center">Suggested actions</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      "Arrange by theme",
+                      "Group by visual style", 
+                      "Organize by color",
+                      "Sort by type"
+                    ].map((suggestion) => (
+                      <button
+                        key={suggestion}
+                        onClick={() => {
+                          setChatInput(suggestion);
+                          // Auto-submit
+                          setTimeout(() => {
+                            const form = document.querySelector('form');
+                            if (form) {
+                              form.dispatchEvent(new Event('submit', { bubbles: true }));
+                            }
+                          }, 100);
+                        }}
+                        className="px-3 py-2 text-sm bg-muted/50 hover:bg-muted rounded-lg transition-colors text-left"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="p-4 space-y-4">
                 {messages.map((msg) => (
                   <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[80%] rounded-lg p-3 ${
@@ -1288,6 +1301,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
             </form>
           </div>
         </div>
+        </>
       )}
 
       {/* Block Detail Modal - Use portal to escape tldraw's event system */}
