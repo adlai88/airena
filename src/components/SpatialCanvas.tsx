@@ -1812,7 +1812,7 @@ Return ONLY a JSON array of strings, one label per cluster. Keep labels concise 
         }}
       />
       {/* Channel info and status - bottom right */}
-      <div className="absolute bottom-20 right-4 z-50">
+      <div className="absolute bottom-18 right-4 z-50">
         <div className="bg-background/80 backdrop-blur-sm border rounded-lg px-3 py-2">
           <h3 className="font-semibold text-sm mb-1">{channelInfo?.title || 'Channel'}</h3>
           <p className="text-xs text-muted-foreground">{blocks.length} blocks loaded</p>
@@ -1989,7 +1989,7 @@ Return ONLY a JSON array of strings, one label per cluster. Keep labels concise 
           />
           
           {/* Chat Panel */}
-          <div className="fixed left-4 top-20 bottom-32 w-96 bg-background/95 backdrop-blur-xl border rounded-xl shadow-2xl z-[100] flex flex-col overflow-hidden animate-in slide-in-from-left-5 duration-200">
+          <div className="fixed left-4 top-20 bottom-18 w-96 bg-background/95 backdrop-blur-xl border rounded-xl shadow-2xl z-[100] flex flex-col overflow-hidden animate-in slide-in-from-left-5 duration-200">
           <div className="p-4 border-b flex items-center justify-between bg-muted/30">
             <h3 className="font-semibold">Chat with Aryn</h3>
             <Button

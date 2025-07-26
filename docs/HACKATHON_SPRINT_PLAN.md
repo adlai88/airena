@@ -219,6 +219,131 @@ Remember: **Judges care more about the demo than the code!**
    - Key talking points for each judging category
    - Recommended demo channels identified
 
+---
+
+## 🚀 LW15 Features Implementation Details
+
+### **1. Supabase AI Session API**
+**Location**: `supabase/functions/analyze-clusters/index.ts`
+**Feature Flag**: `USE_SUPABASE_AI` environment variable
+
+```typescript
+// How we use it:
+const model = new Supabase.ai.Session('gte-small')
+const embedding = await model.run(text, {
+  mean_pool: true,
+  normalize: true,
+})
+```
+
+**Benefits we're showcasing**:
+- No external API keys needed (vs OpenAI)
+- Native integration with Edge Functions
+- Lower latency for embedding generation
+- Cost-effective for hackathon demo
+
+### **2. Edge Functions v2 (97% Faster Boot)**
+**What we're using**:
+- Native npm support (importing packages directly)
+- Improved performance for clustering calculations
+- Built-in CORS handling
+- Environment variable support
+
+### **3. pgvector Performance**
+**How we leverage it**:
+- Storing embeddings in `blocks.embedding` column
+- Fast cosine similarity calculations
+- Efficient K-means++ clustering on vectors
+
+### **4. Custom Headers for Demo**
+**X-Powered-By Header**: Shows which AI system is generating embeddings
+- When `USE_SUPABASE_AI=true`: "Supabase AI Session (LW15)"
+- When `USE_SUPABASE_AI=false`: "OpenAI"
+
+---
+
+## 🎬 Demo Script & Setup Guide
+
+### **Pre-Demo Setup**
+
+1. **Environment Configuration** (.env.local):
+```bash
+# Add this line to your .env.local file to enable Supabase AI embeddings
+USE_SUPABASE_AI=true
+
+# Make sure you also have these Supabase variables set
+NEXT_PUBLIC_SUPABASE_URL=your-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+```
+
+2. **Set the Environment Variable for Edge Functions**:
+```bash
+# Set the secret for your Supabase project
+supabase secrets set USE_SUPABASE_AI=true
+
+# Verify it's set
+supabase secrets list
+```
+
+3. **Deploy Edge Function with Flag**:
+```bash
+# Deploy the function with the new environment variable
+supabase functions deploy analyze-clusters --no-verify-jwt
+
+# The function will now use Supabase AI instead of OpenAI
+```
+
+### **Demo Flow (60 seconds)**
+
+#### **Opening (10s)**
+"I'm excited to show you Aryn - a spatial canvas that transforms your Are.na channels into self-organizing knowledge maps, powered by Supabase's newest Launch Week 15 features."
+
+#### **Sync Demo (15s)**
+1. Click on a demo channel (e.g., "founder-mode")
+2. Show the sync starting
+3. **KEY MOMENT**: "Notice we're using Supabase's new native AI embeddings - no external dependencies needed!"
+
+#### **Show X-Powered-By Header (10s)**
+**How to show it**:
+1. Open Chrome DevTools (F12 or right-click → Inspect)
+2. Go to Network tab
+3. Click on the "analyze-clusters" request
+4. Show Response Headers
+5. Point to: `X-Powered-By: Supabase AI Session (LW15)`
+6. Say: "You can see here we're using Supabase's native AI, which boots 97% faster than before"
+
+#### **Spatial Arrangement Demo (20s)**
+1. Click "Similarity" view
+2. Show clusters forming
+3. Use chat: "Arrange in a timeline"
+4. Show two-phase interaction
+5. Click "Execute Arrangement"
+
+#### **Closing (5s)**
+"Built entirely on Supabase - from pgvector embeddings to Edge Functions v2. The future of spatial intelligence is here!"
+
+### **Key Technical Points to Emphasize**
+
+1. **Supabase AI Session**: "No OpenAI API keys needed - runs natively in Edge Functions"
+2. **Performance**: "Edge Functions boot 97% faster with LW15 improvements"
+3. **pgvector**: "Semantic clustering powered by Postgres vectors"
+4. **Real-time Ready**: "Built for WebSocket integration coming next"
+
+### **Browser DevTools Demo Steps**
+
+To show the X-Powered-By header during your demo:
+
+1. **Before the demo**: Open your app and DevTools side-by-side
+2. **Clear Network tab**: Click the clear button (🚫) in Network tab
+3. **Trigger a sync**: This will call the Edge Function
+4. **Find the request**: Look for `analyze-clusters` in the Network list
+5. **Click on it**: Shows request details
+6. **Go to Headers tab**: Scroll to Response Headers
+7. **Highlight**: Point to `X-Powered-By: Supabase AI Session (LW15)`
+
+**Pro tip**: You can also show the fast response time in the Timing tab!
+
 4. **Chat Interface Polish** (July 26, 2025 - 6:00 AM SGT)
    - **Fixed z-index conflicts**: Chat now appears above tldraw tools (z-[100])
    - **Floating panel design**: Replaced side panel with MagicPath-style floating card
