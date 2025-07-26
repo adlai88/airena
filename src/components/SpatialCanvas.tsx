@@ -58,7 +58,8 @@ interface ArrangementData {
 export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [editor, setEditor] = useState<any>(null)
-  const [selectedBlock, setSelectedBlock] = useState<Block | null>(null)
+  const [selectedBlock, setSelectedBlock] = useState<Block | null>(null) // For modal
+  const [selectedBlocks, setSelectedBlocks] = useState<Block[]>([]) // For tldraw selection
   const [showModal, setShowModal] = useState(false)
   const [showChat, setShowChat] = useState(false)
   const [chatInput, setChatInput] = useState('')
@@ -555,7 +556,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
   }
 
   // Generate decorative annotations for mood board
-  const generateMoodBoardAnnotations = async (blockShapes: Array<{id: string, x: number, y: number, rotation: number}>) => {
+  const generateMoodBoardAnnotations = async (blockShapes: Array<{id: string, x: number, y: number, rotation?: number}>) => {
     if (!editor || !blocks.length) return
     
     try {
@@ -1798,6 +1799,27 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         forceMobile={false}
         onMount={(editor) => {
           setEditor(editor)
+          
+          // Track selection changes
+          editor.on('change', () => {
+            const selectedShapeIds = editor.getSelectedShapeIds()
+            const selectedBlocksList: Block[] = []
+            
+            selectedShapeIds.forEach(shapeId => {
+              // Extract block ID from shape ID (format: "shape:block-123")
+              const match = shapeId.match(/shape:block-(\d+)/)
+              if (match) {
+                const blockId = parseInt(match[1])
+                const block = blocks.find(b => b.id === blockId)
+                if (block) {
+                  selectedBlocksList.push(block)
+                }
+              }
+            })
+            
+            setSelectedBlocks(selectedBlocksList)
+          })
+          
           // Force theme update after mount
           if (resolvedTheme) {
             editor.user.updateUserPreferences({ 
@@ -1859,10 +1881,12 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
           // Use thumbnail URL if available, otherwise use URL for Image blocks
           const imageUrl = hasThumbnail ? block.thumbnail_url : (hasImage ? block.url : null)
 
+          const isSelected = selectedBlocks.some(b => b.id === block.id)
+          
           return (
             <div
               key={block.id}
-              className="absolute pointer-events-none overflow-hidden"
+              className={`absolute pointer-events-none overflow-hidden ${isSelected ? 'ring-2 ring-primary ring-offset-2' : ''}`}
               style={{
                 left: `${screenX}px`,
                 top: `${screenY}px`,
@@ -2005,9 +2029,11 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                   <p className="text-sm text-muted-foreground">
                     I can help you understand and organize your blocks. Try asking me to arrange them by theme, style, or any other criteria.
                   </p>
-                  {selectedBlock && (
+                  {selectedBlocks.length > 0 && (
                     <p className="text-xs text-muted-foreground mt-2 bg-muted/50 rounded-md p-2">
-                      Selected: &quot;{selectedBlock.title || 'Untitled'}&quot;
+                      Selected: {selectedBlocks.length === 1 
+                        ? `"${selectedBlocks[0].title || 'Untitled'}"` 
+                        : `${selectedBlocks.length} blocks`}
                     </p>
                   )}
                 </div>
@@ -2113,8 +2139,13 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
 
                 // Add spatial context to the message
                 let spatialContext = ''
-                if (selectedBlock) {
-                  spatialContext = `\n\n[Context: Currently looking at block "${selectedBlock.title || 'Untitled'}" (${selectedBlock.block_type})]`
+                if (selectedBlocks.length > 0) {
+                  if (selectedBlocks.length === 1) {
+                    spatialContext = `\n\n[Context: Currently looking at block "${selectedBlocks[0].title || 'Untitled'}" (${selectedBlocks[0].block_type})]`
+                  } else {
+                    const blockTitles = selectedBlocks.map(b => `"${b.title || 'Untitled'}" (${b.block_type})`).join(', ')
+                    spatialContext = `\n\n[Context: Currently looking at ${selectedBlocks.length} blocks: ${blockTitles}]`
+                  }
                 }
                 
                 // Count visible blocks (rough estimate based on viewport)
