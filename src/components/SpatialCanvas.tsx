@@ -2312,8 +2312,8 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
               left: isMobile ? '1rem' : `${chatPosition.x}px`,
               right: isMobile ? '1rem' : 'auto',
               top: `${chatPosition.y}px`,
-              height: 'calc(100vh - 120px)',
-              maxHeight: '600px',
+              height: isMobile ? 'calc(100vh - 200px)' : 'calc(100vh - 120px)',
+              maxHeight: isMobile ? '400px' : '600px',
               transition: isDraggingChat ? 'none' : 'box-shadow 0.2s'
             }}
           >
@@ -2414,17 +2414,18 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
             ) : (
               <div className="p-4 space-y-4">
                 {messages.map((msg) => (
-                  <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[80%] rounded-lg p-3 break-words overflow-hidden ${
-                      msg.role === 'user' 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'bg-muted'
-                    }`}>
-                      <div className="whitespace-pre-wrap break-words">{msg.content}</div>
-                      {msg.role === 'assistant' && !isLoading && (
-                        <div className="mt-2 space-y-2">
-                          {pendingArrangement && pendingArrangement.messageId === msg.id && (
-                            <Button
+                  <div key={msg.id} className={msg.role === 'user' ? 'flex justify-end' : ''}>
+                    {msg.role === 'user' ? (
+                      <div className="max-w-[80%] rounded-lg p-3 bg-primary text-primary-foreground break-words overflow-hidden">
+                        <div className="whitespace-pre-wrap break-words text-sm">{msg.content}</div>
+                      </div>
+                    ) : (
+                      <div className="w-full px-2">
+                        <div className="whitespace-pre-wrap break-words text-sm">{msg.content}</div>
+                        {!isLoading && (
+                          <div className="mt-2 space-y-2">
+                            {pendingArrangement && pendingArrangement.messageId === msg.id && (
+                              <Button
                               onClick={executePendingArrangement}
                               size="sm"
                               disabled={isAnimating}
@@ -2444,13 +2445,12 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                         </div>
                       )}
                     </div>
+                  )}
                   </div>
                 ))}
                 {isLoading && (
-                  <div className="flex justify-start">
-                    <div className="bg-muted rounded-lg p-3">
-                      <span className="animate-pulse">Thinking...</span>
-                    </div>
+                  <div className="w-full px-2">
+                    <span className="animate-pulse text-sm">Thinking...</span>
                   </div>
                 )}
               </div>
