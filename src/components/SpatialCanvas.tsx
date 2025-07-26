@@ -113,6 +113,18 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       case 'magazine':
         applyMagazineLayout()
         break
+        
+      case 'moodboard':
+        applyMoodBoardLayout()
+        break
+        
+      case 'presentation':
+        applyPresentationLayout(pendingArrangement.layoutParams?.direction || 'horizontal')
+        break
+        
+      case 'shape':
+        applyShapeLayout(pendingArrangement.layoutParams?.shape || 'circle')
+        break
       
       case 'similarity':
       default:
@@ -376,6 +388,252 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         }
       }
     })
+  }
+
+  const calculateMoodBoardLayout = (blocks: Block[]) => {
+    const viewportWidth = 1600
+    const viewportHeight = 1200
+    const padding = 100
+    
+    // Sort blocks - images first and larger
+    const sortedBlocks = [...blocks].sort((a, b) => {
+      if (a.block_type === 'Image' && b.block_type !== 'Image') return -1
+      if (a.block_type !== 'Image' && b.block_type === 'Image') return 1
+      return 0
+    })
+    
+    // Create organic scatter with overlapping
+    return sortedBlocks.map((block, index) => {
+      // Use golden ratio spiral for organic placement
+      const goldenAngle = 137.5 * (Math.PI / 180)
+      const angle = index * goldenAngle
+      const radius = Math.sqrt(index) * 80
+      
+      // Add randomness for organic feel
+      const randomOffset = {
+        x: (Math.random() - 0.5) * 100,
+        y: (Math.random() - 0.5) * 100
+      }
+      
+      const x = viewportWidth / 2 + Math.cos(angle) * radius + randomOffset.x
+      const y = viewportHeight / 2 + Math.sin(angle) * radius + randomOffset.y
+      
+      // Size variations - images larger
+      const baseSizes = {
+        'Image': 120 + Math.random() * 60,
+        'Video': 100 + Math.random() * 40,
+        'Link': 60 + Math.random() * 20,
+        'Text': 60 + Math.random() * 20,
+        'Attachment': 70 + Math.random() * 30
+      }
+      
+      const baseSize = baseSizes[block.block_type] || 80
+      const typeConfig = getBlockTypeConfig(block, baseSize)
+      
+      // Slight rotation for dynamic feel (-15 to 15 degrees)
+      const rotation = (Math.random() - 0.5) * 30 * (Math.PI / 180)
+      
+      return {
+        id: `shape:block-${block.id}`,
+        type: 'geo',
+        x,
+        y,
+        rotation,
+        opacity: 0,
+        props: {
+          geo: typeConfig.geo,
+          w: typeConfig.w,
+          h: typeConfig.h,
+          color: typeConfig.color,
+          fill: 'none'
+        }
+      }
+    })
+  }
+
+  const calculatePresentationLayout = (blocks: Block[], direction: 'horizontal' | 'vertical' = 'horizontal') => {
+    const slideWidth = 800
+    const slideHeight = 600
+    const slideSpacing = 200
+    const blocksPerSlide = 3
+    const padding = 200
+    
+    // Group blocks into slides
+    const slides: Block[][] = []
+    for (let i = 0; i < blocks.length; i += blocksPerSlide) {
+      slides.push(blocks.slice(i, i + blocksPerSlide))
+    }
+    
+    const shapes: any[] = []
+    
+    slides.forEach((slideBlocks, slideIndex) => {
+      const slideX = direction === 'horizontal' 
+        ? padding + slideIndex * (slideWidth + slideSpacing)
+        : padding + slideWidth / 2
+      const slideY = direction === 'vertical'
+        ? padding + slideIndex * (slideHeight + slideSpacing)
+        : padding + slideHeight / 2
+      
+      // Add slide background shape
+      shapes.push({
+        id: `shape:slide-bg-${slideIndex}`,
+        type: 'geo',
+        x: slideX - slideWidth / 2,
+        y: slideY - slideHeight / 2,
+        opacity: 0.05, // Very subtle background
+        props: {
+          geo: 'rectangle',
+          w: slideWidth,
+          h: slideHeight,
+          color: 'grey',
+          fill: 'solid'
+        }
+      })
+      
+      // Arrange blocks within slide
+      slideBlocks.forEach((block, blockIndex) => {
+        const positions = [
+          { x: 0, y: -slideHeight / 3 }, // Top
+          { x: -slideWidth / 3, y: slideHeight / 4 }, // Bottom left
+          { x: slideWidth / 3, y: slideHeight / 4 } // Bottom right
+        ]
+        
+        const pos = positions[blockIndex] || { x: 0, y: 0 }
+        const baseSize = 100
+        const typeConfig = getBlockTypeConfig(block, baseSize)
+        
+        shapes.push({
+          id: `shape:block-${block.id}`,
+          type: 'geo',
+          x: slideX + pos.x - typeConfig.w / 2,
+          y: slideY + pos.y - typeConfig.h / 2,
+          opacity: 0,
+          props: {
+            geo: typeConfig.geo,
+            w: typeConfig.w,
+            h: typeConfig.h,
+            color: typeConfig.color,
+            fill: 'none'
+          }
+        })
+      })
+    })
+    
+    return shapes
+  }
+
+  const calculateShapeLayout = (blocks: Block[], shape: string) => {
+    const centerX = 800
+    const centerY = 600
+    const baseRadius = 300
+    const baseSize = 80
+    
+    switch (shape.toLowerCase()) {
+      case 'circle':
+        return blocks.map((block, index) => {
+          const angle = (index / blocks.length) * Math.PI * 2
+          const x = centerX + Math.cos(angle) * baseRadius
+          const y = centerY + Math.sin(angle) * baseRadius
+          const typeConfig = getBlockTypeConfig(block, baseSize)
+          
+          return {
+            id: `shape:block-${block.id}`,
+            type: 'geo',
+            x: x - typeConfig.w / 2,
+            y: y - typeConfig.h / 2,
+            opacity: 0,
+            props: {
+              geo: typeConfig.geo,
+              w: typeConfig.w,
+              h: typeConfig.h,
+              color: typeConfig.color,
+              fill: 'none'
+            }
+          }
+        })
+        
+      case 'heart':
+        return blocks.map((block, index) => {
+          const t = (index / blocks.length) * Math.PI * 2
+          // Heart parametric equations
+          const x = centerX + 16 * Math.pow(Math.sin(t), 3) * 10
+          const y = centerY - (13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t)) * 10
+          const typeConfig = getBlockTypeConfig(block, baseSize)
+          
+          return {
+            id: `shape:block-${block.id}`,
+            type: 'geo',
+            x: x - typeConfig.w / 2,
+            y: y - typeConfig.h / 2,
+            opacity: 0,
+            props: {
+              geo: typeConfig.geo,
+              w: typeConfig.w,
+              h: typeConfig.h,
+              color: typeConfig.color,
+              fill: 'none'
+            }
+          }
+        })
+        
+      case 'spiral':
+        return blocks.map((block, index) => {
+          const angle = index * 0.5
+          const radius = index * 15
+          const x = centerX + Math.cos(angle) * radius
+          const y = centerY + Math.sin(angle) * radius
+          const typeConfig = getBlockTypeConfig(block, baseSize)
+          
+          return {
+            id: `shape:block-${block.id}`,
+            type: 'geo',
+            x: x - typeConfig.w / 2,
+            y: y - typeConfig.h / 2,
+            opacity: 0,
+            props: {
+              geo: typeConfig.geo,
+              w: typeConfig.w,
+              h: typeConfig.h,
+              color: typeConfig.color,
+              fill: 'none'
+            }
+          }
+        })
+        
+      case 'star':
+        return blocks.map((block, index) => {
+          const points = 5
+          const innerRadius = baseRadius * 0.4
+          const outerRadius = baseRadius
+          const angle = (index / blocks.length) * Math.PI * 2
+          const pointIndex = Math.floor((index / blocks.length) * points * 2)
+          const radius = pointIndex % 2 === 0 ? outerRadius : innerRadius
+          const adjustedAngle = angle - Math.PI / 2 // Start from top
+          
+          const x = centerX + Math.cos(adjustedAngle) * radius
+          const y = centerY + Math.sin(adjustedAngle) * radius
+          const typeConfig = getBlockTypeConfig(block, baseSize)
+          
+          return {
+            id: `shape:block-${block.id}`,
+            type: 'geo',
+            x: x - typeConfig.w / 2,
+            y: y - typeConfig.h / 2,
+            opacity: 0,
+            props: {
+              geo: typeConfig.geo,
+              w: typeConfig.w,
+              h: typeConfig.h,
+              color: typeConfig.color,
+              fill: 'none'
+            }
+          }
+        })
+        
+      default:
+        // Fallback to circle
+        return calculateShapeLayout(blocks, 'circle')
+    }
   }
 
   const getBlockTypeConfig = (block: Block, baseSize: number, importanceMultiplier: number = 1) => {
@@ -973,6 +1231,131 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     }, 100)
   }
 
+  // Apply mood board layout
+  const applyMoodBoardLayout = () => {
+    if (!editor || !blocks.length) return
+
+    setIsAnimating(true)
+
+    // Clear existing shapes
+    const allShapes = editor.getCurrentPageShapes()
+    if (allShapes.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      editor.deleteShapes(allShapes.map((shape: any) => shape.id))
+    }
+
+    // Calculate mood board positions
+    const shapes = calculateMoodBoardLayout(blocks)
+    
+    // Create shapes
+    editor.createShapes(shapes)
+    
+    setTimeout(() => {
+      editor.zoomToFit({ duration: 800 })
+      setIsAnimating(false)
+    }, 100)
+  }
+
+  // Apply presentation layout
+  const applyPresentationLayout = (direction: 'horizontal' | 'vertical' = 'horizontal') => {
+    if (!editor || !blocks.length) return
+
+    setIsAnimating(true)
+
+    // Clear existing shapes
+    const allShapes = editor.getCurrentPageShapes()
+    if (allShapes.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      editor.deleteShapes(allShapes.map((shape: any) => shape.id))
+    }
+
+    // Calculate presentation positions
+    const shapes = calculatePresentationLayout(blocks, direction)
+    
+    // Create shapes
+    editor.createShapes(shapes)
+    
+    // Add slide numbers
+    const slides = Math.ceil(blocks.length / 3)
+    const slideLabels = Array.from({ length: slides }, (_, i) => {
+      const slideX = direction === 'horizontal' 
+        ? 200 + i * 1000
+        : 600
+      const slideY = direction === 'vertical'
+        ? 200 + i * 800
+        : 100
+      
+      return {
+        id: `shape:slide-number-${i}`,
+        type: 'text',
+        x: slideX,
+        y: slideY - 50,
+        opacity: 0.7,
+        props: {
+          richText: toRichText(`Slide ${i + 1} of ${slides}`),
+          color: 'grey',
+          size: 's',
+          font: 'sans',
+          textAlign: 'middle',
+          w: 200,
+          autoSize: true,
+        }
+      }
+    })
+    
+    editor.createShapes(slideLabels)
+    
+    setTimeout(() => {
+      editor.zoomToFit({ duration: 800 })
+      setIsAnimating(false)
+    }, 100)
+  }
+
+  // Apply shape-based layout
+  const applyShapeLayout = (shape: string) => {
+    if (!editor || !blocks.length) return
+
+    setIsAnimating(true)
+
+    // Clear existing shapes
+    const allShapes = editor.getCurrentPageShapes()
+    if (allShapes.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      editor.deleteShapes(allShapes.map((shape: any) => shape.id))
+    }
+
+    // Calculate shape positions
+    const shapes = calculateShapeLayout(blocks, shape)
+    
+    // Create shapes
+    editor.createShapes(shapes)
+    
+    // Add shape label
+    const labelShape = {
+      id: 'shape:shape-label',
+      type: 'text',
+      x: 800,
+      y: 100,
+      opacity: 0.7,
+      props: {
+        richText: toRichText(`${shape.charAt(0).toUpperCase() + shape.slice(1)} arrangement`),
+        color: 'grey',
+        size: 'm',
+        font: 'sans',
+        textAlign: 'middle',
+        w: 300,
+        autoSize: true,
+      }
+    }
+    
+    editor.createShape(labelShape)
+    
+    setTimeout(() => {
+      editor.zoomToFit({ duration: 800 })
+      setIsAnimating(false)
+    }, 100)
+  }
+
   // Handle view mode changes
   const handleViewModeChange = async (mode: ViewMode) => {
     // If clicking the same mode as current (only applies to random), regenerate
@@ -1479,6 +1862,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                   // Determine layout type from message
                   let layoutType = 'similarity'
                   const lowerMessage = userMessage.content.toLowerCase()
+                  let layoutParams: any = {}
                   
                   if (lowerMessage.includes('timeline') || 
                       lowerMessage.includes('chronological') ||
@@ -1491,9 +1875,33 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                   } else if (lowerMessage.includes('magazine') ||
                              lowerMessage.includes('editorial')) {
                     layoutType = 'magazine'
+                  } else if (lowerMessage.includes('mood board') ||
+                             lowerMessage.includes('moodboard') ||
+                             lowerMessage.includes('collage')) {
+                    layoutType = 'moodboard'
+                  } else if (lowerMessage.includes('presentation') ||
+                             lowerMessage.includes('slides') ||
+                             lowerMessage.includes('deck')) {
+                    layoutType = 'presentation'
+                  } else if (lowerMessage.includes('shape of')) {
+                    layoutType = 'shape'
+                    // Extract shape name
+                    const shapeMatch = lowerMessage.match(/shape of (\w+)/)
+                    if (shapeMatch) {
+                      layoutParams.shape = shapeMatch[1]
+                    }
+                  } else if (lowerMessage.includes('circle') ||
+                             lowerMessage.includes('heart') ||
+                             lowerMessage.includes('star') ||
+                             lowerMessage.includes('spiral')) {
+                    layoutType = 'shape'
+                    if (lowerMessage.includes('circle')) layoutParams.shape = 'circle'
+                    else if (lowerMessage.includes('heart')) layoutParams.shape = 'heart'
+                    else if (lowerMessage.includes('star')) layoutParams.shape = 'star'
+                    else if (lowerMessage.includes('spiral')) layoutParams.shape = 'spiral'
                   }
                   
-                  spatialContext += `\n\n[ARRANGEMENT_REQUEST]\nCanvas blocks:\n${JSON.stringify(blockDetails, null, 2)}\n\nAnalyze these blocks and return ONLY a JSON object with this structure:\n{\n  "layoutType": "${layoutType}",\n  "groups": [\n    {\n      "theme": "Theme name",\n      "blockIds": [1, 2, 3],\n      "color": "blue"\n    }\n  ],\n  "layoutParams": {\n    "direction": "horizontal"\n  }\n}\nFor timeline layouts, group all blocks in one group. For other layouts, group blocks by semantic similarity based on the user's request.`
+                  spatialContext += `\n\n[ARRANGEMENT_REQUEST]\nCanvas blocks:\n${JSON.stringify(blockDetails, null, 2)}\n\nAnalyze these blocks and return ONLY a JSON object with this structure:\n{\n  "layoutType": "${layoutType}",\n  "groups": [\n    {\n      "theme": "Theme name",\n      "blockIds": [1, 2, 3],\n      "color": "blue"\n    }\n  ],\n  "layoutParams": ${JSON.stringify(layoutParams)}\n}\nFor timeline layouts, group all blocks in one group. For shape-based, mood board, magazine, and presentation layouts, group all blocks in one group. For similarity/importance layouts, group blocks by semantic similarity based on the user's request.`
                 }
 
                 const contextualUserMessage = {
