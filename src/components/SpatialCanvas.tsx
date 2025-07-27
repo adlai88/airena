@@ -925,8 +925,8 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         for (let dup = 0; dup < duplicateCount; dup++) {
           blocks.forEach((block, blockIndex) => {
             const index = dup * blocks.length + blockIndex
-            const angle = index * 0.15 // Even tighter spiral
-            const radius = index * 2 // Much closer spacing
+            const angle = index * 0.18 // Slightly tighter spiral angle
+            const radius = index * 1.2 // Much smaller radius for compact spiral
             const x = centerX + Math.cos(angle) * radius
             const y = centerY + Math.sin(angle) * radius
             const typeConfig = getBlockTypeConfig(block, smallerBaseSize)
