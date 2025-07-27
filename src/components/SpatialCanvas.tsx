@@ -1038,7 +1038,6 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         ]
         
         // Create a filled area by distributing blocks within the shape
-        let blockIndex = 0
         
         // Helper function to check if a point is inside the lightning bolt
         const isInsideLightning = (x: number, y: number): boolean => {
@@ -1099,8 +1098,6 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                 fill: 'none'
               }
             })
-            
-            blockIndex++
           })
         }
         
