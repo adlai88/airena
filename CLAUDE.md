@@ -18,6 +18,17 @@ Airena transforms curated Are.na channels into an intelligence agent that genera
 - **UI**: shadcn/ui design system with mobile-responsive foundation
 - **Embeddings**: Supabase AI Session API (LW15 feature) - migrated from OpenAI
 
+## Important Database Conventions
+
+### Table Naming: SINGULAR (not plural)
+**⚠️ CRITICAL**: Our database uses **SINGULAR** table names following Better Auth's convention:
+- ✅ `user` (NOT `users`)
+- ✅ `session` (NOT `sessions`)
+- ✅ `account` (NOT `accounts`)
+- ✅ `verification` (NOT `verifications`)
+
+This is because Better Auth created these tables and uses singular naming. All new tables should follow this convention for consistency. DO NOT attempt to rename these tables to plural as it will break authentication.
+
 ## 📈 Current Status: Open Source Launched Successfully 🎉
 
 ✅ **MVP Features Complete**  

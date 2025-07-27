@@ -17,7 +17,7 @@ export class SimpleUsageTracker {
     try {
       // Get user's current usage
       const { data: user, error } = await supabaseServiceRole
-        .from('users')
+        .from('user')
         .select('lifetime_blocks_used, tier')
         .eq('id', userId)
         .single() as { 
@@ -32,7 +32,7 @@ export class SimpleUsageTracker {
         if (error && typeof error === 'object' && 'code' in error && error.code === 'PGRST116') {
           // User not found, create default record
           const { error: insertError } = await supabaseServiceRole
-            .from('users')
+            .from('user')
             .insert({
               id: userId,
               tier: 'free',
@@ -116,7 +116,7 @@ export class SimpleUsageTracker {
       if (error) {
         // Fallback to direct update if RPC doesn't exist
         const { data: currentUser } = await supabaseServiceRole
-          .from('users')
+          .from('user')
           .select('lifetime_blocks_used')
           .eq('id', userId)
           .single() as { 
@@ -127,7 +127,7 @@ export class SimpleUsageTracker {
         const currentBlocks = currentUser?.lifetime_blocks_used || 0;
         
         await supabaseServiceRole
-          .from('users')
+          .from('user')
           .update({ 
             lifetime_blocks_used: currentBlocks + blocksProcessed,
             updated_at: new Date().toISOString()
@@ -153,7 +153,7 @@ export class SimpleUsageTracker {
   }> {
     try {
       const { data: user, error } = await supabaseServiceRole
-        .from('users')
+        .from('user')
         .select('lifetime_blocks_used, tier')
         .eq('id', userId)
         .single() as { 
@@ -165,7 +165,7 @@ export class SimpleUsageTracker {
         // If user doesn't exist, create default record
         if (error && typeof error === 'object' && 'code' in error && error.code === 'PGRST116') {
           const { error: insertError } = await supabaseServiceRole
-            .from('users')
+            .from('user')
             .insert({
               id: userId,
               tier: 'free',
