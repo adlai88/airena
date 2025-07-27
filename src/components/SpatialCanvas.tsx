@@ -982,8 +982,8 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         
       case 'supabase':
         // Supabase logo - lightning bolt shape with duplicates for density
-        const supabaseDuplicateCount = 12 // Each block appears 12 times
-        const supabaseBlockSize = baseSize * 0.3 // 30% of normal size
+        const supabaseDuplicateCount = 20 // Each block appears 20 times for more density
+        const supabaseBlockSize = baseSize * 0.25 // 25% of normal size for tighter packing
         const supabaseBlocks: Array<{
           id: string
           type: string
@@ -1000,69 +1000,96 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         }> = []
         
         // Define the Supabase lightning bolt path points
-        // The logo is like a arrow/lightning bolt pointing right
-        const logoWidth = 400
-        const logoHeight = 300
+        // The logo is like a stylized "S" shape / lightning bolt
+        const logoWidth = 300
+        const logoHeight = 400
         const logoStartX = centerX - logoWidth / 2
         const logoStartY = centerY - logoHeight / 2
         
         // Define key points of the lightning bolt (normalized 0-1)
+        // Based on the actual Supabase logo shape
         const supabasePoints = [
-          // Top part of arrow
-          { x: 0.3, y: 0 },
-          { x: 0.7, y: 0 },
-          { x: 1, y: 0.3 },
-          { x: 1, y: 0.4 },
-          // Right side indent
-          { x: 0.6, y: 0.4 },
-          // Bottom part of arrow
-          { x: 0.8, y: 1 },
-          { x: 0.4, y: 1 },
-          { x: 0, y: 0.6 },
-          { x: 0, y: 0.5 },
-          // Left side indent
-          { x: 0.4, y: 0.5 },
-          // Close the shape
-          { x: 0.3, y: 0 }
+          // Start at top left
+          { x: 0.2, y: 0 },
+          // Top horizontal line to right
+          { x: 0.8, y: 0 },
+          // Diagonal down to middle
+          { x: 0.45, y: 0.5 },
+          // Middle horizontal line to right
+          { x: 1, y: 0.5 },
+          // Right edge down
+          { x: 1, y: 0.6 },
+          // Back left
+          { x: 0.8, y: 0.6 },
+          // Diagonal down to bottom right
+          { x: 0.55, y: 1 },
+          // Bottom horizontal line to left
+          { x: 0, y: 1 },
+          // Left edge up
+          { x: 0, y: 0.9 },
+          // Back right
+          { x: 0.2, y: 0.9 },
+          // Diagonal up to middle left
+          { x: 0.55, y: 0.4 },
+          // Left horizontal line
+          { x: 0.2, y: 0.4 },
+          // Close the shape back to start
+          { x: 0.2, y: 0 }
         ]
         
         // Create a filled area by distributing blocks within the shape
         let blockIndex = 0
+        
+        // Helper function to check if a point is inside the lightning bolt
+        const isInsideLightning = (x: number, y: number): boolean => {
+          // Check if point is in the top horizontal bar
+          if (y < 0.4 && x >= 0.2 && x <= 0.8) return true
+          // Check if point is in the diagonal from top to middle
+          if (y >= 0 && y <= 0.5 && x >= 0.2 + (y * 0.5) && x <= 0.8 - (y * 0.7)) return true
+          // Check if point is in the middle horizontal bar
+          if (y >= 0.4 && y <= 0.6 && x >= 0.45 && x <= 1) return true
+          // Check if point is in the diagonal from middle to bottom
+          if (y >= 0.5 && y <= 1 && x >= 0.55 - ((y - 0.5) * 1.1) && x <= 0.8 - ((y - 0.5) * 0.5)) return true
+          // Check if point is in the bottom horizontal bar
+          if (y >= 0.9 && x >= 0 && x <= 0.55) return true
+          return false
+        }
+        
         for (let dup = 0; dup < supabaseDuplicateCount; dup++) {
           blocks.forEach((block) => {
-            // Distribute blocks across the shape area
-            const t = (blockIndex % (supabasePoints.length * 10)) / (supabasePoints.length * 10)
+            // Generate random position within bounding box
+            let x, y
+            let attempts = 0
             
-            // Find which segment we're on
-            const segmentIndex = Math.floor(t * (supabasePoints.length - 1))
-            const segmentT = (t * (supabasePoints.length - 1)) - segmentIndex
+            // Keep trying until we find a point inside the shape
+            do {
+              x = Math.random()
+              y = Math.random()
+              attempts++
+              // Fallback to edge distribution if we can't find a good spot
+              if (attempts > 20) {
+                const t = Math.random()
+                const segmentIndex = Math.floor(t * (supabasePoints.length - 1))
+                const segmentT = t - segmentIndex
+                const p1 = supabasePoints[segmentIndex]
+                const p2 = supabasePoints[Math.min(segmentIndex + 1, supabasePoints.length - 1)]
+                x = p1.x + (p2.x - p1.x) * segmentT
+                y = p1.y + (p2.y - p1.y) * segmentT
+                break
+              }
+            } while (!isInsideLightning(x, y))
             
-            const p1 = supabasePoints[segmentIndex]
-            const p2 = supabasePoints[Math.min(segmentIndex + 1, supabasePoints.length - 1)]
-            
-            // Interpolate along the edge
-            let edgeX = p1.x + (p2.x - p1.x) * segmentT
-            let edgeY = p1.y + (p2.y - p1.y) * segmentT
-            
-            // Add some inward offset to fill the shape
-            const inwardOffset = (Math.random() * 0.3 + 0.1) * (dup % 3 === 0 ? 1 : dup % 3 === 1 ? 0.6 : 0.3)
-            const centerBiasX = 0.5 - edgeX
-            const centerBiasY = 0.5 - edgeY
-            
-            edgeX += centerBiasX * inwardOffset
-            edgeY += centerBiasY * inwardOffset
-            
-            // Convert to actual coordinates
-            const x = logoStartX + edgeX * logoWidth + (Math.random() - 0.5) * 20
-            const y = logoStartY + edgeY * logoHeight + (Math.random() - 0.5) * 20
+            // Convert to actual coordinates with some jitter
+            const actualX = logoStartX + x * logoWidth + (Math.random() - 0.5) * 10
+            const actualY = logoStartY + y * logoHeight + (Math.random() - 0.5) * 10
             
             const typeConfig = getBlockTypeConfig(block, supabaseBlockSize)
             
             supabaseBlocks.push({
               id: `shape:block-${block.id}-dup-${dup}`,
               type: 'geo',
-              x: x - typeConfig.w / 2,
-              y: y - typeConfig.h / 2,
+              x: actualX - typeConfig.w / 2,
+              y: actualY - typeConfig.h / 2,
               opacity: 0,
               props: {
                 geo: typeConfig.geo,
