@@ -71,10 +71,19 @@ export default function UsagePage() {
       try {
         setIsLoading(true);
         
-        // Fetch usage stats
-        const statsResponse = await fetch('/api/usage-stats');
+        // Fetch usage stats with timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
+        const statsResponse = await fetch('/api/usage-stats', {
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
         if (!statsResponse.ok) {
-          throw new Error('Failed to fetch usage statistics');
+          const errorData = await statsResponse.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to fetch usage statistics (${statsResponse.status})`);
         }
         const statsData = await statsResponse.json();
         

@@ -6,10 +6,14 @@ import { auth } from '@/lib/auth';
 
 export async function GET() {
   try {
+    console.log('[usage-stats] Starting request');
+    
     const session = await auth.api.getSession({
       headers: await headers(),
     });
     const userId = session?.user?.id;
+    
+    console.log('[usage-stats] User ID:', userId ? 'found' : 'not found');
     
     if (!userId) {
       return NextResponse.json(
