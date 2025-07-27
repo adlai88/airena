@@ -20,7 +20,10 @@ export class SimpleUsageTracker {
         .from('users')
         .select('lifetime_blocks_used, tier')
         .eq('id', userId)
-        .single();
+        .single() as { 
+          data: { lifetime_blocks_used: number | null; tier: string | null } | null; 
+          error: unknown 
+        };
 
       if (error || !user) {
         console.error('Error fetching user usage:', error);
@@ -84,7 +87,10 @@ export class SimpleUsageTracker {
           .from('users')
           .select('lifetime_blocks_used')
           .eq('id', userId)
-          .single();
+          .single() as { 
+            data: { lifetime_blocks_used: number | null } | null; 
+            error: unknown 
+          };
 
         const currentBlocks = currentUser?.lifetime_blocks_used || 0;
         
@@ -118,7 +124,10 @@ export class SimpleUsageTracker {
         .from('users')
         .select('lifetime_blocks_used, tier')
         .eq('id', userId)
-        .single();
+        .single() as { 
+          data: { lifetime_blocks_used: number | null; tier: string | null } | null; 
+          error: unknown 
+        };
 
       if (error || !user) {
         return {
