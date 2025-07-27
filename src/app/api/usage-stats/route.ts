@@ -21,19 +21,31 @@ export async function GET() {
     // Get user stats from SimpleUsageTracker
     const simpleStats = await SimpleUsageTracker.getUserStats(userId);
     
-    // Get channel usage data
-    const { data: channels } = await supabaseServiceRole
+    // Get channel usage data with channels
+    const { data: channelUsage } = await supabaseServiceRole
       .from('channel_usage')
-      .select(`
-        *,
-        channels!inner(
-          title,
-          slug,
-          thumbnail_url
-        )
-      `)
+      .select('*')
       .eq('user_id', userId)
       .order('last_processed_at', { ascending: false });
+    
+    // Get channel details for each usage record
+    const channelIds = (channelUsage || []).map(usage => usage.channel_id);
+    const { data: channelsData } = await supabaseServiceRole
+      .from('channels')
+      .select('id, title, slug, thumbnail_url')
+      .in('id', channelIds);
+    
+    // Create a map for quick lookup
+    const channelMap = new Map((channelsData || []).map(ch => [ch.id, ch]));
+    
+    // Merge the data
+    const channels = (channelUsage || []).map(usage => {
+      const channel = channelMap.get(usage.channel_id) || {};
+      return {
+        ...usage,
+        channels: channel
+      };
+    });
 
     // Flatten channel data
     interface ChannelUsageRecord {

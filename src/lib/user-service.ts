@@ -46,7 +46,7 @@ export class UserService {
   static async getUser(userId: string): Promise<User | null> {
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from('user')
         .select('*')
         .eq('id', userId)
         .single();
@@ -76,7 +76,7 @@ export class UserService {
   static async getUserTier(userId: string): Promise<UserTier> {
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from('user')
         .select('tier')
         .eq('id', userId)
         .single();
@@ -145,7 +145,7 @@ export class UserService {
       }
       
       const { error } = await supabase
-        .from('users')
+        .from('user')
         .update(updateData)
         .eq('id', userId);
       
@@ -177,7 +177,7 @@ export class UserService {
   static async getUserByEmail(email: string): Promise<User | null> {
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from('user')
         .select('*')
         .eq('email', email)
         .single();
@@ -218,7 +218,7 @@ export class UserService {
       }
       
       const { error } = await supabase
-        .from('users')
+        .from('user')
         .update(updateData)
         .eq('id', userId);
       
@@ -237,7 +237,7 @@ export class UserService {
   static async getArenaApiKey(userId: string): Promise<string | null> {
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from('user')
         .select('arena_api_key')
         .eq('id', userId)
         .single();
@@ -262,7 +262,7 @@ export class UserService {
   }): Promise<User | null> {
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from('user')
         .insert({
           id: userData.id,
           email: userData.email,

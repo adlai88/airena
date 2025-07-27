@@ -93,7 +93,7 @@ const getTierPriority = (tier: string): number => {
 };
 
 function PricingContent() {
-  const [isAnnual, setIsAnnual] = useState(false);
+  const isAnnual = false; // Annual billing not implemented yet
   const [currentTier, setCurrentTier] = useState<string>('free');
   const [showSuccess, setShowSuccess] = useState(false);
   const [checkoutModal, setCheckoutModal] = useState<{
