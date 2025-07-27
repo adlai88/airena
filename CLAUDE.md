@@ -54,12 +54,51 @@ This is because Better Auth created these tables and uses singular naming. All n
 ✅ **Phase 10.5: Spatial Canvas** (COMPLETED - Supabase LW15 Hackathon Feature) - [See detailed plan](./docs/SPATIAL_PROTOTYPE_PLAN.md)
 ✅ **Phase 10.6: Better Auth + Polar Migration** (COMPLETED - Unified auth/billing system)
 ✅ **Phase 10.7: Supabase AI Migration** (COMPLETED - Full migration to Supabase AI embeddings)
-🎯 **Current Phase**: Phase 10.4d - Template Enhancement + System Testing
+✅ **Phase 10.8: Pricing Update & Production Fixes** (COMPLETED - Founding Members plan + bug fixes)
+🎯 **Current Phase**: Phase 10.9 - Template Enhancement + System Testing
 
 **Live Application**: https://www.airena.io/  
 **Open Source Repository**: https://github.com/adlai88/airena
 
-## Latest Updates (Phase 10.7: Supabase AI Migration - COMPLETED ✅)
+## Latest Updates (Phase 10.8: Pricing Update & Production Fixes - COMPLETED ✅)
+
+### 🚀 **Founding Members Plan & Critical Production Fixes**
+
+**Implementation Date**: July 27, 2025  
+**Status**: **LIVE - New pricing structure active + all production issues resolved**  
+**Impact**: **Simplified pricing strategy + improved system stability**
+
+### ✅ **What Was Accomplished**
+
+#### **💰 New Pricing Structure**
+- **Founding Member Plan** - $5/month forever for first 100 members
+- **Replaced Starter tier** - Founding Member becomes the primary paid tier
+- **Future Pro pricing** - Shown as $15-19/month (coming later)
+- **Waitlist system** - Email capture for founding member signups
+- **Database migration** - Created `waitlist` table with proper security
+
+#### **🐛 Production Bug Fixes**
+- **Fixed /usage page infinite loading** - Corrected `user` table queries (was attempting `users`)
+- **Fixed /settings 404 error** - Created basic settings page with links to usage/billing
+- **Improved error handling** - Added timeouts and better error messages
+- **Database schema verified** - Confirmed production uses `user` table (singular)
+
+#### **🔧 Technical Details**
+- **Waitlist table** - UUID primary key, email unique constraint, RLS enabled
+- **Service role only access** - Waitlist protected from public access
+- **UserService updates** - Direct queries to `user` table (removed dynamic detection)
+- **SimpleUsageTracker updates** - Direct queries to `user` table
+- **Settings page** - Basic implementation linking to existing features
+
+#### **🎯 Strategic Impact**
+- **Simplified onboarding** - Single compelling paid tier at $5/month
+- **FOMO marketing** - Limited to 100 founding members
+- **Future pricing clarity** - Shows 70-75% savings vs future Pro tier
+- **Improved stability** - Production issues resolved for better user experience
+
+---
+
+## Previous Updates (Phase 10.7: Supabase AI Migration - COMPLETED ✅)
 
 ### 🚀 **Complete Migration to Supabase AI Embeddings**
 
@@ -264,21 +303,22 @@ Successfully migrated from Clerk + Polar dual system to Better Auth + Polar unif
 
 ---
 
-## 🚀 **Current Phase: Phase 10.4d - Template Enhancement + System Testing**
+## 🚀 **Current Phase: Phase 10.9 - Template Enhancement + Growth Features**
 
-**Strategic Timing**: With authentication migration complete, focus on immediate value-add features before complex intelligence scoring.
+**Strategic Timing**: With pricing simplified and bugs fixed, focus on growth and engagement features.
 
 ### 🎯 **Current Priorities**
 
-#### **Immediate (Week 1-2)**
-1. **Test monthly reset system** - ensure existing monthly limits work correctly
-2. **Activate brainstorm template** - enable creative free tier template
-3. **Plan enhanced research report** - design Firecrawl integration for premium tier
+#### **Immediate (Week 1)**
+1. **Monitor founding member signups** - track waitlist growth and engagement
+2. **Activate brainstorm template** - enable creative generation for all users
+3. **Test lifetime block limits** - ensure 50-block free tier works correctly
 
-#### **Development Focus (Week 2-4)** 
-- **Template Priority 1**: Activate brainstorm template for free tier (encourages creativity)
-- **Template Priority 2**: Enhanced research report with Firecrawl integration (premium justification)
-- **System validation** - monthly reset testing before any weekly reset implementation
+#### **Growth Features (Week 2-3)** 
+- **Template Priority 1**: Activate brainstorm template (increases engagement)
+- **Template Priority 2**: Enhanced research report with web search (premium value)
+- **OAuth Integration**: Add Google/GitHub login for easier onboarding
+- **Email Service**: Set up Resend for password resets and notifications
 
 ### 🚧 **Template Enhancement Strategy**
 
@@ -521,17 +561,21 @@ This would transform the spatial canvas from an organizational tool into a gener
 - **No chat/generation limits** - TEMPORARILY DISABLED
 - **Public channels only** - Private channels require upgrade
 
-#### **Starter Tier ($5/month)**
-- **No lifetime limit** - Unlimited lifetime processing
-- **Monthly limits** - TEMPORARILY DISABLED (was 200 blocks/month)
-- **Unlimited channels**
-- **Private channel access**
+#### **Founding Member ($5/month forever)** - LIMITED TO FIRST 100 MEMBERS
+- **Everything unlimited forever** - No block or channel limits
+- **Private channels access** - Sync and process private Are.na channels
+- **Priority support** - Direct access to founder
+- **All future Pro features** - Automatically included
+- **70-75% savings** - Compared to future Pro pricing
+- **Status**: Waitlist active, not yet available for purchase
 
-#### **Pro Tier ($19/month)**
-- **No lifetime limit** - Unlimited lifetime processing
-- **Monthly limits** - TEMPORARILY DISABLED (was 500 blocks/month)
-- **Unlimited channels**
-- **Private channel access**
+#### **Pro Tier ($15-19/month)** - COMING LATER
+- **Everything unlimited** - No restrictions
+- **Private channels access** - Full Are.na integration
+- **API access** - Programmatic access
+- **Webhook support** - Real-time integrations
+- **MCP server generation** - Custom AI tools
+- **Status**: Future pricing, not yet available
 
 ### **🎯 Next Steps**
 - Test the 50-block lifetime limit system thoroughly
