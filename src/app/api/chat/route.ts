@@ -28,8 +28,6 @@ export async function POST(req: Request) {
     if (!session?.user?.id) {
       return new Response('Authentication required', { status: 401 });
     }
-    
-    const userId = session.user.id;
 
     // Get the latest user message
     const lastMessage = messages[messages.length - 1];

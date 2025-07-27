@@ -21,8 +21,6 @@ export async function POST(req: Request) {
     if (!session?.user?.id) {
       return new Response('Authentication required', { status: 401 });
     }
-    
-    const userId = session.user.id;
 
     // Get channel info
     const { data: channel, error: channelError } = await supabase
