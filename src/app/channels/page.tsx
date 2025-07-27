@@ -31,22 +31,19 @@ export default function SetupPage() {
     totalBlocks?: number;
     processedBlocks?: number;
     switchedToChannel?: string;
+    blocksUsed?: number;
+    blocksRemaining?: number;
   }>({});
   
-  // Session management for usage tracking
-  const [sessionId, setSessionId] = useState<string>('');
-  
-  // Initialize session ID on component mount
-  useEffect(() => {
-    let storedSessionId = typeof window !== 'undefined' ? localStorage.getItem('airena_session_id') : null;
-    if (!storedSessionId) {
-      storedSessionId = `anon_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('airena_session_id', storedSessionId);
-      }
-    }
-    setSessionId(storedSessionId);
-  }, []);
+  // Lifetime usage tracking for free tier
+  const [lifetimeUsage, setLifetimeUsage] = useState<{
+    blocksUsed: number;
+    blocksRemaining: number;
+    percentUsed: number;
+    tier: string;
+    limit: number | null;
+    hasLifetimeLimit: boolean;
+  } | null>(null);
   
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'public' | 'private'>('public');
@@ -120,7 +117,7 @@ export default function SetupPage() {
     }
   }, [largeChannelWarning, selectedBlockCount]);
 
-  // Load recent channels and channel limits on mount
+  // Load recent channels, channel limits, and lifetime usage on mount
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -139,24 +136,27 @@ export default function SetupPage() {
         }
 
         // Load channel limits
-        const limitsResponse = await fetch('/api/channel-limits', {
-          headers: {
-            'x-session-id': sessionId
-          }
-        });
+        const limitsResponse = await fetch('/api/channel-limits');
         if (limitsResponse.ok) {
           const limitsData = await limitsResponse.json();
           setChannelLimits(limitsData);
+        }
+
+        // Load lifetime usage for authenticated users
+        if (isSignedIn) {
+          const usageResponse = await fetch('/api/lifetime-usage');
+          if (usageResponse.ok) {
+            const usageData = await usageResponse.json();
+            setLifetimeUsage(usageData);
+          }
         }
       } catch {
         console.log('Failed to load data');
       }
     };
 
-    if (sessionId) {
-      loadData();
-    }
-  }, [sessionId]);
+    loadData();
+  }, [isSignedIn]);
 
   const handleSync = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,8 +171,7 @@ export default function SetupPage() {
           const response = await fetch('/api/large-channel-check', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
-              'x-session-id': sessionId
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify({ channelBlocks: info.length })
           });
@@ -227,7 +226,6 @@ export default function SetupPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           channelSlug: channelSlug.trim(),
-          sessionId: sessionId,
           blockLimit: userConfirmedLargeChannel && selectedBlockCount > 0 ? selectedBlockCount : undefined
         }),
         signal: controller.signal
@@ -300,17 +298,17 @@ export default function SetupPage() {
                   channelTitle: result.channelTitle,
                   totalBlocks: result.totalBlocks,
                   processedBlocks: result.processedBlocks,
-                  switchedToChannel: channelSlug
+                  switchedToChannel: channelSlug,
+                  blocksUsed: result.blocksUsed,
+                  blocksRemaining: result.blocksRemaining
                 });
-                setStatus(`Success! Processed ${result.processedBlocks} blocks from "${result.channelTitle || channelSlug}".`);
                 
-                // Update session ID if provided
-                if (data.sessionId) {
-                  setSessionId(data.sessionId);
-                  if (typeof window !== 'undefined') {
-                    localStorage.setItem('airena_session_id', data.sessionId);
-                  }
+                // Update status with lifetime usage for free tier
+                let statusMessage = `Success! Processed ${result.processedBlocks} blocks from "${result.channelTitle || channelSlug}".`;
+                if (result.blocksRemaining !== undefined && lifetimeUsage?.hasLifetimeLimit) {
+                  statusMessage += ` You have ${result.blocksRemaining} blocks remaining.`;
                 }
+                setStatus(statusMessage);
                 
                 // Refresh the hook to get updated channel info
                 refreshChannel();
@@ -333,14 +331,19 @@ export default function SetupPage() {
                     }
 
                     // Load channel limits
-                    const limitsResponse = await fetch('/api/channel-limits', {
-                      headers: {
-                        'x-session-id': sessionId
-                      }
-                    });
+                    const limitsResponse = await fetch('/api/channel-limits');
                     if (limitsResponse.ok) {
                       const limitsData = await limitsResponse.json();
                       setChannelLimits(limitsData);
+                    }
+
+                    // Reload lifetime usage
+                    if (isSignedIn) {
+                      const usageResponse = await fetch('/api/lifetime-usage');
+                      if (usageResponse.ok) {
+                        const usageData = await usageResponse.json();
+                        setLifetimeUsage(usageData);
+                      }
                     }
                   } catch {
                     console.log('Failed to load data');
@@ -450,8 +453,7 @@ export default function SetupPage() {
           const response = await fetch('/api/large-channel-check', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
-              'x-session-id': sessionId
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify({ channelBlocks: info.length })
           });
@@ -561,6 +563,31 @@ export default function SetupPage() {
               username={connectedUsername} 
               isDefault={isDefaultChannel} 
             />
+          </div>
+        )}
+
+        {/* Show lifetime usage for free tier users */}
+        {lifetimeUsage && lifetimeUsage.hasLifetimeLimit && (
+          <div className="flex justify-center mb-4">
+            <div className="text-sm text-muted-foreground">
+              <span>Lifetime Blocks: </span>
+              <span className="font-medium">{lifetimeUsage.blocksUsed}/{lifetimeUsage.limit}</span>
+              <span className="ml-2">({lifetimeUsage.blocksRemaining} remaining)</span>
+              {lifetimeUsage.blocksRemaining <= 10 && lifetimeUsage.blocksRemaining > 0 && (
+                <span className="text-orange-500 ml-2 font-medium">⚠️ Running low!</span>
+              )}
+              {lifetimeUsage.blocksRemaining === 0 && (
+                <span className="text-indigo-500 ml-2">
+                  (<Button 
+                    variant="link" 
+                    className="p-0 h-auto font-semibold text-indigo-500 hover:text-indigo-600 text-sm"
+                    onClick={() => window.location.href = '/pricing'}
+                  >
+                    Upgrade for more blocks
+                  </Button>)
+                </span>
+              )}
+            </div>
           </div>
         )}
 
@@ -1073,6 +1100,14 @@ export default function SetupPage() {
                 <>
                   The <span className="font-medium break-words">{syncDetails.switchedToChannel || connectedChannel}</span> channel is ready with{' '}
                   <span className="font-medium">{syncDetails.processedBlocks}</span> new blocks processed.
+                  {syncDetails.blocksRemaining !== undefined && lifetimeUsage?.hasLifetimeLimit && (
+                    <>
+                      <br />
+                      <span className="text-muted-foreground">
+                        You have <span className="font-medium">{syncDetails.blocksRemaining}</span> blocks remaining.
+                      </span>
+                    </>
+                  )}
                 </>
               ) : (
                 // Switching flow - show total blocks

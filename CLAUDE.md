@@ -443,3 +443,49 @@ This would transform the spatial canvas from an organizational tool into a gener
 
 **Why**: User reported being on Starter plan but system treating as Free tier. Decision made to disable all caps while redesigning pricing structure.
 
+---
+
+## 🚀 Phase 10.8: Authentication Requirement & Simple Usage Tracking (July 27, 2025)
+
+### **Major Architecture Change: Remove Anonymous Access**
+
+**Implementation Date**: July 27, 2025  
+**Status**: **IN PROGRESS**  
+**Impact**: **All users must authenticate + 50-block lifetime limit for free tier**
+
+### **What Was Accomplished**
+
+#### **🔐 Authentication Required for All Features**
+- **Middleware updated** - `/channels` and `/canvas` routes now require authentication
+- **API routes secured** - `/api/sync`, `/api/chat`, `/api/generate` all require auth
+- **Landing page updated** - Changed "Try Demo" to "Get Started Free" with "50 blocks free • No credit card required"
+- **No more anonymous access** - All features require user sign-in
+
+#### **📊 Simple Usage Tracking System**
+- **New SimpleUsageTracker class** - Replaces complex session-based tracking
+- **50-block lifetime limit** - Free users get 50 blocks total (not per month)
+- **Database migration** - Added `lifetime_blocks_used` column to users table
+- **RPC function** - `increment_lifetime_blocks` for atomic usage updates
+- **Sync service updated** - Integrated with SimpleUsageTracker for usage checks and recording
+
+#### **🔧 Technical Implementation**
+- **Removed session tracking** - No more `sessionId` parameters in API routes
+- **Fixed TypeScript errors** - Added proper type annotations to Supabase queries
+- **ESLint fixes** - Removed unused variables and imports
+- **Clean build** - All TypeScript and ESLint errors resolved
+
+#### **📝 Code Changes**
+- `/src/lib/simple-usage.ts` - New simplified usage tracking (50-block lifetime limit)
+- `/src/lib/sync.ts` - Updated to use SimpleUsageTracker instead of complex usage system
+- `/src/app/api/sync/route.ts` - Requires authentication, no more sessionId
+- `/src/app/api/chat/route.ts` - Requires authentication, removed unused UsageTracker
+- `/src/app/api/generate/route.ts` - Requires authentication, removed unused UsageTracker
+- `/src/middleware.ts` - Protected `/channels` and `/canvas` routes
+- `/src/app/page.tsx` - Updated messaging for authentication requirement
+
+### **🎯 Next Steps**
+- Remove session ID logic from frontend components
+- Add OAuth providers (Google, GitHub) to Better Auth
+- Test the 50-block lifetime limit system
+- Update UI to show lifetime blocks used/remaining
+

@@ -5,18 +5,19 @@ import { auth } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
-    // Get authentication info (optional for free users)
-    let userId: string | undefined = undefined;
-    try {
-      const session = await auth.api.getSession({
-        headers: await headers(),
-      });
-      userId = session?.user?.id || undefined;
-    } catch {
-      // No authentication required for free users
-      userId = undefined;
+    // Get authentication info (required)
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
     }
     
+    const userId = session.user.id;
     const { channelBlocks } = await req.json();
     
     if (!channelBlocks || typeof channelBlocks !== 'number') {
@@ -25,16 +26,11 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    
-    // Get or use session ID for usage tracking
-    const sessionId = req.headers.get('x-session-id') || 
-                     req.cookies.get('airena_session_id')?.value ||
-                     `anon_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     // Check for large channel warning
     const warningResult = await UsageTracker.checkLargeChannelWarning(
       channelBlocks,
-      sessionId,
+      '', // Empty session ID since we're using userId
       userId
     );
 

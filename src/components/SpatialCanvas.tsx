@@ -2507,10 +2507,6 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
               setIsLoading(true)
 
               try {
-                // Generate a session ID if we don't have one
-                const sessionId = localStorage.getItem('spatial-chat-session') || 
-                  `spatial-${Date.now()}-${Math.random().toString(36).substring(2)}`
-                localStorage.setItem('spatial-chat-session', sessionId)
 
                 // Check if this is an arrangement command
                 const isArrangement = isArrangementCommand(userMessage.content)
@@ -2609,7 +2605,6 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
                   messages: [...messageHistory, contextualUserMessage],
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   channelSlug: (channelInfo as any).channelSlug || channelInfo.slug, // Handle both formats
-                  sessionId: sessionId,
                   isSpatialCanvas: true,
                 }
                 console.log('Chat request:', requestBody)

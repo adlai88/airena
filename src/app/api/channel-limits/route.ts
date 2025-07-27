@@ -5,34 +5,22 @@ import { auth } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
   try {
-    // Get authentication info (optional for free users)
-    let userId: string | undefined = undefined;
-    try {
-      const session = await auth.api.getSession({
-        headers: await headers(),
-      });
-      userId = session?.user?.id || undefined;
-    } catch {
-      // No authentication required for free users
-      userId = undefined;
+    // Get authentication info (required)
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
     }
     
-    // Get session ID for usage tracking - don't generate new one  
-    const sessionId = req.headers.get('x-session-id') || 
-                     req.cookies.get('airena_session_id')?.value;
-    
-    if (!sessionId && !userId) {
-      // No session ID and no user ID - return default limits without counting
-      return NextResponse.json({
-        channelCount: 0,
-        channelLimit: 3,
-        userTier: 'free',
-        canAddMoreChannels: true
-      });
-    }
+    const userId = session.user.id;
 
-    // Get channel count and limits (sessionId could be undefined for authenticated users)
-    const channelCount = await UsageTracker.getUserChannelCount(sessionId || '', userId);
+    // Get channel count and limits
+    const channelCount = await UsageTracker.getUserChannelCount('', userId);
     const userTier = await UsageTracker.getUserTier(userId);
     
     const response = {

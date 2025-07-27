@@ -23,6 +23,12 @@ interface UsageStats {
     remaining: number;
     month: string;
   };
+  lifetime?: {
+    blocksUsed: number;
+    blocksRemaining: number;
+    percentUsed: number;
+    limit: number;
+  };
   channels: UsageRecord[];
   totalChannelsProcessed: number;
   totalBlocksProcessed: number;
@@ -71,6 +77,21 @@ export default function UsagePage() {
           throw new Error('Failed to fetch usage statistics');
         }
         const statsData = await statsResponse.json();
+        
+        // For free tier, also fetch lifetime usage
+        if (statsData.tier === 'free') {
+          const lifetimeResponse = await fetch('/api/lifetime-usage');
+          if (lifetimeResponse.ok) {
+            const lifetimeData = await lifetimeResponse.json();
+            statsData.lifetime = {
+              blocksUsed: lifetimeData.blocksUsed,
+              blocksRemaining: lifetimeData.blocksRemaining,
+              percentUsed: lifetimeData.percentUsed,
+              limit: lifetimeData.limit
+            };
+          }
+        }
+        
         setStats(statsData);
 
         // Fetch API key status
@@ -272,9 +293,30 @@ export default function UsagePage() {
                 <div className="space-y-4">
                   {stats.tier === 'free' ? (
                     <div>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        {tierInfo.blocks} blocks per channel limit
-                      </p>
+                      {stats.lifetime && (
+                        <>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium">
+                              Lifetime Block Usage
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                              {stats.lifetime.blocksUsed} / {stats.lifetime.limit} blocks
+                            </span>
+                          </div>
+                          <Progress value={stats.lifetime.percentUsed} className="h-2" />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {stats.lifetime.blocksRemaining} blocks remaining
+                            {stats.lifetime.blocksRemaining <= 10 && stats.lifetime.blocksRemaining > 0 && (
+                              <span className="text-orange-500 ml-2 font-medium">⚠️ Running low!</span>
+                            )}
+                          </p>
+                          <div className="mt-3 pt-3 border-t">
+                            <p className="text-sm text-muted-foreground mb-2">
+                              {tierInfo.blocks} blocks per channel limit
+                            </p>
+                          </div>
+                        </>
+                      )}
                       <div className="space-y-2">
                         {tierInfo.features.map((feature, index) => (
                           <div key={index} className="flex items-center text-sm">
@@ -336,11 +378,17 @@ export default function UsagePage() {
 
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">This Month</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    {stats.tier === 'free' ? 'Lifetime Used' : 'This Month'}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.monthly.current}</div>
-                  <p className="text-xs text-muted-foreground">Blocks processed</p>
+                  <div className="text-2xl font-bold">
+                    {stats.tier === 'free' && stats.lifetime ? stats.lifetime.blocksUsed : stats.monthly.current}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {stats.tier === 'free' ? 'Total blocks used' : 'Blocks processed'}
+                  </p>
                 </CardContent>
               </Card>
             </div>
