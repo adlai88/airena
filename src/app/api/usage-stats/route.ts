@@ -36,7 +36,16 @@ export async function GET() {
       .order('last_processed_at', { ascending: false });
 
     // Flatten channel data
-    const processedChannels = (channels || []).map((record: any) => ({
+    interface ChannelRecord {
+      channels?: {
+        title?: string;
+        slug?: string;
+        thumbnail_url?: string;
+      };
+      [key: string]: unknown;
+    }
+    
+    const processedChannels = (channels || []).map((record: ChannelRecord) => ({
       ...record,
       channel_title: record.channels?.title,
       channel_slug: record.channels?.slug,

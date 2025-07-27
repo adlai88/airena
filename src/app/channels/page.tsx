@@ -415,7 +415,7 @@ export default function SetupPage() {
     return recentChannels.some(channel => channel.slug === slug) || slug === connectedChannel;
   };
 
-  const canAddChannel = (slug: string): boolean => {
+  const canAddChannel = (): boolean => {
     // Channel limits are temporarily disabled - always allow adding channels
     return true;
   };
@@ -612,7 +612,7 @@ export default function SetupPage() {
 
               <Button
                 type="submit"
-                disabled={isLoading || !channelSlug.trim() || !canAddChannel(channelSlug)}
+                disabled={isLoading || !channelSlug.trim() || !canAddChannel()}
                 className="w-full min-h-[48px] sm:min-h-auto"
                 size="lg"
               >
