@@ -236,7 +236,26 @@ export default function SetupPage() {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(errorText || 'Sync failed');
+        
+        // Handle authentication error gracefully
+        if (response.status === 401) {
+          setError('Please sign in to sync channels');
+          setIsLoading(false);
+          
+          // Show sign in modal or redirect after a short delay
+          setTimeout(() => {
+            window.location.href = '/sign-in?redirect=/channels';
+          }, 2000);
+          return;
+        }
+        
+        // Try to parse JSON error message
+        try {
+          const errorData = JSON.parse(errorText);
+          throw new Error(errorData.error || errorData.message || 'Sync failed');
+        } catch {
+          throw new Error(errorText || 'Sync failed');
+        }
       }
 
       // Read the streaming response
@@ -686,18 +705,28 @@ export default function SetupPage() {
             {error && (
               <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-md">
                 <p className="text-destructive text-sm">{error}</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setError(null);
-                    setStatus(null);
-                    setProgress(0);
-                  }}
-                  className="mt-2"
-                >
-                  Try Again
-                </Button>
+                <div className="mt-2 flex gap-2">
+                  {error.toLowerCase().includes('sign in') && (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => window.location.href = '/sign-in?redirect=/channels'}
+                    >
+                      Sign In
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setError(null);
+                      setStatus(null);
+                      setProgress(0);
+                    }}
+                  >
+                    {error.toLowerCase().includes('sign in') ? 'Dismiss' : 'Try Again'}
+                  </Button>
+                </div>
               </div>
             )}
 
