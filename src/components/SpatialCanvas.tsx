@@ -425,8 +425,8 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
       isHero: false
     }))
     
-    // Select 2-3 hero blocks (highest importance images/videos)
-    const heroCount = Math.min(3, Math.floor(blocks.length / 8) + 1)
+    // Select more hero blocks for larger channels (3-5 heroes)
+    const heroCount = Math.min(5, Math.max(3, Math.floor(blocks.length / 10) + 2))
     categorizedBlocks
       .filter(b => b.block.block_type === 'Image' || b.block.block_type === 'Video')
       .sort((a, b) => b.importance - a.importance)
@@ -487,17 +487,43 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         }
       }
       
-      // Size variations with hero emphasis
+      // Enhanced size variations with greater range
       let sizeMultiplier = 1
+      
+      // Adjust base size based on total block count for better scaling
+      const blockCountFactor = Math.min(1.5, Math.max(0.8, 50 / blocks.length))
+      const adjustedBaseSize = 80 * blockCountFactor
+      
       if (isHero) {
-        sizeMultiplier = 1.5 + Math.random() * 1.0 // 1.5x to 2.5x (larger heroes)
-      } else if (block.block_type === 'Text' || block.block_type === 'Link') {
-        sizeMultiplier = 0.5 + Math.random() * 0.3 // 0.5x to 0.8x (smaller text)
+        // Hero blocks: much larger for visual impact
+        sizeMultiplier = 2.0 + Math.random() * 1.5 // 2.0x to 3.5x (160-280px base)
       } else {
-        sizeMultiplier = 0.8 + Math.random() * 0.7 // 0.8x to 1.5x (more variation)
+        // Create more dramatic size variations for non-hero blocks
+        const sizeRoll = Math.random()
+        
+        if (sizeRoll < 0.15) {
+          // 15% chance for large featured blocks
+          sizeMultiplier = 1.8 + Math.random() * 0.7 // 1.8x to 2.5x
+        } else if (sizeRoll < 0.4) {
+          // 25% chance for medium-large blocks
+          sizeMultiplier = 1.2 + Math.random() * 0.6 // 1.2x to 1.8x
+        } else if (sizeRoll < 0.7) {
+          // 30% chance for medium blocks
+          sizeMultiplier = 0.9 + Math.random() * 0.3 // 0.9x to 1.2x
+        } else {
+          // 30% chance for smaller accent blocks
+          sizeMultiplier = 0.6 + Math.random() * 0.3 // 0.6x to 0.9x
+        }
+        
+        // Adjust for block type
+        if (block.block_type === 'Text' || block.block_type === 'Link') {
+          sizeMultiplier *= 0.8 // Make text blocks generally smaller
+        } else if (block.block_type === 'Image' || block.block_type === 'Video') {
+          sizeMultiplier *= 1.1 // Make visual blocks slightly larger
+        }
       }
       
-      const baseSize = 80 * sizeMultiplier
+      const baseSize = adjustedBaseSize * sizeMultiplier
       const typeConfig = getBlockTypeConfig(block, baseSize)
       
       // Check for overlaps and adjust (allow some controlled overlapping)
