@@ -16,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ChevronDown, Cog, MessageSquare, Wand2, BarChart3 } from 'lucide-react';
+import { ChevronDown, Cog, MessageSquare, Wand2, BarChart3, Layers } from 'lucide-react';
 import { BetterAuthUserButton } from '@/components/better-auth-user-button';
 import { useAuth } from '@/components/auth-provider';
 
@@ -40,8 +40,8 @@ export function Navigation({ homeNav = false }: NavigationProps) {
   
   // Determine active tab based on current route
   const navigateWithParams = async (path: string) => {
-    if (path === '/chat') {
-      // For chat, we need to get the current channel and use path-based routing
+    if (path === '/chat' || path === '/canvas') {
+      // For chat and canvas, we need to get the current channel and use path-based routing
       try {
         // Add timeout to prevent hanging on mobile
         const controller = new AbortController();
@@ -55,12 +55,14 @@ export function Navigation({ homeNav = false }: NavigationProps) {
         
         if (response.ok) {
           const data = await response.json();
-          router.push(`/chat/${data.channelSlug}`);
+          router.push(`${path}/${data.channelSlug}`);
         } else {
-          router.push('/chat/r-startups-founder-mode'); // fallback to default
+          const defaultSlug = 'r-startups-founder-mode';
+          router.push(`${path}/${defaultSlug}`); // fallback to default
         }
       } catch {
-        router.push('/chat/r-startups-founder-mode'); // fallback to default
+        const defaultSlug = 'r-startups-founder-mode';
+        router.push(`${path}/${defaultSlug}`); // fallback to default
       }
     } else {
       // For other pages, preserve query parameters when navigating
@@ -75,6 +77,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
     if (path === '/channels') return pathname === '/channels' || pathname === '/options';
     if (path === '/generate') return pathname === '/generate' || pathname.startsWith('/generate');
     if (path === '/chat') return pathname === '/chat' || pathname.startsWith('/chat');
+    if (path === '/canvas') return pathname === '/canvas' || pathname.startsWith('/canvas');
     return false;
   };
 
@@ -83,6 +86,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
     if (isActivePage('/channels')) return { name: 'Channels', icon: Cog };
     if (isActivePage('/chat')) return { name: 'Chat', icon: MessageSquare };
     if (isActivePage('/generate')) return { name: 'Generate', icon: Wand2 };
+    if (isActivePage('/canvas')) return { name: 'Canvas', icon: Layers };
     if (isActivePage('/usage')) return { name: 'Menu', icon: BarChart3 }; // Usage is in hamburger menu
     return { name: 'Channels', icon: Cog }; // default
   };
@@ -136,6 +140,12 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                     >
                       Generate
                     </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => navigateWithParams('/canvas')}
+                      className={isActivePage('/canvas') ? 'bg-accent text-accent-foreground' : ''}
+                    >
+                      Canvas
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -186,6 +196,21 @@ export function Navigation({ homeNav = false }: NavigationProps) {
                         }`}
                       >
                         Generate
+                      </Button>
+                    </NavigationMenuLink>
+                  </NavigationMenuItem>
+                  <NavigationMenuItem>
+                    <NavigationMenuLink asChild>
+                      <Button
+                        variant="ghost"
+                        onClick={() => navigateWithParams('/canvas')}
+                        className={`rounded-md px-4 py-2 transition-colors text-sm font-medium cursor-pointer ${
+                          isActivePage('/canvas')
+                            ? 'bg-accent text-accent-foreground'
+                            : 'hover:bg-accent hover:text-accent-foreground'
+                        }`}
+                      >
+                        Canvas
                       </Button>
                     </NavigationMenuLink>
                   </NavigationMenuItem>
