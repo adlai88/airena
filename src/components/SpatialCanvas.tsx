@@ -1067,15 +1067,23 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
               x = Math.random()
               y = Math.random()
               attempts++
-              // Fallback to edge distribution if we can't find a good spot
+              // Fallback to random placement in one of the triangles if we can't find a good spot
               if (attempts > 20) {
-                const t = Math.random()
-                const segmentIndex = Math.floor(t * (supabasePoints.length - 1))
-                const segmentT = t - segmentIndex
-                const p1 = supabasePoints[segmentIndex]
-                const p2 = supabasePoints[Math.min(segmentIndex + 1, supabasePoints.length - 1)]
-                x = p1.x + (p2.x - p1.x) * segmentT
-                y = p1.y + (p2.y - p1.y) * segmentT
+                // Randomly pick one of the triangles
+                const useTopTriangle = Math.random() < 0.5
+                const triangle = useTopTriangle ? topLeftTriangle : bottomRightTriangle
+                
+                // Generate a random point within the chosen triangle using barycentric coordinates
+                let r1 = Math.random()
+                let r2 = Math.random()
+                if (r1 + r2 > 1) {
+                  r1 = 1 - r1
+                  r2 = 1 - r2
+                }
+                
+                const [a, b, c] = triangle
+                x = a.x + r1 * (b.x - a.x) + r2 * (c.x - a.x)
+                y = a.y + r1 * (b.y - a.y) + r2 * (c.y - a.y)
                 break
               }
             } while (!isInsideLightning(x, y))
