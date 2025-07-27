@@ -68,12 +68,13 @@ export default function SetupPage() {
   const recentChannels = activeTab === 'public' ? publicChannels : privateChannels;
   const [hoveredChannel, setHoveredChannel] = useState<string | null>(null);
   const [blockLimitWarning, setBlockLimitWarning] = useState<string | null>(null);
-  const [channelLimits, setChannelLimits] = useState<{
-    channelCount: number;
-    channelLimit: number;
-    userTier: string;
-    canAddMoreChannels: boolean;
-  } | null>(null);
+  // Channel limits are temporarily disabled
+  // const [channelLimits, setChannelLimits] = useState<{
+  //   channelCount: number;
+  //   channelLimit: number;
+  //   userTier: string;
+  //   canAddMoreChannels: boolean;
+  // } | null>(null);
   const [largeChannelWarning, setLargeChannelWarning] = useState<{
     show: boolean;
     channelSlug: string;
@@ -135,12 +136,12 @@ export default function SetupPage() {
           setPrivateChannels(privateChannelsData.channels || []);
         }
 
-        // Load channel limits
-        const limitsResponse = await fetch('/api/channel-limits');
-        if (limitsResponse.ok) {
-          const limitsData = await limitsResponse.json();
-          setChannelLimits(limitsData);
-        }
+        // Channel limits are temporarily disabled
+        // const limitsResponse = await fetch('/api/channel-limits');
+        // if (limitsResponse.ok) {
+        //   const limitsData = await limitsResponse.json();
+        //   setChannelLimits(limitsData);
+        // }
 
         // Load lifetime usage for authenticated users
         if (isSignedIn) {
@@ -163,7 +164,7 @@ export default function SetupPage() {
     if (!channelSlug.trim()) return;
 
     // Check if we should show large channel warning first
-    if (channelLimits?.userTier !== 'free' && !userConfirmedLargeChannel) {
+    if (lifetimeUsage?.tier !== 'free' && !userConfirmedLargeChannel) {
       // For paid users, check if this might trigger a warning
       try {
         const info = await arenaClient.getChannel(channelSlug);
@@ -330,12 +331,12 @@ export default function SetupPage() {
                       setPrivateChannels(privateData.channels || []);
                     }
 
-                    // Load channel limits
-                    const limitsResponse = await fetch('/api/channel-limits');
-                    if (limitsResponse.ok) {
-                      const limitsData = await limitsResponse.json();
-                      setChannelLimits(limitsData);
-                    }
+                    // Channel limits are temporarily disabled
+                    // const limitsResponse = await fetch('/api/channel-limits');
+                    // if (limitsResponse.ok) {
+                    //   const limitsData = await limitsResponse.json();
+                    //   setChannelLimits(limitsData);
+                    // }
 
                     // Reload lifetime usage
                     if (isSignedIn) {
@@ -415,18 +416,8 @@ export default function SetupPage() {
   };
 
   const canAddChannel = (slug: string): boolean => {
-    // If it's an existing channel, can always refresh
-    if (isExistingChannel(slug)) {
-      return true;
-    }
-    
-    // If no channel limits data, assume can add
-    if (!channelLimits) {
-      return true;
-    }
-    
-    // Check if user can add more channels
-    return channelLimits.canAddMoreChannels;
+    // Channel limits are temporarily disabled - always allow adding channels
+    return true;
   };
 
   const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -443,12 +434,12 @@ export default function SetupPage() {
         const info = await arenaClient.getChannel(slug);
         
         // Check for free tier block limit warning
-        if (channelLimits?.userTier === 'free' && info.length > 25) {
+        if (lifetimeUsage?.tier === 'free' && info.length > 25) {
           setBlockLimitWarning(`This channel has ${info.length} blocks. Only the first 25 will be processed.`);
         }
         
         // Check for paid tier large channel warning
-        if (channelLimits?.userTier !== 'free' && info.length > 50) {
+        if (lifetimeUsage?.tier !== 'free' && info.length > 50) {
           // Call the large channel warning API
           const response = await fetch('/api/large-channel-check', {
             method: 'POST',
@@ -591,25 +582,6 @@ export default function SetupPage() {
           </div>
         )}
 
-        {/* Show channel limits for free tier users */}
-        {channelLimits && channelLimits.userTier === 'free' && (
-          <div className="flex justify-center mb-4">
-            <div className="text-sm text-muted-foreground">
-              Channels: <span className="font-medium">{channelLimits.channelCount}/{channelLimits.channelLimit}</span>
-              {!channelLimits.canAddMoreChannels && (
-                <span className="text-indigo-500 ml-2">
-                  (<Button 
-                    variant="link" 
-                    className="p-0 h-auto font-semibold text-indigo-500 hover:text-indigo-600 text-sm"
-                    onClick={() => window.location.href = isSignedIn ? '/pricing' : '/sign-up?redirect=/pricing'}
-                  >
-                    {isSignedIn ? 'Upgrade for unlimited channels' : 'Create account to upgrade'}
-                  </Button>)
-                </span>
-              )}
-            </div>
-          </div>
-        )}
         
         <Card>
           <CardContent className="space-y-6 p-4 sm:p-6">
@@ -656,33 +628,6 @@ export default function SetupPage() {
                 )}
               </Button>
 
-              {/* Channel limit warning */}
-              {channelSlug && !canAddChannel(channelSlug) && (
-                <div className="mt-2 p-2 bg-indigo-50 border border-indigo-200 rounded text-indigo-800 text-xs">
-                  Channel limit reached ({channelLimits?.channelCount}/{channelLimits?.channelLimit}). 
-                  {isSignedIn ? (
-                    <>
-                      <Button 
-                        variant="link" 
-                        className="p-0 h-auto font-semibold text-indigo-500 hover:text-indigo-600 ml-1"
-                        onClick={() => window.location.href = '/pricing'}
-                      >
-                        Upgrade to Starter
-                      </Button> for unlimited channels.
-                    </>
-                  ) : (
-                    <>
-                      <Button 
-                        variant="link" 
-                        className="p-0 h-auto font-semibold text-indigo-500 hover:text-indigo-600 ml-1"
-                        onClick={() => window.location.href = '/sign-up?redirect=/pricing'}
-                      >
-                        Create free account
-                      </Button> to upgrade for unlimited channels.
-                    </>
-                  )}
-                </div>
-              )}
             </form>
 
             {/* Progress Bar */}
@@ -774,7 +719,7 @@ export default function SetupPage() {
                   <TabsList className="grid w-full grid-cols-2 mb-3">
                     <TabsTrigger value="public">Public Channels</TabsTrigger>
                     <TabsTrigger value="private">
-                      {channelLimits?.userTier === 'free' ? '🔒 Private' : 'Private Channels'}
+                      {lifetimeUsage?.tier === 'free' ? '🔒 Private' : 'Private Channels'}
                     </TabsTrigger>
                   </TabsList>
                   
@@ -865,7 +810,7 @@ export default function SetupPage() {
                   </TabsContent>
                   
                   <TabsContent value="private" className="mt-0">
-                    {channelLimits?.userTier === 'free' ? (
+                    {lifetimeUsage?.tier === 'free' ? (
                       <div className="text-center py-8 space-y-4">
                         <div className="text-4xl">🔒</div>
                         <div>

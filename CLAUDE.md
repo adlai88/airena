@@ -450,7 +450,7 @@ This would transform the spatial canvas from an organizational tool into a gener
 ### **Major Architecture Change: Remove Anonymous Access**
 
 **Implementation Date**: July 27, 2025  
-**Status**: **IN PROGRESS**  
+**Status**: **COMPLETED ✅**  
 **Impact**: **All users must authenticate + 50-block lifetime limit for free tier**
 
 ### **What Was Accomplished**
@@ -468,24 +468,63 @@ This would transform the spatial canvas from an organizational tool into a gener
 - **RPC function** - `increment_lifetime_blocks` for atomic usage updates
 - **Sync service updated** - Integrated with SimpleUsageTracker for usage checks and recording
 
+#### **🎨 UI Updates for Lifetime Usage**
+- **New API endpoint** - `/api/lifetime-usage` returns current usage stats
+- **Channels page** - Shows "Lifetime Blocks: 32/50 (18 remaining)" with warnings
+- **Success messages** - Display remaining blocks after sync completion
+- **Usage dashboard** - Free tier shows lifetime usage with progress bar
+- **Visual indicators** - Orange warning at ≤10 blocks, upgrade prompt at 0 blocks
+
+#### **🧹 Session ID Removal**
+- **Frontend cleanup** - Removed all sessionId state and localStorage logic
+- **API updates** - Removed x-session-id headers from all requests
+- **Components updated** - SpatialCanvas, channels page, all API routes
+- **Authentication required** - All endpoints now require authenticated users
+
 #### **🔧 Technical Implementation**
-- **Removed session tracking** - No more `sessionId` parameters in API routes
 - **Fixed TypeScript errors** - Added proper type annotations to Supabase queries
 - **ESLint fixes** - Removed unused variables and imports
 - **Clean build** - All TypeScript and ESLint errors resolved
+- **Deployment successful** - Live on Vercel with all changes
 
-#### **📝 Code Changes**
+#### **📝 Complete File Changes**
 - `/src/lib/simple-usage.ts` - New simplified usage tracking (50-block lifetime limit)
 - `/src/lib/sync.ts` - Updated to use SimpleUsageTracker instead of complex usage system
 - `/src/app/api/sync/route.ts` - Requires authentication, no more sessionId
 - `/src/app/api/chat/route.ts` - Requires authentication, removed unused UsageTracker
 - `/src/app/api/generate/route.ts` - Requires authentication, removed unused UsageTracker
+- `/src/app/api/lifetime-usage/route.ts` - NEW: Returns lifetime usage stats
+- `/src/app/api/channel-limits/route.ts` - Requires auth, no sessionId
+- `/src/app/api/large-channel-check/route.ts` - Requires auth, no sessionId
 - `/src/middleware.ts` - Protected `/channels` and `/canvas` routes
 - `/src/app/page.tsx` - Updated messaging for authentication requirement
+- `/src/app/channels/page.tsx` - Added lifetime usage display, removed sessionId
+- `/src/app/usage/page.tsx` - Shows lifetime usage for free tier
+- `/src/components/SpatialCanvas.tsx` - Removed sessionId from chat
+
+### **🎯 Current Pricing Structure**
+
+#### **Free Tier**
+- **50 blocks lifetime limit** - Enforced and displayed in UI
+- **3 channel limit** - TEMPORARILY DISABLED
+- **No chat/generation limits** - TEMPORARILY DISABLED
+- **Public channels only** - Private channels require upgrade
+
+#### **Starter Tier ($5/month)**
+- **No lifetime limit** - Unlimited lifetime processing
+- **Monthly limits** - TEMPORARILY DISABLED (was 200 blocks/month)
+- **Unlimited channels**
+- **Private channel access**
+
+#### **Pro Tier ($19/month)**
+- **No lifetime limit** - Unlimited lifetime processing
+- **Monthly limits** - TEMPORARILY DISABLED (was 500 blocks/month)
+- **Unlimited channels**
+- **Private channel access**
 
 ### **🎯 Next Steps**
-- Remove session ID logic from frontend components
+- Test the 50-block lifetime limit system thoroughly
+- Re-enable monthly limits after testing
 - Add OAuth providers (Google, GitHub) to Better Auth
-- Test the 50-block lifetime limit system
-- Update UI to show lifetime blocks used/remaining
+- Consider weekly reset for free tier engagement
 
