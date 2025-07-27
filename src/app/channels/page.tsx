@@ -203,6 +203,15 @@ export default function SetupPage() {
       }
     }
 
+    // Check authentication first
+    if (!isSignedIn) {
+      setError('Please sign in to sync channels');
+      setTimeout(() => {
+        window.location.href = '/sign-in?redirect=/channels';
+      }, 2000);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     setStatus('Starting sync...');
@@ -237,7 +246,7 @@ export default function SetupPage() {
       if (!response.ok) {
         const errorText = await response.text();
         
-        // Handle authentication error gracefully
+        // Handle authentication error gracefully (backup check, shouldn't reach here)
         if (response.status === 401) {
           setError('Please sign in to sync channels');
           setIsLoading(false);
