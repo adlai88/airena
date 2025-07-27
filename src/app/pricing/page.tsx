@@ -7,11 +7,27 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { CheckCircle, ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
 import { useUser } from '@/components/auth-provider';
 import { CheckoutModal } from '@/components/checkout-modal';
+import { Input } from '@/components/ui/input';
 
-const plans = [
+interface Plan {
+  id: string;
+  name: string;
+  price: string;
+  period: string;
+  description: string;
+  features: string[];
+  cta: string;
+  popular: boolean;
+  comingSoon: boolean;
+  limitedOffer?: boolean;
+  spotsAvailable?: number;
+  futurePrice?: boolean;
+}
+
+const plans: Plan[] = [
   {
     id: 'free',
     name: 'Free',
@@ -19,60 +35,60 @@ const plans = [
     period: 'forever',
     description: 'Perfect for exploring Are.na intelligence',
     features: [
-      '25 blocks per channel',
-      '10 chat messages per channel/month',
-      '2 generations per channel/month',
-      '3 channels maximum',
+      '50 blocks lifetime',
       'Public channels only',
       'Complete multimodal intelligence',
-      'No signup required'
+      'All core features included'
     ],
     cta: 'Get Started',
     popular: false,
     comingSoon: false
   },
   {
-    id: 'starter',
-    name: 'Starter',
+    id: 'founding',
+    name: 'Founding Member',
     price: '$5',
-    period: 'per month',
-    description: 'For serious Are.na curators',
+    period: 'per month forever',
+    description: 'Limited to first 100 members',
     features: [
-      '200 blocks per month',
-      'Unlimited chat & generations',
+      'Everything unlimited forever',
       'Private channels access',
-      'Unlimited channels',
-      'Advanced templates',
-      'Export generated content',
-      'Email support'
+      'Priority support',
+      'All future Pro features',
+      'Save 70-75% vs future pricing',
+      'Founding member badge',
+      'Direct feedback channel'
     ],
-    cta: 'Subscribe Now',
+    cta: 'Coming Soon',
     popular: true,
-    comingSoon: false
+    comingSoon: true,
+    limitedOffer: true,
+    spotsAvailable: 100
   },
   {
     id: 'pro',
     name: 'Pro',
-    price: '$14',
+    price: '$15-19',
     period: 'per month',
-    description: 'For power users and developers',
+    description: 'Future standard pricing',
     features: [
-      '500 blocks per month',
-      'Everything in Starter',
+      'Everything unlimited',
+      'Private channels access',
       'Priority support',
-      'API access (coming soon)',
-      'Webhook support (coming soon)',
-      'MCP server generation (coming soon)'
+      'API access',
+      'Webhook support',
+      'MCP server generation'
     ],
-    cta: 'Subscribe Now',
+    cta: 'Coming Later',
     popular: false,
-    comingSoon: false
+    comingSoon: true,
+    futurePrice: true
   }
 ];
 
 // Helper function to determine tier priority for upgrade/downgrade logic
 const getTierPriority = (tier: string): number => {
-  const priorities = { free: 0, starter: 1, pro: 2 };
+  const priorities = { free: 0, founding: 1, starter: 1, pro: 2 };
   return priorities[tier as keyof typeof priorities] || 0;
 };
 
@@ -93,6 +109,9 @@ function PricingContent() {
     tier: '',
     billing: 'monthly'
   });
+  const [waitlistEmail, setWaitlistEmail] = useState('');
+  const [waitlistStatus, setWaitlistStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [waitlistMessage, setWaitlistMessage] = useState('');
   const user = useUser();
   const isSignedIn = !!user;
   const isLoaded = user !== undefined;
@@ -176,6 +195,41 @@ function PricingContent() {
     });
   };
 
+  const handleWaitlistSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!waitlistEmail || !waitlistEmail.includes('@')) {
+      setWaitlistMessage('Please enter a valid email address');
+      setWaitlistStatus('error');
+      return;
+    }
+
+    setWaitlistStatus('loading');
+    
+    try {
+      const response = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: waitlistEmail })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setWaitlistStatus('success');
+        setWaitlistMessage('You\'re on the list! We\'ll notify you when founding member spots open.');
+        setWaitlistEmail('');
+      } else {
+        setWaitlistStatus('error');
+        setWaitlistMessage(data.error || 'Failed to join waitlist. Please try again.');
+      }
+    } catch (error) {
+      console.error('Waitlist submission error:', error);
+      setWaitlistStatus('error');
+      setWaitlistMessage('Failed to join waitlist. Please try again.');
+    }
+  };
+
   return (
     <Layout>
       <div className="min-h-screen pt-20 pb-16">
@@ -202,57 +256,33 @@ function PricingContent() {
           {/* Current Plan Display */}
           {/* Removed badge display here as it's redundant with the plan card indicator */}
 
-          {/* Pricing Toggle */}
-          <div className="flex items-center justify-center mt-8 mb-12">
-            <div className="flex items-center space-x-3">
-              <span className={`text-sm ${!isAnnual ? 'text-foreground' : 'text-muted-foreground'}`}>
-                Monthly
-              </span>
-              <button
-                onClick={() => setIsAnnual(!isAnnual)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  isAnnual ? 'bg-primary' : 'bg-muted'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-background transition-transform ${
-                    isAnnual ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-              <span className={`text-sm ${isAnnual ? 'text-foreground' : 'text-muted-foreground'}`}>
-                Annual
-              </span>
-              {isAnnual && (
-                <Badge variant="secondary" className="text-xs">
-                  Save up to 41%
-                </Badge>
-              )}
-            </div>
-          </div>
-
           {/* Pricing Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
             {plans.map((plan) => (
               <Card
                 key={plan.id}
                 className={`relative ${
-                  plan.popular
+                  plan.popular && !plan.futurePrice
                     ? 'border-primary shadow-lg scale-105'
+                    : plan.futurePrice
+                    ? 'border-border opacity-60'
                     : 'border-border'
                 }`}
               >
+                {plan.limitedOffer && (
+                  <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary">
+                    Limited: 100 spots only
+                  </Badge>
+                )}
                 
                 <CardHeader className="text-center">
                   <CardTitle className="text-xl">{plan.name}</CardTitle>
                   <div className="mt-4">
                     <span className="text-3xl font-bold">
-                      {isAnnual && plan.id === 'starter' ? '$45' : 
-                       isAnnual && plan.id === 'pro' ? '$99' : 
-                       plan.price}
+                      {plan.price}
                     </span>
                     <span className="text-muted-foreground ml-1">
-                      {isAnnual && plan.id !== 'free' ? 'per year' : plan.period}
+                      {plan.period}
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground mt-2">
@@ -312,12 +342,51 @@ function PricingContent() {
           {/* Comparison Section */}
           {/* Removed 'Why choose Airena?' section and its columns */}
 
-          {/* Overage Pricing */}
-          <div className="mt-12 text-center">
-            <h4 className="text-lg font-semibold mb-2">Need more blocks?</h4>
-            <p className="text-sm text-muted-foreground">
-              Additional blocks are $0.15 each, or save 33% with 100-block packages for $10
-            </p>
+          {/* Waitlist Section */}
+          <div className="mt-16 max-w-2xl mx-auto">
+            <Card className="border-primary/20 bg-primary/5">
+              <CardHeader className="text-center">
+                <div className="flex justify-center mb-4">
+                  <Sparkles className="h-8 w-8 text-primary" />
+                </div>
+                <CardTitle className="text-2xl">Join the Founding Members Waitlist</CardTitle>
+                <p className="text-muted-foreground mt-2">
+                  Only 100 founding member spots available at $5/month forever
+                </p>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleWaitlistSubmit} className="space-y-4">
+                  <div className="flex gap-2">
+                    <Input
+                      type="email"
+                      placeholder="Enter your email"
+                      value={waitlistEmail}
+                      onChange={(e) => setWaitlistEmail(e.target.value)}
+                      disabled={waitlistStatus === 'loading' || waitlistStatus === 'success'}
+                      className="flex-1"
+                    />
+                    <Button
+                      type="submit"
+                      disabled={waitlistStatus === 'loading' || waitlistStatus === 'success'}
+                      className="px-6"
+                    >
+                      {waitlistStatus === 'loading' ? 'Joining...' : 'Join Waitlist'}
+                    </Button>
+                  </div>
+                  {waitlistMessage && (
+                    <p className={`text-sm ${
+                      waitlistStatus === 'success' ? 'text-green-600 dark:text-green-400' : 
+                      waitlistStatus === 'error' ? 'text-destructive' : ''
+                    }`}>
+                      {waitlistMessage}
+                    </p>
+                  )}
+                </form>
+                <p className="text-xs text-muted-foreground text-center mt-4">
+                  Save 70-75% compared to future Pro pricing. Get all Pro features forever.
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
