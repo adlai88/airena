@@ -674,8 +674,8 @@ export class UsageTracker {
         const { SimpleUsageTracker } = await import('./simple-usage');
         const stats = await SimpleUsageTracker.getUserStats(userId!);
         
-        // Show warning for channels > 25 blocks when user has limited lifetime blocks
-        const showWarning = channelBlocks > 25 && stats.blocksRemaining < 50;
+        // Show warning for channels > 25 blocks for free tier users
+        const showWarning = channelBlocks > 25;
         const wouldExceedLimit = channelBlocks > stats.blocksRemaining;
         
         let message = '';
