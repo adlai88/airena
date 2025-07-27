@@ -433,13 +433,8 @@ export default function SetupPage() {
         // Fetch channel info to get block count
         const info = await arenaClient.getChannel(slug);
         
-        // Check for free tier block limit warning
-        if (lifetimeUsage?.tier === 'free' && info.length > 25) {
-          setBlockLimitWarning(`This channel has ${info.length} blocks. Only the first 25 will be processed.`);
-        }
-        
-        // Check for paid tier large channel warning
-        if (lifetimeUsage?.tier !== 'free' && info.length > 50) {
+        // Check for large channel warning for ALL users
+        if (info.length > 25) {
           // Call the large channel warning API
           const response = await fetch('/api/large-channel-check', {
             method: 'POST',
@@ -937,7 +932,7 @@ export default function SetupPage() {
           <div className="space-y-4 pt-4">
             <div className="p-3 bg-muted rounded-md text-sm">
               <div className="flex justify-between mb-1">
-                <span>Monthly Usage:</span>
+                <span>{lifetimeUsage?.tier === 'free' ? 'Lifetime Usage:' : 'Monthly Usage:'}</span>
                 <span className="font-medium">
                   {largeChannelWarning?.monthlyUsed}/{largeChannelWarning?.monthlyLimit} blocks
                 </span>
@@ -979,7 +974,7 @@ export default function SetupPage() {
             {/* Warning if would exceed limit */}
             {selectedBlockCount > (largeChannelWarning?.monthlyRemaining || 0) && (
               <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md text-sm text-destructive">
-                <strong>Warning:</strong> This would use more blocks than you have remaining this month.
+                <strong>Warning:</strong> This would use more blocks than you have remaining{lifetimeUsage?.tier === 'free' ? ' in your lifetime limit' : ' this month'}.
               </div>
             )}
 

@@ -128,20 +128,28 @@ export class ArenaClient {
   /**
    * Get all contents from a channel (handles pagination)
    */
-  async getAllChannelContents(slug: string): Promise<ArenaBlock[]> {
+  async getAllChannelContents(slug: string, limit?: number): Promise<ArenaBlock[]> {
     const channel = await this.getChannel(slug);
     const totalBlocks = channel.length;
     const perPage = 100;
-    const totalPages = Math.ceil(totalBlocks / perPage);
+    
+    // If limit is specified, calculate how many pages we need
+    const blocksToFetch = limit ? Math.min(limit, totalBlocks) : totalBlocks;
+    const pagesToFetch = Math.ceil(blocksToFetch / perPage);
     
     const allContents: ArenaBlock[] = [];
     
-    for (let page = 1; page <= totalPages; page++) {
+    for (let page = 1; page <= pagesToFetch; page++) {
       const contents = await this.getChannelContents(channel.id, page, perPage);
       allContents.push(...contents);
       
+      // If we have enough blocks, stop early
+      if (limit && allContents.length >= limit) {
+        return allContents.slice(0, limit);
+      }
+      
       // Rate limiting: wait 100ms between requests
-      if (page < totalPages) {
+      if (page < pagesToFetch) {
         await new Promise(resolve => setTimeout(resolve, 100));
       }
     }

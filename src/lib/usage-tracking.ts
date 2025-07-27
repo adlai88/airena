@@ -668,14 +668,35 @@ export class UsageTracker {
     try {
       const userTier = await this.getUserTier(userId);
       
-      // Only show warnings for paid tiers (they have monthly limits)
+      // Handle free tier users with lifetime limits
       if (userTier === 'free') {
+        // Import SimpleUsageTracker for free tier
+        const { SimpleUsageTracker } = await import('./simple-usage');
+        const stats = await SimpleUsageTracker.getUserStats(userId!);
+        
+        // Show warning for channels > 25 blocks when user has limited lifetime blocks
+        const showWarning = channelBlocks > 25 && stats.blocksRemaining < 50;
+        const wouldExceedLimit = channelBlocks > stats.blocksRemaining;
+        
+        let message = '';
+        if (stats.blocksRemaining === 0) {
+          message = `You've used all 50 free blocks. Upgrade to Starter for unlimited processing.`;
+        } else if (wouldExceedLimit) {
+          message = `This channel has ${channelBlocks} blocks. You have ${stats.blocksRemaining} blocks remaining (${stats.blocksUsed}/50 lifetime limit).`;
+        } else if (channelBlocks > stats.blocksRemaining * 0.5) {
+          message = `This channel has ${channelBlocks} blocks, which would use most of your ${stats.blocksRemaining} remaining lifetime blocks.`;
+        } else {
+          message = `This channel has ${channelBlocks} blocks. You have ${stats.blocksRemaining}/50 lifetime blocks remaining.`;
+        }
+        
         return {
-          showWarning: false,
-          monthlyUsed: 0,
-          monthlyLimit: 0,
-          monthlyRemaining: 0,
-          wouldExceedLimit: false
+          showWarning,
+          monthlyUsed: stats.blocksUsed,
+          monthlyLimit: 50, // Lifetime limit for free tier
+          monthlyRemaining: stats.blocksRemaining,
+          wouldExceedLimit,
+          overageBlocks: wouldExceedLimit ? channelBlocks - stats.blocksRemaining : undefined,
+          message
         };
       }
 

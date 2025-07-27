@@ -297,14 +297,30 @@ export class SyncService {
       const thumbnailUrl = await this.generateChannelThumbnail(channelSlug);
       const dbChannelId = await this.upsertChannel(channel, userId, thumbnailUrl || undefined, accessResult.isPrivate);
 
-      const allBlocks = await client.getAllChannelContents(channelSlug);
+      // For free users with limited blocks, optimize fetching
+      let fetchLimit: number | undefined;
+      if (accessResult.userTier === 'free') {
+        const usageCheck = await SimpleUsageTracker.checkUsage(userId);
+        // For initial estimate, assume some blocks might already be processed
+        // Fetch slightly more than needed to account for existing blocks and non-processable blocks
+        // This is an optimization to avoid fetching all 1545 blocks for a user with only 50 remaining
+        fetchLimit = Math.min(channel.length, usageCheck.blocksRemaining * 2 + 100);
+        
+        this.reportProgress({
+          stage: 'fetching',
+          message: `Optimizing fetch for ${usageCheck.blocksRemaining} remaining blocks...`,
+          progress: 10,
+        });
+      }
+
+      const allBlocks = await client.getAllChannelContents(channelSlug, fetchLimit);
       
       // Show channel size and set expectations for large channels
       this.reportProgress({
         stage: 'fetching',
         message: allBlocks.length > 200 ? 
-          `Analyzing ${allBlocks.length} blocks (this may take 2-3 minutes for large channels)...` :
-          `Analyzing ${allBlocks.length} blocks...`,
+          `Analyzing ${allBlocks.length} blocks${fetchLimit ? ` (optimized from ${channel.length} total)` : ''} (this may take 2-3 minutes for large channels)...` :
+          `Analyzing ${allBlocks.length} blocks${fetchLimit ? ` (optimized from ${channel.length} total)` : ''}...`,
         progress: 12,
       });
       
