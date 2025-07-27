@@ -164,11 +164,11 @@ export default function SetupPage() {
     if (!channelSlug.trim()) return;
 
     // Check if we should show large channel warning first
-    if (lifetimeUsage?.tier !== 'free' && !userConfirmedLargeChannel) {
-      // For paid users, check if this might trigger a warning
+    if (!userConfirmedLargeChannel) {
+      // Check for ALL users if this might trigger a warning
       try {
         const info = await arenaClient.getChannel(channelSlug);
-        if (info.length > 50) {
+        if (info.length > 25) {
           const response = await fetch('/api/large-channel-check', {
             method: 'POST',
             headers: {

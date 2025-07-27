@@ -27,6 +27,38 @@ export class SimpleUsageTracker {
 
       if (error || !user) {
         console.error('Error fetching user usage:', error);
+        
+        // If user doesn't exist in users table, create a default free tier user
+        if (error && typeof error === 'object' && 'code' in error && error.code === 'PGRST116') {
+          // User not found, create default record
+          const { error: insertError } = await supabaseServiceRole
+            .from('users')
+            .insert({
+              id: userId,
+              tier: 'free',
+              lifetime_blocks_used: 0,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            });
+            
+          if (insertError) {
+            console.error('Error creating user record:', insertError);
+            return {
+              canProcess: false,
+              blocksUsed: 0,
+              blocksRemaining: 0,
+              message: 'Unable to verify usage limits'
+            };
+          }
+          
+          // Return default free tier limits
+          return {
+            canProcess: true,
+            blocksUsed: 0,
+            blocksRemaining: LIFETIME_BLOCK_LIMIT,
+          };
+        }
+        
         return {
           canProcess: false,
           blocksUsed: 0,
@@ -130,6 +162,29 @@ export class SimpleUsageTracker {
         };
 
       if (error || !user) {
+        // If user doesn't exist, create default record
+        if (error && typeof error === 'object' && 'code' in error && error.code === 'PGRST116') {
+          const { error: insertError } = await supabaseServiceRole
+            .from('users')
+            .insert({
+              id: userId,
+              tier: 'free',
+              lifetime_blocks_used: 0,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            });
+            
+          if (!insertError) {
+            // Return default free tier stats
+            return {
+              blocksUsed: 0,
+              blocksRemaining: LIFETIME_BLOCK_LIMIT,
+              percentUsed: 0,
+              tier: 'free'
+            };
+          }
+        }
+        
         return {
           blocksUsed: 0,
           blocksRemaining: LIFETIME_BLOCK_LIMIT,
