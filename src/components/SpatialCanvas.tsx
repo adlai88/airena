@@ -1824,7 +1824,17 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
     editor.createShape(labelShape)
     
     setTimeout(() => {
-      editor.zoomToFit({ duration: 800 })
+      if (shape === 'spiral') {
+        // Zoom in more for spiral view to make it appear larger
+        editor.zoomToFit({ duration: 800 })
+        // After zooming to fit, zoom in an additional 50%
+        setTimeout(() => {
+          const currentZoom = editor.getZoomLevel()
+          editor.setCamera({ z: currentZoom * 1.5 }, { duration: 400 })
+        }, 900)
+      } else {
+        editor.zoomToFit({ duration: 800 })
+      }
       setIsAnimating(false)
     }, 100)
   }
