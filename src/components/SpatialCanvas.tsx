@@ -982,8 +982,8 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         
       case 'supabase':
         // Supabase logo - lightning bolt shape with duplicates for density
-        const supabaseDuplicateCount = 20 // Each block appears 20 times for more density
-        const supabaseBlockSize = baseSize * 0.25 // 25% of normal size for tighter packing
+        const supabaseDuplicateCount = 25 // Each block appears 25 times for maximum density
+        const supabaseBlockSize = baseSize * 0.2 // 20% of normal size for very tight packing
         const supabaseBlocks: Array<{
           id: string
           type: string
@@ -1007,50 +1007,63 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         const logoStartY = centerY - logoHeight / 2
         
         // Define key points of the lightning bolt (normalized 0-1)
-        // Based on the actual Supabase logo shape
+        // Based on the actual Supabase logo shape - a "Z" lightning bolt
         const supabasePoints = [
           // Start at top left
-          { x: 0.2, y: 0 },
+          { x: 0.15, y: 0 },
           // Top horizontal line to right
-          { x: 0.8, y: 0 },
-          // Diagonal down to middle
-          { x: 0.45, y: 0.5 },
-          // Middle horizontal line to right
-          { x: 1, y: 0.5 },
-          // Right edge down
-          { x: 1, y: 0.6 },
-          // Back left
-          { x: 0.8, y: 0.6 },
-          // Diagonal down to bottom right
-          { x: 0.55, y: 1 },
-          // Bottom horizontal line to left
-          { x: 0, y: 1 },
-          // Left edge up
-          { x: 0, y: 0.9 },
-          // Back right
-          { x: 0.2, y: 0.9 },
-          // Diagonal up to middle left
-          { x: 0.55, y: 0.4 },
-          // Left horizontal line
-          { x: 0.2, y: 0.4 },
-          // Close the shape back to start
-          { x: 0.2, y: 0 }
+          { x: 0.85, y: 0 },
+          { x: 0.85, y: 0.15 },
+          // Diagonal slash down to the left
+          { x: 0.35, y: 0.55 },
+          // Small horizontal segment to right
+          { x: 0.65, y: 0.55 },
+          { x: 0.65, y: 0.45 },
+          // Continue diagonal
+          { x: 0.15, y: 0.85 },
+          // Bottom left corner
+          { x: 0.15, y: 1 },
+          // Bottom horizontal line to right  
+          { x: 0.85, y: 1 },
+          { x: 0.85, y: 0.85 },
+          // Diagonal slash up to the right
+          { x: 0.35, y: 0.45 },
+          // Small horizontal segment to left
+          { x: 0.65, y: 0.45 },
+          { x: 0.65, y: 0.55 },
+          // Continue diagonal up
+          { x: 0.15, y: 0.15 },
+          // Close the shape
+          { x: 0.15, y: 0 }
         ]
         
         // Create a filled area by distributing blocks within the shape
         
         // Helper function to check if a point is inside the lightning bolt
         const isInsideLightning = (x: number, y: number): boolean => {
-          // Check if point is in the top horizontal bar
-          if (y < 0.4 && x >= 0.2 && x <= 0.8) return true
-          // Check if point is in the diagonal from top to middle
-          if (y >= 0 && y <= 0.5 && x >= 0.2 + (y * 0.5) && x <= 0.8 - (y * 0.7)) return true
-          // Check if point is in the middle horizontal bar
-          if (y >= 0.4 && y <= 0.6 && x >= 0.45 && x <= 1) return true
-          // Check if point is in the diagonal from middle to bottom
-          if (y >= 0.5 && y <= 1 && x >= 0.55 - ((y - 0.5) * 1.1) && x <= 0.8 - ((y - 0.5) * 0.5)) return true
-          // Check if point is in the bottom horizontal bar
-          if (y >= 0.9 && x >= 0 && x <= 0.55) return true
+          // Top horizontal bar
+          if (y >= 0 && y <= 0.15 && x >= 0.15 && x <= 0.85) return true
+          
+          // Top diagonal section (from top-right to middle)
+          if (y >= 0.15 && y <= 0.55) {
+            const leftBound = 0.85 - (y - 0.15) * 1.25  // Slope from 0.85 to 0.35
+            const rightBound = 0.85 - (y - 0.15) * 0.5   // Slope for right edge
+            if (x >= leftBound && x <= rightBound) return true
+          }
+          
+          // Middle horizontal connector
+          if (y >= 0.45 && y <= 0.55 && x >= 0.35 && x <= 0.65) return true
+          
+          // Bottom diagonal section (from middle to bottom-left)
+          if (y >= 0.45 && y <= 0.85) {
+            const leftBound = 0.15  // Left edge
+            const rightBound = 0.65 - (y - 0.45) * 1.25  // Slope from 0.65 to 0.15
+            if (x >= leftBound && x <= rightBound) return true
+          }
+          
+          // Bottom horizontal bar
+          if (y >= 0.85 && y <= 1 && x >= 0.15 && x <= 0.85) return true
+          
           return false
         }
         
