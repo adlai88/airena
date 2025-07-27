@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { UsageTracker } from '@/lib/usage-tracking';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     // Get authentication info (required)
     const session = await auth.api.getSession({
