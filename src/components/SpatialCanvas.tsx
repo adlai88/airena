@@ -1000,71 +1000,60 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
         }> = []
         
         // Define the Supabase lightning bolt path points
-        // The logo is like a stylized "S" shape / lightning bolt
+        // Based on the actual SVG - two triangular shapes forming a lightning bolt
         const logoWidth = 300
-        const logoHeight = 400
+        const logoHeight = 340  // Adjusted for proper aspect ratio (109:113)
         const logoStartX = centerX - logoWidth / 2
         const logoStartY = centerY - logoHeight / 2
         
-        // Define key points of the lightning bolt (normalized 0-1)
-        // Based on the actual Supabase logo shape - a "Z" lightning bolt
-        const supabasePoints = [
-          // Start at top left
-          { x: 0.15, y: 0 },
-          // Top horizontal line to right
-          { x: 0.85, y: 0 },
-          { x: 0.85, y: 0.15 },
-          // Diagonal slash down to the left
-          { x: 0.35, y: 0.55 },
-          // Small horizontal segment to right
-          { x: 0.65, y: 0.55 },
-          { x: 0.65, y: 0.45 },
-          // Continue diagonal
-          { x: 0.15, y: 0.85 },
-          // Bottom left corner
-          { x: 0.15, y: 1 },
-          // Bottom horizontal line to right  
-          { x: 0.85, y: 1 },
-          { x: 0.85, y: 0.85 },
-          // Diagonal slash up to the right
-          { x: 0.35, y: 0.45 },
-          // Small horizontal segment to left
-          { x: 0.65, y: 0.45 },
-          { x: 0.65, y: 0.55 },
-          // Continue diagonal up
-          { x: 0.15, y: 0.15 },
-          // Close the shape
-          { x: 0.15, y: 0 }
+        // SVG viewBox is 0 0 109 113, so we normalize coordinates
+        // The logo consists of two parts that we'll treat as one filled shape
+        
+        // Top-left triangle (green part in original)
+        const topLeftTriangle = [
+          { x: 45.317 / 109, y: 2.071 / 113 },    // Top point
+          { x: 54.485 / 109, y: 72.292 / 113 },   // Bottom right
+          { x: 9.831 / 109, y: 72.292 / 113 },    // Bottom left
+        ]
+        
+        // Bottom-right triangle (gradient part in original)  
+        const bottomRightTriangle = [
+          { x: 53.974 / 109, y: 40.063 / 113 },   // Top left
+          { x: 99.194 / 109, y: 40.063 / 113 },   // Top right
+          { x: 63.708 / 109, y: 110.284 / 113 },  // Bottom point
         ]
         
         // Create a filled area by distributing blocks within the shape
         
+        // Helper function to check if a point is inside a triangle
+        const isInsideTriangle = (px: number, py: number, triangle: Array<{x: number, y: number}>): boolean => {
+          const [a, b, c] = triangle
+          
+          // Barycentric coordinate method
+          const v0x = c.x - a.x
+          const v0y = c.y - a.y
+          const v1x = b.x - a.x
+          const v1y = b.y - a.y
+          const v2x = px - a.x
+          const v2y = py - a.y
+          
+          const dot00 = v0x * v0x + v0y * v0y
+          const dot01 = v0x * v1x + v0y * v1y
+          const dot02 = v0x * v2x + v0y * v2y
+          const dot11 = v1x * v1x + v1y * v1y
+          const dot12 = v1x * v2x + v1y * v2y
+          
+          const invDenom = 1 / (dot00 * dot11 - dot01 * dot01)
+          const u = (dot11 * dot02 - dot01 * dot12) * invDenom
+          const v = (dot00 * dot12 - dot01 * dot02) * invDenom
+          
+          return (u >= 0) && (v >= 0) && (u + v <= 1)
+        }
+        
         // Helper function to check if a point is inside the lightning bolt
         const isInsideLightning = (x: number, y: number): boolean => {
-          // Top horizontal bar
-          if (y >= 0 && y <= 0.15 && x >= 0.15 && x <= 0.85) return true
-          
-          // Top diagonal section (from top-right to middle)
-          if (y >= 0.15 && y <= 0.55) {
-            const leftBound = 0.85 - (y - 0.15) * 1.25  // Slope from 0.85 to 0.35
-            const rightBound = 0.85 - (y - 0.15) * 0.5   // Slope for right edge
-            if (x >= leftBound && x <= rightBound) return true
-          }
-          
-          // Middle horizontal connector
-          if (y >= 0.45 && y <= 0.55 && x >= 0.35 && x <= 0.65) return true
-          
-          // Bottom diagonal section (from middle to bottom-left)
-          if (y >= 0.45 && y <= 0.85) {
-            const leftBound = 0.15  // Left edge
-            const rightBound = 0.65 - (y - 0.45) * 1.25  // Slope from 0.65 to 0.15
-            if (x >= leftBound && x <= rightBound) return true
-          }
-          
-          // Bottom horizontal bar
-          if (y >= 0.85 && y <= 1 && x >= 0.15 && x <= 0.85) return true
-          
-          return false
+          return isInsideTriangle(x, y, topLeftTriangle) || 
+                 isInsideTriangle(x, y, bottomRightTriangle)
         }
         
         for (let dup = 0; dup < supabaseDuplicateCount; dup++) {
