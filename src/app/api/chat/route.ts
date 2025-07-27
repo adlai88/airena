@@ -6,12 +6,11 @@ import { EmbeddingService } from '@/lib/embeddings';
 import { PromptTemplates, ContextBlock } from '@/lib/templates';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
-import { UsageTracker } from '@/lib/usage-tracking';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { messages, channelSlug, sessionId } = body;
+    const { messages, channelSlug } = body;
 
     if (!messages || messages.length === 0) {
       return new Response('Messages are required', { status: 400 });
@@ -21,20 +20,16 @@ export async function POST(req: Request) {
       return new Response('Channel slug is required', { status: 400 });
     }
 
-    // Get authentication info (optional for free users)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    let userId: string | null = null;
-    try {
-      const session = await auth.api.getSession({
-        headers: await headers(),
-      });
-      userId = session?.user?.id || null;
-    } catch {
-      // No authentication required for free users
-      userId = null;
+    // Get authentication info (required)
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    
+    if (!session?.user?.id) {
+      return new Response('Authentication required', { status: 401 });
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const userSessionId = sessionId || UsageTracker.generateSessionId();
+    
+    const userId = session.user.id;
 
     // Get the latest user message
     const lastMessage = messages[messages.length - 1];

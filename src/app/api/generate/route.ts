@@ -4,30 +4,25 @@ import { openai } from '@ai-sdk/openai';
 import { supabase } from '@/lib/supabase';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
-import { UsageTracker } from '@/lib/usage-tracking';
 
 export async function POST(req: Request) {
   try {
-    const { channelSlug, customPrompt, sessionId } = await req.json();
+    const { channelSlug, customPrompt } = await req.json();
 
     if (!channelSlug) {
       return new Response('Channel slug is required', { status: 400 });
     }
 
-    // Get authentication info (optional for free users)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    let userId: string | null = null;
-    try {
-      const session = await auth.api.getSession({
-        headers: await headers(),
-      });
-      userId = session?.user?.id || null;
-    } catch {
-      // No authentication required for free users
-      userId = null;
+    // Get authentication info (required)
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    
+    if (!session?.user?.id) {
+      return new Response('Authentication required', { status: 401 });
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const userSessionId = sessionId || UsageTracker.generateSessionId();
+    
+    const userId = session.user.id;
 
     // Get channel info
     const { data: channel, error: channelError } = await supabase
