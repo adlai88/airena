@@ -539,3 +539,20 @@ This would transform the spatial canvas from an organizational tool into a gener
 - Add OAuth providers (Google, GitHub) to Better Auth
 - Consider weekly reset for free tier engagement
 
+---
+
+## 🐛 Known Issues & Edge Cases
+
+### **Lifetime Blocks Can Exceed Limit**
+**Issue**: Users can end up with more lifetime_blocks_used than their limit (e.g., 94/50)
+**Cause**: Failed sync attempts may still record block usage, or multiple concurrent syncs could exceed the limit
+**Impact**: UI shows confusing numbers like "94/50 (0 remaining)"
+**TODO**: Add database constraint or application logic to prevent lifetime_blocks_used from exceeding 50 for free tier
+
+**Temporary Fix**: Reset user's blocks via SQL:
+```sql
+UPDATE "user" 
+SET lifetime_blocks_used = 0
+WHERE email = 'user@example.com';
+```
+
