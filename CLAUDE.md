@@ -69,20 +69,9 @@ This is because Better Auth created these tables and uses singular naming. All n
 - PDF text extraction with page analysis
 - GPT-4V for image understanding
 
-## Task Management with Linear
+## Task Management
 
-We use Linear for project management and issue tracking. For task management guidance and current priorities, please refer to:
-- The Linear workspace for active issues
-- CLAUDE.local.md (private file) for internal planning
-
-### Working with Devin
-Based on our integration testing (see Linear issue ARY-6), Devin excels at:
-- Bug investigation and root cause analysis
-- Code review and identifying potential issues
-- Impact analysis of proposed changes
-- Documentation generation
-
-Devin should be used carefully for implementation tasks, as solutions may be overengineered.
+We use Linear for project management and issue tracking. Check the Linear workspace for active issues and priorities.
 
 ## Contributing Guidelines
 
