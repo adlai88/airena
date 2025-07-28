@@ -49,6 +49,8 @@ export const auth = betterAuth({
     "http://localhost:3000", 
     "http://localhost:3001", 
     "http://localhost:3002",
+    "https://aryn.im",
+    "https://www.aryn.im",
     "https://airena.io",
     "https://www.airena.io",
     process.env.BETTER_AUTH_URL || "http://localhost:3000",
