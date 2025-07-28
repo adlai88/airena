@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabaseServiceRole } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if email already exists
-    const { data: existing } = await supabase
+    const { data: existing } = await supabaseServiceRole
       .from('waitlist')
       .select('id')
       .eq('email', email.toLowerCase())
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Add to waitlist
-    const { error } = await supabase
+    const { error } = await supabaseServiceRole
       .from('waitlist')
       .insert({
         email: email.toLowerCase(),
