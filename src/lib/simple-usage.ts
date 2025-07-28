@@ -104,41 +104,31 @@ export class SimpleUsageTracker {
 
   /**
    * Record blocks processed by incrementing lifetime usage
+   * Returns the actual number of blocks added (may be less than requested due to limits)
    */
-  static async recordUsage(userId: string, blocksProcessed: number): Promise<void> {
+  static async recordUsage(userId: string, blocksProcessed: number): Promise<number> {
     try {
       // Increment lifetime blocks used
-      const { error } = await supabaseServiceRole.rpc('increment_lifetime_blocks', {
+      const { data, error } = await supabaseServiceRole.rpc('increment_lifetime_blocks', {
         user_id: userId,
         blocks_to_add: blocksProcessed
       });
 
       if (error) {
-        // Fallback to direct update if RPC doesn't exist
-        const { data: currentUser } = await supabaseServiceRole
-          .from('user')
-          .select('lifetime_blocks_used')
-          .eq('id', userId)
-          .single() as { 
-            data: { lifetime_blocks_used: number | null } | null; 
-            error: unknown 
-          };
-
-        const currentBlocks = currentUser?.lifetime_blocks_used || 0;
-        
-        await supabaseServiceRole
-          .from('user')
-          .update({ 
-            lifetime_blocks_used: currentBlocks + blocksProcessed,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', userId);
+        console.error('Error calling increment_lifetime_blocks RPC:', error);
+        // Since we're enforcing limits at the RPC level, we should throw here
+        // to prevent inconsistent state
+        throw new Error(`Failed to record usage: ${error.message}`);
       }
 
-      console.log(`Recorded ${blocksProcessed} blocks for user ${userId}`);
+      const actualBlocksAdded = data as number || 0;
+      console.log(`Recorded ${actualBlocksAdded} blocks for user ${userId} (requested: ${blocksProcessed})`);
+      
+      return actualBlocksAdded;
     } catch (error) {
       console.error('Error recording usage:', error);
-      // Don't throw - we don't want to break the sync if usage recording fails
+      // Re-throw to let caller handle the error
+      throw error;
     }
   }
 

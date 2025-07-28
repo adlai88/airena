@@ -847,11 +847,21 @@ export class SyncService {
         console.log(`✅ Storage verification: Successfully processed ${embeddedBlocks} new blocks. Total channel blocks: ${actuallyStoredBlocks}`);
       }
 
-      console.log(`Preparing completion signal: actuallyStoredBlocks=${actuallyStoredBlocks}, processedBlocksList.length=${processedBlocksList.length}`);
+      console.log(`Preparing completion signal: actuallyStoredBlocks=${actuallyStoredBlocks}, processedBlocksList.length=${processedBlocksList.length}, embeddedBlocks=${embeddedBlocks}`);
       
-      // Record usage with new simple system
-      if (actuallyStoredBlocks > 0) {
-        await SimpleUsageTracker.recordUsage(userId, actuallyStoredBlocks);
+      // Record usage with new simple system - ONLY count NEW blocks from this sync
+      let actualBlocksRecorded = 0;
+      if (embeddedBlocks > 0) {
+        try {
+          actualBlocksRecorded = await SimpleUsageTracker.recordUsage(userId, embeddedBlocks);
+          if (actualBlocksRecorded < embeddedBlocks) {
+            console.log(`⚠️ Hit usage limit: only ${actualBlocksRecorded} of ${embeddedBlocks} blocks were recorded`);
+          }
+        } catch (error) {
+          console.error('Failed to record usage:', error);
+          // Don't fail the sync if usage recording fails
+          // The blocks are already stored, so the sync was successful
+        }
       }
       
       // Get updated usage stats
