@@ -1,5 +1,5 @@
 {
-  "name": "airena",
+  "name": "aryn",
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/adlai88/airena.git"
   },
-  "homepage": "https://www.airena.io",
+  "homepage": "https://www.aryn.im",
   "bugs": {
     "url": "https://github.com/adlai88/airena/issues"
   },

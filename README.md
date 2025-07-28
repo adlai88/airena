@@ -1,11 +1,11 @@
-# Airena: AI Intelligence for Are.na Channels
+# Aryn: Spatial Intelligence for Are.na Channels
 
 Transform any Are.na channel into an intelligent knowledge base. Experience multimodal AI across websites, PDFs, images, and videos.
 
 ## ✨ Try It Now (No Signup Required)
 Paste any public Are.na channel URL → Instant AI intelligence
 
-**Live Demo**: https://www.airena.io/
+**Live Demo**: https://www.aryn.im/
 
 ## 🎯 Perfect For
 
@@ -33,15 +33,21 @@ Paste any public Are.na channel URL → Instant AI intelligence
 - **Research summaries**: Extract key patterns and themes
 - **Custom templates**: Generate content tailored to your needs
 
+### 🗺️ Spatial Canvas (NEW - Supabase LW15 Feature)
+- **Semantic clustering**: Automatically organizes blocks by meaning using pgvector
+- **Three-way view**: Grid (default), Similarity (semantic clusters), Random (exploration)
+- **Drag-and-drop**: Rearrange and explore your knowledge spatially
+- **Spatial chat**: AI understands what you're looking at on the canvas
+
 ## 💡 Quick Start
 
 ### Option 1: Try the Hosted Service
-Visit [www.airena.io](https://www.airena.io/) and paste any public Are.na channel URL.
+Visit [www.aryn.im](https://www.aryn.im/) and paste any public Are.na channel URL.
 
 ### Option 2: Self-Host (Open Source)
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/airena.git
+git clone https://github.com/adlai88/airena.git
 cd airena
 
 # Install dependencies
@@ -171,7 +177,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 
 - **GitHub Discussions**: Community support and feature requests
 - **Issues**: Bug reports and technical problems
-- **Are.na**: Follow our [Are.na channel](https://www.are.na/airena) for updates
+- **Are.na**: Follow our [Are.na channel](https://www.are.na/aryn) for updates
 
 ## 📄 License
 

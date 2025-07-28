@@ -2,7 +2,7 @@
 
 ## Strategic Overview
 
-**Goal**: Transform Airena from "open source with hosted convenience" to "intelligence discovery platform with professional upgrade path" leveraging Are.na's creative developer community.
+**Goal**: Transform Aryn from "open source with hosted convenience" to "intelligence discovery platform with professional upgrade path" leveraging Are.na's creative developer community.
 
 **Key Insight**: The updated pricing model (free public channels + $5/$14 upgrades) creates a viral discovery engine that builds community through immediate value demonstration rather than traditional open source adoption barriers.
 
@@ -26,7 +26,7 @@
 
 ### Open Core Structure
 ```
-airena/
+aryn/
 ├── core/                    # Open source (public channels only)
 │   ├── lib/arena-public.ts  # Public Are.na API integration
 │   ├── lib/extraction.ts    # Content processing pipeline
@@ -139,7 +139,7 @@ npx airena analyze https://www.are.na/channel/your-channel
 
 **Conversion Strategy:**
 1. **Private Workspace Positioning**
-   - Clear value: "Your private channels = your competitive intelligence"
+   - Clear value: "Your private channels = your spatial intelligence"
    - Professional use cases: client research, competitive analysis
    - Team collaboration features
 

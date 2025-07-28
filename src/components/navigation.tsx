@@ -104,7 +104,7 @@ export function Navigation({ homeNav = false }: NavigationProps) {
               onClick={() => router.push('/')}
               className="text-base sm:text-lg font-bold p-1 sm:p-0 h-auto hover:bg-transparent cursor-pointer"
             >
-              Airena
+              Aryn
             </Button>
           </div>
 

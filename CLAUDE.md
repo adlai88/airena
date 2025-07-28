@@ -2,11 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# Airena v2 - Active Development Plan
+# Aryn v2 - Active Development Plan
 
 ## Project Overview
 
-Airena transforms curated Are.na channels into an intelligence agent that generates content from your own research. Instead of searching through bookmarks manually, users can generate newsletters, reports, and insights using AI powered by their personally curated content.
+Aryn transforms curated Are.na channels into an intelligence agent that generates content from your own research. Instead of searching through bookmarks manually, users can generate newsletters, reports, and insights using AI powered by their personally curated content.
 
 **Core Value**: Your curation advantage becomes your intelligence advantage.
 
@@ -55,12 +55,61 @@ This is because Better Auth created these tables and uses singular naming. All n
 ✅ **Phase 10.6: Better Auth + Polar Migration** (COMPLETED - Unified auth/billing system)
 ✅ **Phase 10.7: Supabase AI Migration** (COMPLETED - Full migration to Supabase AI embeddings)
 ✅ **Phase 10.8: Pricing Update & Production Fixes** (COMPLETED - Founding Members plan + bug fixes)
-🎯 **Current Phase**: Phase 10.9 - Template Enhancement + System Testing
+✅ **Phase 10.9: Rebrand to Aryn** (COMPLETED - July 28, 2025)
+🎯 **Current Phase**: Phase 10.10 - Post-Rebrand Testing + Hackathon Submission
 
-**Live Application**: https://www.airena.io/  
+**Live Application**: https://www.aryn.im/  
 **Open Source Repository**: https://github.com/adlai88/airena
 
-## Latest Updates (Phase 10.8: Pricing Update & Production Fixes - COMPLETED ✅)
+## Latest Updates (Phase 10.9: Rebrand to Aryn - COMPLETED ✅)
+
+### 🎯 **Complete Rebrand for Supabase LW15 Hackathon**
+
+**Implementation Date**: July 28, 2025  
+**Status**: **COMPLETED - All branding updated from Airena to Aryn**  
+**Impact**: **Ready for Supabase LW15 hackathon submission with spatial intelligence positioning**
+
+### ✅ **What Was Accomplished**
+
+#### **🎨 Core Branding Updates**
+- **Site Title & Meta** - "Aryn – AI for Are.na" with updated description
+- **Navigation Logo** - Changed from "Airena" to "Aryn"
+- **Homepage Content** - Updated all references and improved messaging
+- **Footer** - Copyright updated to "© Aryn 2025"
+
+#### **📄 Page Updates**
+- **About Page** - Complete rebrand with Aryn references
+- **Sign In/Up Pages** - Welcome messages updated
+- **Success Page** - Onboarding text updated
+- **Generate Page** - Share functionality updated
+
+#### **📚 Documentation Updates**
+- **README.md** - New title "Aryn: Spatial Intelligence for Are.na Channels"
+- **Added Hackathon Section** - Highlighted spatial canvas feature for LW15
+- **Demo URL** - Updated to https://www.aryn.im/
+- **package.json** - Name and homepage updated
+- **LICENSE** - Copyright holder updated
+
+#### **💬 Messaging Updates**
+- **"competitive intelligence" → "spatial intelligence"** - All instances updated
+- **"saved" → "curated"** - More accurate to Are.na's purpose
+- **Email Templates** - From address updated to noreply@aryn.im
+
+#### **🔧 Technical Details**
+- **30+ files checked** - Systematic search and replace
+- **Consistent branding** - All user-facing content updated
+- **Repository name unchanged** - Keeping github.com/adlai88/airena for stability
+- **Feature flag ready** - Domain can point to aryn.im for hackathon
+
+### 🎯 **Strategic Impact**
+- **Hackathon Ready** - Clean, consistent branding for judges
+- **Spatial Intelligence** - Better positioning for the spatial canvas feature
+- **Professional Polish** - Attention to detail across all touchpoints
+- **Future-Proof** - Easy to update domain when ready
+
+---
+
+## Previous Updates (Phase 10.8: Pricing Update & Production Fixes - COMPLETED ✅)
 
 ### 🚀 **Founding Members Plan & Critical Production Fixes**
 
@@ -435,7 +484,7 @@ Based on pricing strategy: *"Shows specific, personalized value locked behind up
 Currently, password reset emails are only logged to console in development. To enable actual email delivery in production:
 
 1. **Sign up for Resend** at https://resend.com
-2. **Verify your domain** (airena.io) in Resend dashboard
+2. **Verify your domain** (aryn.im) in Resend dashboard
 3. **Get your API key** from Resend
 4. **Add to Vercel environment variables**:
    - `RESEND_API_KEY` = your-resend-api-key

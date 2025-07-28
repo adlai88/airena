@@ -165,7 +165,7 @@ LINK FORMATTING REQUIREMENTS:
 - For websites: [Article Title](URL) or [Website Name](URL)
 - For Are.na blocks: [Block Title](https://www.are.na/block/ID)
 - Example: [Sam Altman's Startup Tips](https://www.youtube.com/watch?v=dHVMujryp40)
-- Example: [Airena Documentation](https://docs.airena.app)
+- Example: [Aryn Documentation](https://docs.aryn.im)
 - CRITICAL: Every URL in your response must be clickable when rendered
 
 BLOCK REFERENCE REQUIREMENTS:

@@ -84,7 +84,7 @@ export const auth = betterAuth({
           const resend = new Resend(process.env.RESEND_API_KEY);
           
           await resend.emails.send({
-            from: 'Airena <noreply@airena.io>',
+            from: 'Aryn <noreply@aryn.im>',
             to: user.email,
             subject: 'Reset your password',
             html: `

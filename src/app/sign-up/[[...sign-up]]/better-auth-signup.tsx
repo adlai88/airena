@@ -77,7 +77,7 @@ export default function BetterAuthSignUp() {
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl text-center">Create an account</CardTitle>
         <CardDescription className="text-center">
-          Enter your details to get started with Airena
+          Enter your details to get started with Aryn
         </CardDescription>
       </CardHeader>
       <CardContent>
