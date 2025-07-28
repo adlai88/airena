@@ -16,6 +16,7 @@ import { useChannel } from '@/hooks/useChannel';
 import { arenaClient } from '@/lib/arena';
 import { useAuth } from '@/components/auth-provider';
 import { Spinner } from '@/components/ui/spinner';
+import { MessageSquare, Wand2, Layers } from 'lucide-react';
 
 export default function SetupPage() {
   const { channelSlug: connectedChannel, username: connectedUsername, isDefault: isDefaultChannel, refresh: refreshChannel } = useChannel();
@@ -494,7 +495,7 @@ export default function SetupPage() {
     }
   };
 
-  const handleModalAction = (action: 'generate' | 'chat' | 'sync-another') => {
+  const handleModalAction = (action: 'generate' | 'chat' | 'canvas' | 'sync-another') => {
     setShowSuccessModal(false);
     
     switch (action) {
@@ -505,6 +506,10 @@ export default function SetupPage() {
       case 'chat':
         console.log('Setup: Navigating to chat with channel:', connectedChannel);
         router.push(`/chat/${connectedChannel}`);
+        break;
+      case 'canvas':
+        console.log('Setup: Navigating to canvas with channel:', connectedChannel);
+        router.push(`/canvas/${connectedChannel}`);
         break;
       case 'sync-another':
         // Reset form for new channel
@@ -1105,28 +1110,29 @@ export default function SetupPage() {
             <div className="space-y-2 sm:space-y-3">
               <Button 
                 onClick={() => handleModalAction('chat')}
-                className="w-full h-auto p-3 sm:p-4 text-left min-h-[48px] sm:min-h-[56px] cursor-pointer justify-start"
+                className="w-full h-auto p-3 sm:p-4 min-h-[48px] sm:min-h-[56px] cursor-pointer justify-start gap-3"
                 variant="outline"
               >
-                <div className="space-y-1 text-left">
-                  <div className="font-medium text-sm sm:text-base">Chat with This Channel</div>
-                  <div className="text-xs sm:text-sm text-muted-foreground font-normal">
-                    Ask questions about this content
-                  </div>
-                </div>
+                <MessageSquare className="h-5 w-5 text-muted-foreground" />
+                <span className="font-medium text-sm sm:text-base">Chat with This Channel</span>
               </Button>
               
               <Button 
                 onClick={() => handleModalAction('generate')}
-                className="w-full h-auto p-3 sm:p-4 text-left min-h-[48px] sm:min-h-[56px] cursor-pointer justify-start"
+                className="w-full h-auto p-3 sm:p-4 min-h-[48px] sm:min-h-[56px] cursor-pointer justify-start gap-3"
                 variant="outline"
               >
-                <div className="space-y-1 text-left">
-                  <div className="font-medium text-sm sm:text-base">Generate Content</div>
-                  <div className="text-xs sm:text-sm text-muted-foreground font-normal">
-                    Create newsletters and insights
-                  </div>
-                </div>
+                <Wand2 className="h-5 w-5 text-muted-foreground" />
+                <span className="font-medium text-sm sm:text-base">Generate Content</span>
+              </Button>
+              
+              <Button 
+                onClick={() => handleModalAction('canvas')}
+                className="w-full h-auto p-3 sm:p-4 min-h-[48px] sm:min-h-[56px] cursor-pointer justify-start gap-3"
+                variant="outline"
+              >
+                <Layers className="h-5 w-5 text-muted-foreground" />
+                <span className="font-medium text-sm sm:text-base">Spatial Canvas</span>
               </Button>
             </div>
             
