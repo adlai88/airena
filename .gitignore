@@ -50,5 +50,8 @@ next-env.d.ts
 # local development notes and temporary files
 CLAUDE.local.md
 
+# Private documentation
+/docs-private/
+
 # Claude Code personal settings (but keep agents for contributors)
 .claude/settings.local.json
