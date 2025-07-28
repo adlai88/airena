@@ -1,0 +1,21 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [[ \"${file_path}\" == *.ts || \"${file_path}\" == *.tsx || \"${file_path}\" == *.js || \"${file_path}\" == *.jsx ]]; then npx prettier --write \"${file_path}\" 2>/dev/null || true; fi",
+            "description": "Auto-format TypeScript/JavaScript files after edits"
+          },
+          {
+            "type": "command", 
+            "command": "if [[ \"${file_path}\" == *.ts || \"${file_path}\" == *.tsx || \"${file_path}\" == *.js || \"${file_path}\" == *.jsx ]]; then npx eslint --fix \"${file_path}\" 2>/dev/null || true; fi",
+            "description": "Run ESLint with auto-fix on TypeScript/JavaScript files"
+          }
+        ]
+      }
+    ]
+  }
+}

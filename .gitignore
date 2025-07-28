@@ -53,5 +53,6 @@ CLAUDE.local.md
 # Private documentation
 /docs-private/
 
-# Claude Code personal settings (but keep agents for contributors)
+# Claude Code settings and agents
 .claude/settings.local.json
+.claude/agents/
