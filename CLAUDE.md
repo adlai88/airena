@@ -125,7 +125,7 @@ We use a hybrid approach:
 - **Current Status**: Basic version exists, needs Firecrawl integration
 - **Function**: Combines curated content with intelligent web research
 - **Value**: Transforms static curation into dynamic research assistant
-- **Implementation**: See `/docs-private/enhanced-research-report-template.md`
+- **Implementation**: See `/_ai-docs/enhanced-research-report-template.md`
 
 #### 📊 Reset System Testing Requirements
 
@@ -302,13 +302,13 @@ This would transform the spatial canvas from an organizational tool into a gener
 
 ## Self-Hosting
 
-For self-hosting instructions, see [/docs/SELF_HOSTING.md](/docs/SELF_HOSTING.md)
+For self-hosting instructions, see `/_ai-docs/SELF_HOSTING.md`
 
 ## Additional Documentation
 
-- [Spatial Canvas Implementation](/docs/SPATIAL_PROTOTYPE_PLAN.md)
-- [Better Auth Testing Guide](/docs/BETTER_AUTH_TESTING_GUIDE.md)
-- [Migration History](/docs/CLERK_TO_POLAR_MIGRATION_PLAN_SUPABASE.md)
+- [Spatial Canvas Implementation](/_ai-docs/SPATIAL_PROTOTYPE_PLAN.md)
+- [Better Auth Testing Guide](/_ai-docs/BETTER_AUTH_TESTING_GUIDE.md)
+- [Migration History](/_ai-docs/CLERK_TO_POLAR_MIGRATION_PLAN_SUPABASE.md)
 
 ## 🎯 Next Steps
 - Test the 50-block lifetime limit system thoroughly

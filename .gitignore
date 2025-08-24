@@ -50,8 +50,8 @@ next-env.d.ts
 # local development notes and temporary files
 CLAUDE.md
 
-# Private documentation
-/docs-private/
+# Private AI documentation
+/_ai-docs/
 
 # Claude Code settings and agents
 .claude/settings.local.json
