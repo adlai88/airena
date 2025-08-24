@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Image from 'next/image';
 import { Layout } from '@/components/layout';
 import { PageHeader } from '@/components/page-header';
@@ -60,8 +60,12 @@ export default function UsagePage() {
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
   const user = useUser();
   const isSignedIn = !!user;
+  
+  // Use ref to track if we've already fetched for this user
+  const lastFetchedUserId = useRef<string | null>(null);
 
   // Fetch usage stats and API key data
   useEffect(() => {
@@ -69,24 +73,37 @@ export default function UsagePage() {
       isSignedIn, 
       userExists: !!user, 
       userId: user?.id,
-      isLoading 
+      lastFetchedUserId: lastFetchedUserId.current,
+      isLoading,
+      isFetching,
+      hasStats: !!stats,
+      hasError: !!error
     });
 
     const fetchData = async () => {
       if (!isSignedIn || !user) {
         console.log('[usage-page] User not signed in, skipping fetch');
+        lastFetchedUserId.current = null;
         return;
       }
 
-      // Only prevent duplicate requests if we already have data
-      if (isLoading && stats) {
-        console.log('[usage-page] Already loading and have data, skipping fetch');
+      // Skip if we've already fetched for this user ID
+      if (lastFetchedUserId.current === user.id) {
+        console.log('[usage-page] Already fetched for this user, skipping');
+        return;
+      }
+
+      // Prevent duplicate requests if already fetching
+      if (isFetching) {
+        console.log('[usage-page] Already fetching, skipping');
         return;
       }
 
       console.log('[usage-page] Starting data fetch for user:', user.id);
+      lastFetchedUserId.current = user.id;
 
       try {
+        setIsFetching(true);
         setIsLoading(true);
         
         // Fetch usage stats with longer timeout for slow queries
@@ -149,6 +166,7 @@ export default function UsagePage() {
       } finally {
         console.log('[usage-page] Setting loading to false');
         setIsLoading(false);
+        setIsFetching(false);
       }
     };
 
@@ -157,8 +175,9 @@ export default function UsagePage() {
       console.error('[usage-page] fetchData error:', err);
       setError(err.message);
       setIsLoading(false);
+      setIsFetching(false);
     });
-  }, [isSignedIn, user?.id, isLoading, stats, user]);
+  }, [user?.id]); // Only depend on user ID, not the entire user object
 
   // Get tier info from the stats response instead of UsageTracker
   const tierInfo = stats?.tierInfo || null;
