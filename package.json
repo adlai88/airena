@@ -1,15 +1,15 @@
 {
-  "name": "aryn",
+  "name": "arin",
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/adlai88/aryn.git"
+    "url": "https://github.com/adlai88/arin.git"
   },
-  "homepage": "https://www.aryn.im",
+  "homepage": "https://www.arin.im",
   "bugs": {
-    "url": "https://github.com/adlai88/aryn/issues"
+    "url": "https://github.com/adlai88/arin/issues"
   },
   "scripts": {
     "dev": "next dev",

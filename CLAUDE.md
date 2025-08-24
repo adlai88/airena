@@ -2,11 +2,11 @@
 
 This file provides comprehensive guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# Aryn v2 - Open Source Project
+# Arin v2 - Open Source Project
 
 ## Project Overview
 
-Aryn transforms curated Are.na channels into an intelligence agent that generates content from your own research. Instead of searching through bookmarks manually, users can generate newsletters, reports, and insights using AI powered by their personally curated content.
+Arin transforms curated Are.na channels into an intelligence agent that generates content from your own research. Instead of searching through bookmarks manually, users can generate newsletters, reports, and insights using AI powered by their personally curated content.
 
 **Core Value**: Your curation advantage becomes your intelligence advantage.
 
@@ -45,13 +45,13 @@ This is because Better Auth created these tables and uses singular naming. All n
 ✅ **Open Source Launch** - Repository public with self-hosting support
 ✅ **Codebase Cleanup** - Removed deprecated features and legacy code  
 ✅ **CSV to Are.na Import Tool** - Added standalone script for bulk importing reading lists
-✅ **Domain Rebrand Complete** - Fully migrated from airena.io to aryn.im across all services
+✅ **Domain Rebrand Complete** - Fully migrated from airena.io to arin.im across all services
 ✅ **UI/UX Improvements** - Fixed cursor pointer on interactive elements, enhanced chat UI
 ✅ **Sign-in Reliability** - Fixed production redirect issues with Better Auth
-✅ **Hackathon Winner** - Successfully won hackathon with Aryn project 🏆
+✅ **Hackathon Winner** - Successfully won hackathon with Arin project 🏆
 
-**Live Application**: https://www.aryn.im/  
-**Open Source Repository**: https://github.com/adlai88/aryn
+**Live Application**: https://www.arin.im/  
+**Open Source Repository**: https://github.com/adlai88/arin
 
 ## Architecture Highlights
 

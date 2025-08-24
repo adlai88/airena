@@ -54,7 +54,7 @@ export default function HomePage() {
 
           {/* Replace 'Airena is:' and numbered list with 'Why Airena?' and new bullets */}
           <div className="border-t border-border pt-8">
-            <h2 className="text-2xl font-bold mb-4 text-foreground">Aryn is:</h2>
+            <h2 className="text-2xl font-bold mb-4 text-foreground">Arin is:</h2>
             <ul className="list-disc pl-6 space-y-2 text-foreground">
               <li>Your taste, amplified: Every answer is informed by your personally curated knowledge</li>
               <li>Simple start: Sign up free and get 50 blocks to explore the power of AI-enhanced curation</li>

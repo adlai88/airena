@@ -49,10 +49,10 @@ export const auth = betterAuth({
     "http://localhost:3000", 
     "http://localhost:3001", 
     "http://localhost:3002",
-    "https://aryn.im",
-    "https://www.aryn.im",
-    "https://aryn.im",
-    "https://www.aryn.im",
+    "https://arin.im",
+    "https://www.arin.im",
+    "https://arin.im",
+    "https://www.arin.im",
     process.env.BETTER_AUTH_URL || "http://localhost:3000",
     ...(process.env.NEXT_PUBLIC_APP_URL ? [process.env.NEXT_PUBLIC_APP_URL] : [])
   ].filter(Boolean) as string[],
@@ -61,7 +61,7 @@ export const auth = betterAuth({
   advanced: {
     crossSubDomainCookies: {
       enabled: process.env.NODE_ENV === 'production',
-      domain: '.aryn.im'
+      domain: '.arin.im'
     },
     useSecureCookies: process.env.NODE_ENV === 'production'
   },
