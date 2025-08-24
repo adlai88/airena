@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Layout } from '@/components/layout';
 import { PageHeader } from '@/components/page-header';
@@ -177,7 +177,8 @@ export default function UsagePage() {
       setIsLoading(false);
       setIsFetching(false);
     });
-  }, [user?.id]); // Only depend on user ID, not the entire user object
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]); // Only depend on user ID to prevent infinite loop - other deps checked manually
 
   // Get tier info from the stats response instead of UsageTracker
   const tierInfo = stats?.tierInfo || null;
