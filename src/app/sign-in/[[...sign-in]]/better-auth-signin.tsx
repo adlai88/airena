@@ -38,8 +38,10 @@ export default function BetterAuthSignIn() {
       const searchParams = new URLSearchParams(window.location.search);
       const redirectUrl = searchParams.get('redirect_url') || '/channels';
       
-      // Use window.location.href for reliable redirect in production
-      window.location.href = redirectUrl;
+      // Add small delay to ensure session is established before redirect
+      setTimeout(() => {
+        window.location.href = redirectUrl;
+      }, 100);
     } catch (err) {
       console.error('Sign in error:', err);
       setError('An unexpected error occurred. Please try again.');
