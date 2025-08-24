@@ -57,6 +57,16 @@ export const auth = betterAuth({
     ...(process.env.NEXT_PUBLIC_APP_URL ? [process.env.NEXT_PUBLIC_APP_URL] : [])
   ].filter(Boolean) as string[],
   
+  // Configure cookies for cross-subdomain access after rebrand
+  advanced: {
+    cookies: {
+      domain: process.env.NODE_ENV === 'production' ? '.aryn.im' : undefined,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/'
+    }
+  },
+  
   // Email/password authentication
   emailAndPassword: {
     enabled: true,
