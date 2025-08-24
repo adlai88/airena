@@ -103,6 +103,14 @@ export async function POST(request: NextRequest) {
         await handlePaymentFailed(event);
         break;
       
+      case 'order.paid':
+        await handleOrderPaid(event);
+        break;
+      
+      case 'order.updated':
+        await handleOrderUpdated(event);
+        break;
+      
       case 'customer.updated':
         await handleCustomerUpdated(event);
         break;
@@ -266,9 +274,9 @@ async function handleCustomerUpdated(event: PolarWebhookEvent) {
     if (metadata.tier) {
       const tier = metadata.tier as string;
       // Clean up tier value (remove any suffixes like "-t")
-      const cleanTier = tier.replace(/-.*$/, '') as 'free' | 'starter' | 'pro';
+      const cleanTier = tier.replace(/-.*$/, '') as 'free' | 'founding';
       
-      if (['free', 'starter', 'pro'].includes(cleanTier)) {
+      if (['free', 'founding'].includes(cleanTier)) {
         console.log(`🔍 Updating tier based on customer metadata: ${cleanTier}`);
         
         await UserService.updateUserTier(userId, cleanTier, {
@@ -285,6 +293,56 @@ async function handleCustomerUpdated(event: PolarWebhookEvent) {
     }
   } catch (error) {
     console.error('Error handling customer updated:', error);
+  }
+}
+
+async function handleOrderPaid(event: PolarWebhookEvent) {
+  try {
+    const userId = extractUserId(event);
+    const metadata = extractMetadata(event);
+    
+    if (!userId) {
+      console.error('❌ No userId in order paid metadata');
+      return;
+    }
+
+    // Order paid - ensure subscription is active
+    const tier = determineTierFromProduct(event.data.product_id, metadata);
+    console.log('🔍 Order paid - userId:', userId, 'tier:', tier);
+    
+    await UserService.updateUserTier(userId, tier, {
+      polarCustomerId: event.data.customer_id,
+      status: 'active'
+    });
+
+    console.log(`Order paid for user ${userId}, tier: ${tier}`);
+  } catch (error) {
+    console.error('Error handling order paid:', error);
+  }
+}
+
+async function handleOrderUpdated(event: PolarWebhookEvent) {
+  try {
+    const userId = extractUserId(event);
+    const metadata = extractMetadata(event);
+    
+    if (!userId) {
+      console.error('❌ No userId in order updated metadata');
+      return;
+    }
+
+    const tier = determineTierFromProduct(event.data.product_id, metadata);
+    console.log('🔍 Order updated - userId:', userId, 'tier:', tier, 'status:', event.data.status);
+    
+    // Update tier based on order status
+    await UserService.updateUserTier(userId, tier, {
+      polarCustomerId: event.data.customer_id,
+      status: event.data.status
+    });
+
+    console.log(`Order updated for user ${userId}, status: ${event.data.status}`);
+  } catch (error) {
+    console.error('Error handling order updated:', error);
   }
 }
 
@@ -310,8 +368,11 @@ function determineTierFromProduct(productId: string, metadata?: Record<string, u
   // Otherwise, map product ID to tier
   const productTierMap: Record<string, UserTier> = {
     '2939287a-ef9c-41de-9d8b-e89dad1be367': 'free',
-    '2d078db5-1c02-43ae-bf7a-8b763fd26140': 'starter',
-    'bda6be16-5294-4b12-8973-6ccdd0bf05e7': 'pro'
+    'd465ee17-1a85-480b-99e7-28c23947f4d1': 'founding', // Production Founding Member product
+    '0fe230a4-23ff-4d19-a78a-1e2ba57d10c1': 'founding', // Sandbox Founding Member product
+    // Legacy product IDs (mapped to founding)
+    '2d078db5-1c02-43ae-bf7a-8b763fd26140': 'founding', // was starter monthly
+    'bda6be16-5294-4b12-8973-6ccdd0bf05e7': 'founding'  // was pro monthly
   };
 
   return productTierMap[productId] || 'free';

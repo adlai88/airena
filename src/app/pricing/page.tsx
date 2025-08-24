@@ -48,7 +48,7 @@ const plans: Plan[] = [
   {
     id: 'founding',
     name: 'Founding Member',
-    price: '$5',
+    price: '$7',
     period: 'per month forever',
     description: 'Limited to first 100 members',
     features: [
@@ -57,9 +57,9 @@ const plans: Plan[] = [
       'Priority support',
       'Early access to features'
     ],
-    cta: 'Coming Soon',
+    cta: 'Join Now',
     popular: true,
-    comingSoon: true,
+    comingSoon: false,
     limitedOffer: true,
     spotsAvailable: 100
   }
@@ -215,7 +215,7 @@ function PricingContent() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <PageHeader
             title="AI intelligence for Are.na"
-            subtitle="Starting at $5/month."
+            subtitle="Starting at $7/month."
           />
 
           {/* Success Message */}
@@ -344,7 +344,7 @@ export default function PricingPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <PageHeader
               title="AI intelligence for Are.na"
-              subtitle="Starting at $5/month."
+              subtitle="Starting at $7/month."
             />
             <div className="flex justify-center mt-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>

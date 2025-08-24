@@ -24,8 +24,12 @@ export const GET = CustomerPortal({
       }
 
       // Search for customer by email in Polar
+      const apiUrl = process.env.NODE_ENV === 'development' 
+        ? 'https://sandbox-api.polar.sh/v1/customers/' 
+        : 'https://api.polar.sh/v1/customers/';
+        
       const customersResponse = await fetch(
-        `https://api.polar.sh/v1/customers/?email=${encodeURIComponent(userEmail)}&organization_id=${process.env.POLAR_ORGANIZATION_ID}`,
+        `${apiUrl}?email=${encodeURIComponent(userEmail)}&organization_id=${process.env.POLAR_ORGANIZATION_ID}`,
         {
           headers: {
             'Authorization': `Bearer ${process.env.POLAR_API_KEY}`,
@@ -53,5 +57,5 @@ export const GET = CustomerPortal({
       throw error;
     }
   },
-  server: 'production' // Use 'sandbox' for testing
+  server: process.env.NODE_ENV === 'development' ? 'sandbox' : 'production'
 });

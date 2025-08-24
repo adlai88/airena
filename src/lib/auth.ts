@@ -23,10 +23,13 @@ pool.query('SELECT NOW()', (err) => {
 let polarClient: Polar | null = null;
 try {
   if (process.env.POLAR_API_KEY) {
+    // Use sandbox for development, production for production
+    const server = process.env.NODE_ENV === 'development' ? 'sandbox' : 'production';
+    console.log(`Initializing Polar client with server: ${server}`);
+    
     polarClient = new Polar({
       accessToken: process.env.POLAR_API_KEY,
-      // Use production server since we have production API keys
-      server: 'production'
+      server: server as 'sandbox' | 'production'
     });
   } else {
     console.warn('POLAR_API_KEY not set - Polar integration disabled');
@@ -197,6 +200,14 @@ export const auth = betterAuth({
     polar({
       client: polarClient,
       createCustomerOnSignUp: true,
+      getCustomerCreateParams: async ({ user }) => ({
+        email: user.email,
+        externalId: user.id,  // CRITICAL - Pass user ID as external_id for Customer State API
+        metadata: { 
+          source: 'arin',
+          createdAt: new Date().toISOString()
+        }
+      }),
       onCustomerCreated: async ({ user, customer }: { 
         user: { id: string; email?: string }; 
         customer: { id: string } 
@@ -213,20 +224,10 @@ export const auth = betterAuth({
         checkout({
           products: [
             {
-              productId: "2d078db5-1c02-43ae-bf7a-8b763fd26140",
-              slug: "starter-monthly"
-            },
-            {
-              productId: "3fff0f35-d90b-4f2d-bad9-6901128e5f28", 
-              slug: "starter-annual"
-            },
-            {
-              productId: "bda6be16-5294-4b12-8973-6ccdd0bf05e7",
-              slug: "pro-monthly"
-            },
-            {
-              productId: "dc8f5557-4783-4226-970a-7e1f200a1f8c",
-              slug: "pro-annual"
+              productId: process.env.NODE_ENV === 'development' 
+                ? "0fe230a4-23ff-4d19-a78a-1e2ba57d10c1"  // Sandbox Founding Member product
+                : "d465ee17-1a85-480b-99e7-28c23947f4d1", // Production Founding Member product
+              slug: "founding"
             }
           ],
           successUrl: "/channels?checkout_success=true",
@@ -239,138 +240,8 @@ export const auth = betterAuth({
         // Usage tracking for block limits
         usage(),
         
-        // Webhook handling
-        webhooks({
-          secret: process.env.POLAR_WEBHOOK_SECRET!,
-          onSubscriptionCreated: async (payload) => {
-            // The payload type is WebhookSubscriptionCreatedPayload from @polar-sh/sdk
-            const subscription = payload.data;
-            const customer = subscription.customer;
-            const userId = customer?.metadata?.userId as string | undefined;
-            
-            if (!userId) {
-              console.error('No userId found in subscription created webhook');
-              return;
-            }
-            
-            const tier = determineTierFromProduct(subscription.productId);
-            console.log(`Subscription created - userId: ${userId}, tier: ${tier}`);
-            
-            // Update user tier directly in database
-            await pool.query(
-              'UPDATE users SET tier = $1, polar_customer_id = $2, updated_at = NOW() WHERE id = $3',
-              [tier, customer.id, userId]
-            );
-          },
-          
-          onSubscriptionUpdated: async (payload) => {
-            // The payload type is WebhookSubscriptionUpdatedPayload from @polar-sh/sdk
-            const subscription = payload.data;
-            const customer = subscription.customer;
-            const userId = customer?.metadata?.userId as string | undefined;
-            
-            if (!userId) {
-              console.error('No userId found in subscription updated webhook');
-              return;
-            }
-            
-            const tier = determineTierFromProduct(subscription.productId);
-            console.log(`Subscription updated - userId: ${userId}, tier: ${tier}`);
-            
-            await pool.query(
-              'UPDATE users SET tier = $1, updated_at = NOW() WHERE id = $2',
-              [tier, userId]
-            );
-          },
-          
-          onSubscriptionCanceled: async (payload) => {
-            // The payload type is WebhookSubscriptionCanceledPayload from @polar-sh/sdk
-            const subscription = payload.data;
-            const customer = subscription.customer;
-            const userId = customer?.metadata?.userId as string | undefined;
-            
-            if (!userId) {
-              console.error('No userId found in subscription canceled webhook');
-              return;
-            }
-            
-            console.log(`Subscription canceled - userId: ${userId}, downgrading to free`);
-            
-            // Downgrade to free tier
-            await pool.query(
-              'UPDATE users SET tier = $1, updated_at = NOW() WHERE id = $2',
-              ['free', userId]
-            );
-          },
-          
-          onOrderPaid: async (payload) => {
-            // The payload type is WebhookOrderPaidPayload from @polar-sh/sdk
-            const order = payload.data;
-            const customer = order.customer;
-            const userId = customer?.metadata?.userId as string | undefined;
-            
-            if (!userId) {
-              console.error('No userId found in order paid webhook');
-              return;
-            }
-            
-            const tier = determineTierFromProduct(order.product.id);
-            console.log(`Order paid - userId: ${userId}, tier: ${tier}`);
-            
-            // Ensure subscription is active
-            await pool.query(
-              'UPDATE users SET tier = $1, updated_at = NOW() WHERE id = $2',
-              [tier, userId]
-            );
-          },
-          
-          onOrderRefunded: async (payload) => {
-            // The payload type is WebhookOrderRefundedPayload from @polar-sh/sdk
-            const order = payload.data;
-            const customer = order.customer;
-            const userId = customer?.metadata?.userId as string | undefined;
-            
-            if (!userId) {
-              console.error('No userId found in order refunded webhook');
-              return;
-            }
-            
-            console.log(`Order refunded - userId: ${userId}, marking as past due`);
-            
-            // Could optionally downgrade to free or mark as past_due
-            // For now, we'll keep their tier but you might want to track payment status
-          },
-          
-          onCustomerUpdated: async (payload) => {
-            // The payload type is WebhookCustomerUpdatedPayload from @polar-sh/sdk
-            const customer = payload.data;
-            const userId = customer.metadata?.userId as string | undefined;
-            
-            if (!userId) {
-              console.error('No userId found in customer updated webhook');
-              return;
-            }
-            
-            console.log(`Customer updated - userId: ${userId}`);
-            
-            // Check if tier is specified in metadata
-            const metadata = customer.metadata || {};
-            if (metadata.tier) {
-              const tier = metadata.tier as string;
-              // Clean up tier value (remove any suffixes like "-t")
-              const cleanTier = tier.replace(/-.*$/, '') as 'free' | 'founding';
-              
-              if (['free', 'founding'].includes(cleanTier)) {
-                console.log(`Updating tier based on customer metadata: ${cleanTier}`);
-                
-                await pool.query(
-                  'UPDATE users SET tier = $1, polar_customer_id = $2, updated_at = NOW() WHERE id = $3',
-                  [cleanTier, customer.id, userId]
-                );
-              }
-            }
-          }
-        })
+        // Note: Webhooks are handled by the standalone route at /api/webhooks/polar
+        // This avoids conflicts between Better Auth and custom webhook processing
       ]
     })
   ] : [] // No plugins if Polar client is not available

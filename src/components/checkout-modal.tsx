@@ -47,6 +47,14 @@ export function CheckoutModal({ isOpen, onClose, planName, planPrice, tier, bill
       const data = await response.json();
       
       if (response.ok) {
+        // Handle special case for downgrade to free
+        if (data.redirectToPortal) {
+          console.log('🔍 Redirecting to customer portal for downgrade');
+          window.open(data.portalUrl, '_blank');
+          handleClose();
+          return;
+        }
+        
         console.log('🔍 Checkout URL received:', data.checkoutUrl);
         setCheckoutUrl(data.checkoutUrl);
       } else {

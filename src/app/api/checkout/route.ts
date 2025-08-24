@@ -32,16 +32,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Determine base URL for both success URL and portal URL
+    const baseUrl = process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:3001' 
+      : process.env.NEXT_PUBLIC_APP_URL;
+
+    // Handle downgrades to free tier
+    if (tier === 'free') {
+      console.log('🔍 Downgrade to free tier requested');
+      // For free tier, redirect to customer portal to cancel subscription
+      const portalUrl = `${baseUrl}/api/customer-portal`;
+      return NextResponse.json({
+        redirectToPortal: true,
+        portalUrl,
+        message: 'To downgrade to free, please cancel your subscription in the customer portal.'
+      });
+    }
+
     // Map tier and billing to product ID
-    const PRODUCT_IDS = {
-      free: '2939287a-ef9c-41de-9d8b-e89dad1be367',
-      founding_monthly: '2d078db5-1c02-43ae-bf7a-8b763fd26140',
-      founding_annual: '3fff0f35-d90b-4f2d-bad9-6901128e5f28',
-      // Legacy product IDs (for backward compatibility)
-      starter_monthly: '2d078db5-1c02-43ae-bf7a-8b763fd26140',
-      starter_annual: '3fff0f35-d90b-4f2d-bad9-6901128e5f28',
-      pro_monthly: 'bda6be16-5294-4b12-8973-6ccdd0bf05e7',
-      pro_annual: 'dc8f5557-4783-4226-970a-7e1f200a1f8c'
+    // Use different product IDs for sandbox vs production
+    const PRODUCT_IDS = process.env.NODE_ENV === 'development' ? {
+      // SANDBOX Product IDs
+      free: 'free', // No product ID needed for free tier
+      founding_monthly: '0fe230a4-23ff-4d19-a78a-1e2ba57d10c1', // Sandbox Founding Member product
+    } : {
+      // PRODUCTION Product IDs  
+      free: 'free', // No product ID needed for free tier
+      founding_monthly: 'd465ee17-1a85-480b-99e7-28c23947f4d1', // Production Founding Member product
     };
 
     const productKey = tier === 'free' ? 'free' : `${tier}_${billing}`;
@@ -57,7 +74,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create checkout session using Polar.sh SDK
-    const successUrl = `${process.env.NEXT_PUBLIC_APP_URL}/pricing?success=true&tier=${tier}`;
+    const successUrl = `${baseUrl}/pricing?success=true&tier=${tier}`;
     console.log('🔍 Success URL:', successUrl);
     console.log('🔍 Product ID:', productId);
     console.log('🔍 Using Polar API Key:', process.env.POLAR_API_KEY ? 'Present' : 'Missing');
@@ -115,7 +132,14 @@ export async function POST(request: NextRequest) {
     console.log('🔍 Checkout payload:', JSON.stringify(checkoutPayload, null, 2));
 
     // Create checkout session with Polar API
-      const checkoutResponse = await fetch('https://api.polar.sh/v1/checkouts/', {
+    // Use sandbox API for development, production API for production
+    const apiUrl = process.env.NODE_ENV === 'development' 
+      ? 'https://sandbox-api.polar.sh/v1/checkouts/' 
+      : 'https://api.polar.sh/v1/checkouts/';
+    
+    console.log('🔍 Using Polar API:', apiUrl);
+
+      const checkoutResponse = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${process.env.POLAR_API_KEY}`,
