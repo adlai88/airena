@@ -66,6 +66,37 @@ export const auth = betterAuth({
     useSecureCookies: process.env.NODE_ENV === 'production'
   },
   
+  // Social providers for OAuth login
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    },
+    github: {
+      clientId: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+    },
+  },
+  
+  // Account linking configuration (allows OAuth to link with existing accounts)
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google", "github"]
+    },
+    fields: {
+      userId: "user_id",
+      accountId: "account_id", 
+      providerId: "provider_id",
+      accessToken: "access_token",
+      refreshToken: "refresh_token",
+      idToken: "id_token",
+      accessTokenExpiresAt: "expires_at",
+      createdAt: "created_at",
+      updatedAt: "updated_at"
+    }
+  },
+  
   // Email/password authentication
   emailAndPassword: {
     enabled: true,
@@ -148,20 +179,6 @@ export const auth = betterAuth({
     fields: {
       emailVerified: "email_verified",
       createdAt: "created_at", 
-      updatedAt: "updated_at"
-    }
-  },
-  
-  account: {
-    fields: {
-      userId: "user_id",
-      accountId: "account_id", 
-      providerId: "provider_id",
-      accessToken: "access_token",
-      refreshToken: "refresh_token",
-      idToken: "id_token",
-      accessTokenExpiresAt: "expires_at",
-      createdAt: "created_at",
       updatedAt: "updated_at"
     }
   },

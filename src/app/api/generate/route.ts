@@ -33,35 +33,6 @@ export async function POST(req: Request) {
       return new Response('Channel not found', { status: 404 });
     }
 
-    // TEMPORARILY DISABLED: Generation limit check bypassed for testing
-    // TODO: Re-enable generation limits after pricing restructure
-    /*
-    // Check generation limits for free tier users
-    const generationLimitCheck = await UsageTracker.checkChatGenerationLimits(
-      channel.id,
-      userSessionId,
-      userId || undefined,
-      'generation'
-    );
-
-    if (!generationLimitCheck.canGenerate) {
-      return new Response(
-        JSON.stringify({
-          error: 'Generation limit exceeded',
-          message: generationLimitCheck.message,
-          limitInfo: {
-            used: generationLimitCheck.generationsUsed,
-            limit: generationLimitCheck.generationsRemaining + generationLimitCheck.generationsUsed,
-            tier: generationLimitCheck.tier
-          }
-        }),
-        { 
-          status: 429, 
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
-    }
-    */
 
     // Get all blocks for this channel for context
     const { data: blocks, error: blocksError } = await supabase
@@ -122,19 +93,6 @@ export async function POST(req: Request) {
       },
     });
 
-    // TEMPORARILY DISABLED: Generation usage recording bypassed for testing
-    // TODO: Re-enable generation usage recording after pricing restructure
-    /*
-    // Record generation usage for free tier users (async, don't await)
-    UsageTracker.recordChatGenerationUsage(
-      channel.id,
-      userSessionId,
-      'generation',
-      userId || undefined
-    ).catch(error => {
-      console.error('Failed to record generation usage:', error);
-    });
-    */
 
     return new Response(stream, {
       headers: {

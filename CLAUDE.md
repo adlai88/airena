@@ -176,8 +176,7 @@ Based on pricing strategy: *"Shows specific, personalized value locked behind up
 
 ### Free Tier
 - **50 blocks lifetime limit** - Enforced and displayed in UI
-- **3 channel limit** - TEMPORARILY DISABLED
-- **No chat/generation limits** - TEMPORARILY DISABLED
+- **Unlimited chat and generations** - No monthly limits for free tier
 - **Public channels only** - Private channels require upgrade
 
 ### Founding Member ($5/month forever) - LIMITED TO FIRST 100 MEMBERS
@@ -196,33 +195,20 @@ Based on pricing strategy: *"Shows specific, personalized value locked behind up
 - **MCP server generation** - Custom AI tools
 - **Status**: Future pricing, not yet available
 
-## ⚠️ TEMPORARY: Usage Caps Disabled (July 26, 2025)
+## ✅ COMPLETED: Usage System Cleanup (August 2025)
 
-**Context**: All usage limits and tracking have been temporarily disabled to allow for pricing restructure planning.
+**Simplified Pricing Model**: Removed complex monthly chat/generation limits in favor of simple 50-block lifetime limit for free tier.
 
-**What's Disabled**:
-1. **Block processing limits** - No 25-block free tier limit
-2. **Channel count limits** - No 3-channel free tier limit
-3. **Chat message limits** - No 10 messages/month limit
-4. **Generation limits** - No 2 generations/month limit
-5. **Usage tracking** - No recording of usage to database
+**What Was Cleaned Up**:
+1. **Monthly chat limits** - Removed deprecated 10 messages/month per channel limit
+2. **Monthly generation limits** - Removed deprecated 2 generations/month per channel limit  
+3. **Channel count limits** - Removed 3-channel limit (not aligned with current strategy)
+4. **Complex tracking code** - Cleaned up `UsageTracker.checkChatGenerationLimits` usage
 
-**Files Modified** (search for "TEMPORARILY DISABLED"):
-- `/src/lib/sync.ts` - Block and channel limit checks bypassed
-- `/src/app/api/chat/route.ts` - Chat limits and recording bypassed
-- `/src/app/api/generate/route.ts` - Generation limits and recording bypassed
-
-**ESLint Suppressions Added**:
-- Unused variables (`userId`, `userSessionId`, `UsageTracker`) have eslint-disable comments
-
-**To Re-enable**:
-1. Search codebase for "TEMPORARILY DISABLED"
-2. Uncomment the original code blocks
-3. Remove the temporary mock `usageInfo` object
-4. Remove eslint-disable comments for the variables
-5. Test all limit enforcement and recording
-
-**Why**: User reported being on Starter plan but system treating as Free tier. Decision made to disable all caps while redesigning pricing structure.
+**Current System**:
+- **Free Tier**: 50 blocks lifetime limit (enforced via `SimpleUsageTracker`)
+- **Paid Tiers**: Unlimited everything
+- **Clean codebase**: No temporary disable comments or unused imports
 
 ## 🐛 Known Issues & Edge Cases
 
@@ -290,7 +276,7 @@ This would transform the spatial canvas from an organizational tool into a gener
 - **CSV Import Tool**: Added `scripts/csv-to-arena.js` for bulk importing reading lists from CSV to Are.na channels
 - **Template Cleanup**: Removed deprecated brainstorm template from generation system
 - **Clerk References**: Cleaned up remaining references after migration to Better Auth
-- **Usage Caps**: Currently disabled pending pricing restructure (search "TEMPORARILY DISABLED" in codebase)
+- **Usage System**: Simplified to 50-block lifetime limit only (monthly limits removed)
 - **Documentation Consolidation**: Merged CLAUDE.md and CLAUDE.local.md into single private file
 
 ## Self-Hosting
@@ -303,14 +289,48 @@ For self-hosting instructions, see `/_ai-docs/SELF_HOSTING.md`
 - [Better Auth Testing Guide](/_ai-docs/BETTER_AUTH_TESTING_GUIDE.md)
 - [Migration History](/_ai-docs/CLERK_TO_POLAR_MIGRATION_PLAN_SUPABASE.md)
 
+## ✅ Recent Completions (August 2025)
+- ✅ **50-block lifetime limit system tested and working** - Database shows proper enforcement
+- ✅ **Usage system cleanup completed** - Removed deprecated monthly limits, clean codebase
+- ✅ **Google OAuth added to Better Auth** - Sign-in/up forms include Google authentication
+- ✅ **GitHub OAuth added to Better Auth** - Sign-in/up forms include GitHub authentication
+
 ## 🎯 Next Steps
-- Test the 50-block lifetime limit system thoroughly
-- Re-enable monthly limits after testing
-- Add OAuth providers (Google, GitHub) to Better Auth
-- Consider weekly reset for free tier engagement
-- **Set up Resend email domain verification for arin.im**
-  - Verify arin.im domain in Resend dashboard
-  - Add required DNS records (SPF, DKIM, etc.)
+
+### 📧 Resend Email Setup (Required for Production)
+To enable password reset emails and future email features:
+
+1. **Domain Verification** (DNS setup required):
+   - Login to [Resend Dashboard](https://resend.com/domains)
+   - Add domain: `arin.im`
+   - Add these DNS records to your domain:
+     ```
+     Type: TXT
+     Name: arin.im
+     Value: [Resend will provide verification record]
+     
+     Type: MX
+     Name: arin.im  
+     Value: [Resend MX record]
+     
+     Type: TXT
+     Name: _dmarc.arin.im
+     Value: [Resend DMARC record]
+     ```
+
+2. **Environment Variables** (already configured):
+   - `RESEND_API_KEY` - ✅ Already set in .env.local
+   - `NODE_ENV=production` - ✅ Already set
+
+3. **Test Email Functionality**:
+   - After domain verification, test password reset emails
+   - Future: Welcome emails, notification emails, weekly digests
+
+### 🚀 Growth & Engagement Features
+- **Template Priority 1**: Activate brainstorm template (increases engagement)
+- **Template Priority 2**: Enhanced research report with web search (premium value)
+- **Intelligence Score Feature**: Analyze private channels for upgrade conversion
+- **Weekly reset system**: For enhanced free tier engagement strategy
   - Test password reset email functionality in production
 
 ## Environment Variables to Clean Up
