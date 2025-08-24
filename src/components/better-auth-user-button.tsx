@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { BarChart3, CreditCard, LogOut, Settings } from 'lucide-react';
+import { BarChart3, CreditCard, Home, LogOut, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface BetterAuthUserButtonProps {
@@ -85,6 +85,10 @@ export function BetterAuthUserButton({ children }: BetterAuthUserButtonProps) {
         {/* Custom menu items from children or default items */}
         {children || (
           <>
+            <DropdownMenuItem onClick={() => router.push('/channels')} className="cursor-pointer">
+              <Home className="mr-2 h-4 w-4" />
+              <span>Channels</span>
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => router.push('/usage')} className="cursor-pointer">
               <BarChart3 className="mr-2 h-4 w-4" />
               <span>Usage</span>

@@ -26,21 +26,21 @@ export default function BetterAuthSignIn() {
       const searchParams = new URLSearchParams(window.location.search);
       const redirectUrl = searchParams.get('redirect_url') || '/channels';
 
-      const { error } = await authClient.signIn.email({
+      const result = await authClient.signIn.email({
         email,
         password,
-        fetchOptions: {
-          onSuccess: () => {
-            // Better Auth handles the session, redirect after successful sign-in
-            window.location.href = redirectUrl;
-          }
-        }
       });
       
-      if (error) {
-        setError(error.message || 'Invalid email or password');
+      if (result.error) {
+        setError(result.error.message || 'Invalid email or password');
         return;
       }
+
+      // If no error, sign-in was successful
+      // Add a small delay for session to propagate, then redirect
+      setTimeout(() => {
+        window.location.href = redirectUrl;
+      }, 200);
     } catch (err) {
       console.error('Sign in error:', err);
       setError('An unexpected error occurred. Please try again.');

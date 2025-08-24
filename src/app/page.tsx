@@ -1,8 +1,10 @@
 import { Layout } from '@/components/layout';
 import { Button } from '@/components/ui/button';
+import { useUser } from '@/components/auth-provider';
 import Link from "next/link";
 
 export default function HomePage() {
+  const user = useUser();
 
   return (
     <Layout homeNav>
@@ -27,9 +29,15 @@ export default function HomePage() {
           <div className="mb-16">
             <div className="inline-flex flex-col w-full sm:w-auto">
               <Button variant="default" size="lg" className="font-medium min-h-[52px] px-8 min-w-[220px] w-full sm:w-auto" asChild>
-                <Link href="/sign-up">Get Started Free</Link>
+                {user ? (
+                  <Link href="/channels">Go to Channels</Link>
+                ) : (
+                  <Link href="/sign-up">Get Started Free</Link>
+                )}
               </Button>
-              <p className="text-xs text-muted-foreground text-center mt-2">50 blocks free • No credit card required</p>
+              {!user && (
+                <p className="text-xs text-muted-foreground text-center mt-2">50 blocks free • No credit card required</p>
+              )}
             </div>
           </div>
 
