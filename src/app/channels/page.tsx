@@ -91,21 +91,32 @@ export default function SetupPage() {
   const router = useRouter();
 
   // Generate smart preset options for block selection
-  const getBlockPresets = (maxBlocks: number, remaining: number) => {
+  const getBlockPresets = (channelBlocks: number, remainingLifetimeBlocks: number) => {
     const presets = [];
     
-    // Add progressive presets based on remaining blocks
-    if (remaining >= 25) presets.push({ count: 25, label: 'Quick sample', description: '25 blocks' });
-    if (remaining >= 50) presets.push({ count: 50, label: 'Medium collection', description: '50 blocks' });
-    if (remaining >= 100) presets.push({ count: 100, label: 'Large subset', description: '100 blocks' });
-    
-    // Always add "All remaining" if it's different from the largest preset
-    const lastPreset = presets[presets.length - 1];
-    if (!lastPreset || lastPreset.count !== remaining) {
+    // Add quick sample option (25 blocks) if it's meaningful
+    if (remainingLifetimeBlocks >= 25 && channelBlocks > 25) {
       presets.push({ 
-        count: remaining, 
-        label: 'All remaining', 
-        description: `${remaining} blocks` 
+        count: 25, 
+        label: `25 blocks`, 
+        description: `You'll have ${remainingLifetimeBlocks - 25} remaining blocks` 
+      });
+    }
+    
+    // Add full channel option if it fits in remaining blocks
+    if (channelBlocks <= remainingLifetimeBlocks) {
+      const remainingAfter = remainingLifetimeBlocks - channelBlocks;
+      presets.push({ 
+        count: channelBlocks, 
+        label: `All available blocks`, 
+        description: `You'll have ${remainingAfter} remaining blocks` 
+      });
+    } else {
+      // Channel is larger than remaining blocks, offer "all remaining"
+      presets.push({ 
+        count: remainingLifetimeBlocks, 
+        label: `All remaining blocks`, 
+        description: `Can't process full ${channelBlocks}-block channel - you'll have 0 remaining blocks` 
       });
     }
     
@@ -115,7 +126,9 @@ export default function SetupPage() {
   // Initialize selected block count when large channel warning is shown
   useEffect(() => {
     if (largeChannelWarning?.show && selectedBlockCount === 0) {
-      setSelectedBlockCount(largeChannelWarning.monthlyRemaining);
+      // Default to full channel if it fits in remaining blocks, otherwise use all remaining
+      const defaultSelection = Math.min(largeChannelWarning.channelBlocks, largeChannelWarning.monthlyRemaining);
+      setSelectedBlockCount(defaultSelection);
     }
   }, [largeChannelWarning, selectedBlockCount]);
 
@@ -1003,8 +1016,8 @@ export default function SetupPage() {
                     className="justify-between h-auto p-3"
                   >
                     <div className="text-left">
-                      <div className="font-medium">{preset.description}</div>
-                      <div className="text-xs text-muted-foreground">{preset.label}</div>
+                      <div className="font-medium">{preset.label}</div>
+                      <div className="text-xs text-muted-foreground">{preset.description}</div>
                     </div>
                     {selectedBlockCount === preset.count && (
                       <div className="text-xs">✓</div>
@@ -1060,8 +1073,8 @@ export default function SetupPage() {
                   variant={selectedBlockCount > (largeChannelWarning?.monthlyRemaining || 0) ? "destructive" : "default"}
                 >
                   {selectedBlockCount > (largeChannelWarning?.monthlyRemaining || 0) 
-                    ? `Process ${selectedBlockCount} Anyway` 
-                    : `Process ${selectedBlockCount} Blocks`
+                    ? `Continue Anyway` 
+                    : `Continue`
                   }
                 </Button>
               </div>
