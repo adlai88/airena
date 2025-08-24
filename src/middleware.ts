@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getSessionCookie } from "better-auth/cookies";
 
 // Define protected routes that require authentication
 const protectedPaths = [
@@ -38,12 +39,11 @@ export default async function middleware(request: NextRequest) {
   }
   
   try {
-    // Check for Better Auth session cookie
-    const sessionToken = request.cookies.get('better-auth.session_token');
+    // Use Better Auth's cookie helper to check for session
+    const sessionCookie = await getSessionCookie(request);
     
-    // For now, we'll do simple cookie-based checks
-    // The actual session validation happens in the API routes
-    const hasSession = !!sessionToken;
+    // Better Auth cookie helper properly handles domain, prefix, and security
+    const hasSession = !!sessionCookie;
     
     // Check if user is trying to access protected route without session
     if (isProtectedPath(pathname) && !hasSession) {
