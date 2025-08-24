@@ -48,7 +48,7 @@ next-env.d.ts
 /.clerk/
 
 # local development notes and temporary files
-CLAUDE.local.md
+CLAUDE.md
 
 # Private documentation
 /docs-private/

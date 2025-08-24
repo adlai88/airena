@@ -22,6 +22,55 @@ Pull requests are the best way to propose changes to the codebase. We actively w
 5. Make sure your code lints
 6. Issue that pull request!
 
+## Tech Stack
+
+- **Frontend**: Next.js 15 + React with Vercel AI SDK
+- **Backend**: Vercel Edge Functions + Supabase (pgvector)
+- **AI**: Supabase AI embeddings (384-dim) + GPT-4 generation + GPT-4V vision
+- **Content**: Are.na API + Jina AI extraction + vision analysis
+- **UI**: shadcn/ui design system with mobile-responsive foundation
+- **Embeddings**: Supabase AI Session API (LW15 feature) - migrated from OpenAI
+- **Authentication**: Better Auth with Supabase adapter
+- **Billing**: Polar.sh for subscriptions
+
+## Important Database Conventions
+
+### Table Naming: SINGULAR (not plural)
+**⚠️ CRITICAL**: Our database uses **SINGULAR** table names following Better Auth's convention:
+- ✅ `user` (NOT `users`)
+- ✅ `session` (NOT `sessions`)
+- ✅ `account` (NOT `accounts`)
+- ✅ `verification` (NOT `verifications`)
+
+This is because Better Auth created these tables and uses singular naming. All new tables should follow this convention for consistency. DO NOT attempt to rename these tables to plural as it will break authentication.
+
+### Database Changes
+- Always use SINGULAR table names
+- Create proper migrations
+- Test with both auth systems during transition
+
+## Architecture Highlights
+
+### Authentication System
+- **Better Auth** with Supabase adapter
+- **Polar.sh** for billing and subscriptions
+- **OAuth Support** ready for Google/GitHub providers
+- Password reset functionality implemented
+
+### Spatial Intelligence Canvas
+- Transform Are.na channels into self-organizing knowledge maps
+- Three-way view system: Grid, Similarity (semantic clusters), Random
+- Advanced K-means++ clustering with cosine distance
+- pgvector semantic analysis for block similarity
+- tldraw integration for professional canvas experience
+
+### Content Processing
+- All 5 Are.na block types supported
+- Multimodal processing: text, images, PDFs, videos, media
+- YouTube transcript extraction
+- PDF text extraction with page analysis
+- GPT-4V for image understanding
+
 ## Getting Started
 
 ### Development Setup
