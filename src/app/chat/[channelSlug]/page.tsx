@@ -465,7 +465,7 @@ function ChatContent() {
         {/* Messages Area - with top padding for nav + fixed badge and bottom padding for fixed input */}
         <div className="w-full pt-28 pb-32">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="space-y-6">
+          <div className="space-y-8">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -527,19 +527,6 @@ function ChatContent() {
                               ))}
                             </div>
                           </div>
-                          {/* 'View Channel' block below thumbnails, outside flex container */}
-                          <a
-                            href={username
-                              ? `https://www.are.na/${username.toLowerCase().replace(/[^a-z0-9]/g, '')}/${channelSlug}`
-                              : `https://www.are.na/${channelSlug}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block w-full mt-6 py-3 px-4 bg-muted border border-border rounded-none text-center text-sm font-medium text-foreground hover:bg-primary/10 transition flex items-center justify-center gap-2"
-                            title="View Are.na Channel"
-                          >
-                            <span>View Channel</span>
-                            <ArrowUpRight className="w-4 h-4" />
-                          </a>
                         </div>
                       )}
                     </div>

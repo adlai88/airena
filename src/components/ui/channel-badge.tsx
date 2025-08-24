@@ -41,7 +41,7 @@ export function ChannelBadge({
 
   return (
     <HoverBorderGradient duration={3}>
-      <Badge variant="secondary" className={`px-3 py-1 ${className}`}>
+      <Badge variant="secondary" className={`px-3 py-1 bg-black/80 backdrop-blur-md text-white border-0 dark:bg-black/80 dark:backdrop-blur-md dark:text-white dark:border-0 ${className}`}>
         {showText && (isDefault ? 'Default channel' : `${config.text}`)}
         {showText && ': '}
         <a 
