@@ -1,3 +1,5 @@
+'use client';
+
 import { Layout } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/components/auth-provider';
