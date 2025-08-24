@@ -95,20 +95,34 @@ We use a hybrid approach:
 - **Active Issues**: Check Linear for current sprint
 - **Devin Integration**: See ARY-6 for learnings about using Devin for research/investigation
 
-## 🚀 Current Phase: Phase 11 - Post-Hackathon Growth & Polish
+## 🚀 Current Phase: Phase 12 - Founding Member Launch Preparation
 
-**Strategic Timing**: After winning the hackathon 🏆, leverage the momentum for growth features and user engagement improvements.
+**Strategic Priority**: Set up Polar.sh billing infrastructure to launch founding member tier and capitalize on post-hackathon momentum.
 
-### 🎯 Current Priorities
+### 🎯 URGENT: Polar.sh Setup Required
 
-#### Immediate (Week 1)
-1. **Monitor founding member signups** - track waitlist growth and engagement
-2. **Test lifetime block limits** - ensure 50-block free tier works correctly
+#### Critical Issue: Organization Slug Mismatch
+- **Current Polar org slug**: `airena` (cannot be changed)
+- **Current branding**: `arin.im` 
+- **Decision needed**: Create new Polar organization or keep existing setup
 
-#### Growth Features (Week 2-3)
-- **Enhanced research report** - with web search integration (premium value)
-- **OAuth Integration**: Add Google/GitHub login for easier onboarding
-- **Email Service**: Set up Resend for password resets and notifications
+#### Immediate Actions Required (This Week)
+1. **🔥 PRIORITY 1: Polar Organization Setup**
+   - Create new Polar organization with `arin` slug if possible
+   - Set up founding member product ($5/month subscription)
+   - Configure webhook URLs for new organization
+   - Update environment variables and product IDs in codebase
+
+2. **🔥 PRIORITY 2: Product Configuration in Polar**
+   - Create "Founding Member" subscription product at $5/month
+   - Set proper metadata for tier mapping
+   - Configure checkout URLs and success pages
+   - Test subscription flow end-to-end
+
+3. **Enable Founding Member Signups**
+   - Change "Coming Soon" button to active checkout
+   - Remove waitlist system (no longer needed)
+   - Monitor conversion and fix any checkout issues
 
 ### 🚧 Template Enhancement Strategy
 
@@ -172,28 +186,21 @@ Based on pricing strategy: *"Shows specific, personalized value locked behind up
 - [ ] **Enhanced generation templates** - newsletters, insights, reports
 - [ ] **Weekly engagement emails** - remind users when reset occurs
 
-## 🎯 Current Pricing Structure
+## 🎯 Current Pricing Structure (2-Tier System)
 
 ### Free Tier
 - **50 blocks lifetime limit** - Enforced and displayed in UI
-- **Unlimited chat and generations** - No monthly limits for free tier
 - **Public channels only** - Private channels require upgrade
+- **Chat with your channels** - Unlimited conversations
+- **Generate content** - Unlimited generations
+- **Spatial canvas view** - Full canvas functionality
 
 ### Founding Member ($5/month forever) - LIMITED TO FIRST 100 MEMBERS
-- **Everything unlimited forever** - No block or channel limits
+- **Unlimited blocks** - No processing limits
 - **Private channels access** - Sync and process private Are.na channels
 - **Priority support** - Direct access to founder
-- **All future Pro features** - Automatically included
-- **70-75% savings** - Compared to future Pro pricing
-- **Status**: Waitlist active, not yet available for purchase
-
-### Pro Tier ($15-19/month) - COMING LATER
-- **Everything unlimited** - No restrictions
-- **Private channels access** - Full Are.na integration
-- **API access** - Programmatic access
-- **Webhook support** - Real-time integrations
-- **MCP server generation** - Custom AI tools
-- **Status**: Future pricing, not yet available
+- **Early access to features** - Get new features first
+- **Status**: Ready for launch pending Polar setup
 
 ## ✅ COMPLETED: Usage System Cleanup (August 2025)
 
@@ -276,18 +283,24 @@ For self-hosting instructions, see `/_ai-docs/SELF_HOSTING.md`
 - [Migration History](/_ai-docs/CLERK_TO_POLAR_MIGRATION_PLAN_SUPABASE.md)
 
 ## ✅ Recent Completions (August 2025)
+- ✅ **2-Tier System Refactoring** - Simplified from free/starter/pro to free/founding structure
+- ✅ **UI Updates for New Tiers** - Updated usage and pricing pages with clean founding member copy
+- ✅ **Database Migration Complete** - Converted existing users to founding tier, added tier constraints
 - ✅ **50-block lifetime limit system tested and working** - Database shows proper enforcement
-- ✅ **Usage system cleanup completed** - Removed deprecated monthly limits, clean codebase
 - ✅ **OAuth Authentication** - Google and GitHub login fully implemented and working
 - ✅ **Password Reset Emails** - Resend integration complete for production email delivery
 - ✅ **Navigation UX Fix** - Resolved dropdown focus issues affecting sticky navigation
 
 ## 🎯 Next Steps
 
-### 🚀 Growth & Engagement Features
-- **Template Priority 1**: Enhanced research report with web search (premium value)
+### 🚀 Immediate: Polar Setup & Launch
+1. **Polar Organization Decision** - Create new `arin` org or keep `airena` slug
+2. **Product Configuration** - Set up founding member subscription in Polar
+3. **Launch Founding Member Tier** - Enable signups and monitor conversions
+
+### 📈 Growth Features (After Launch)
+- **Enhanced research report** with web search integration
 - **Intelligence Score Feature**: Analyze private channels for upgrade conversion
-- **Weekly reset system**: For enhanced free tier engagement strategy
 
 ## Environment Variables to Clean Up
 **Completed**: Clerk environment variables have been removed from .env.local (migration complete)
