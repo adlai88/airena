@@ -35,10 +35,11 @@ const plans: Plan[] = [
     period: 'forever',
     description: 'Perfect for exploring Are.na intelligence',
     features: [
-      '50 blocks lifetime',
+      '50 blocks lifetime limit',
       'Public channels only',
-      'Complete multimodal intelligence',
-      'All core features included'
+      'Chat with your channels',
+      'Generate content',
+      'Spatial canvas view'
     ],
     cta: 'Get Started',
     popular: false,
@@ -51,38 +52,16 @@ const plans: Plan[] = [
     period: 'per month forever',
     description: 'Limited to first 100 members',
     features: [
-      'Everything unlimited forever',
+      'Unlimited blocks',
       'Private channels access',
       'Priority support',
-      'All future Pro features',
-      'Save 70-75% vs future pricing',
-      'Founding member badge',
-      'Direct feedback channel'
+      'Early access to features'
     ],
     cta: 'Coming Soon',
     popular: true,
     comingSoon: true,
     limitedOffer: true,
     spotsAvailable: 100
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    price: '$15-19',
-    period: 'per month',
-    description: 'Future standard pricing',
-    features: [
-      'Everything unlimited',
-      'Private channels access',
-      'Priority support',
-      'API access',
-      'Webhook support',
-      'MCP server generation'
-    ],
-    cta: 'Coming Later',
-    popular: false,
-    comingSoon: true,
-    futurePrice: true
   }
 ];
 
@@ -257,7 +236,7 @@ function PricingContent() {
           {/* Removed badge display here as it's redundant with the plan card indicator */}
 
           {/* Pricing Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12 max-w-4xl mx-auto">
             {plans.map((plan) => (
               <Card
                 key={plan.id}
@@ -311,8 +290,8 @@ function PricingContent() {
                     }`}
                     disabled={plan.comingSoon || (isSignedIn && currentTier === plan.id)}
                   >
-                    {plan.comingSoon ? 'Coming Soon' : 
-                     isSignedIn && currentTier === plan.id ? 'Current Plan' :
+                    {isSignedIn && currentTier === plan.id ? 'Current Plan' :
+                     plan.comingSoon ? 'Coming Soon' : 
                      isSignedIn && currentTier !== 'free' && plan.id === 'free' ? 'Downgrade' :
                      isSignedIn && currentTier !== 'free' && plan.id !== 'free' ? 
                        (getTierPriority(plan.id) > getTierPriority(currentTier) ? 'Upgrade' : 'Downgrade') :
@@ -341,53 +320,6 @@ function PricingContent() {
 
           {/* Comparison Section */}
           {/* Removed 'Why choose Airena?' section and its columns */}
-
-          {/* Waitlist Section */}
-          <div className="mt-16 max-w-2xl mx-auto">
-            <Card className="border-primary/20 bg-primary/5">
-              <CardHeader className="text-center">
-                <div className="flex justify-center mb-4">
-                  <Sparkles className="h-8 w-8 text-primary" />
-                </div>
-                <CardTitle className="text-2xl">Join the Founding Members Waitlist</CardTitle>
-                <p className="text-muted-foreground mt-2">
-                  Only 100 founding member spots available at $5/month forever
-                </p>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleWaitlistSubmit} className="space-y-4">
-                  <div className="flex gap-2">
-                    <Input
-                      type="email"
-                      placeholder="Enter your email"
-                      value={waitlistEmail}
-                      onChange={(e) => setWaitlistEmail(e.target.value)}
-                      disabled={waitlistStatus === 'loading' || waitlistStatus === 'success'}
-                      className="flex-1"
-                    />
-                    <Button
-                      type="submit"
-                      disabled={waitlistStatus === 'loading' || waitlistStatus === 'success'}
-                      className="px-6"
-                    >
-                      {waitlistStatus === 'loading' ? 'Joining...' : 'Join Waitlist'}
-                    </Button>
-                  </div>
-                  {waitlistMessage && (
-                    <p className={`text-sm ${
-                      waitlistStatus === 'success' ? 'text-green-600 dark:text-green-400' : 
-                      waitlistStatus === 'error' ? 'text-destructive' : ''
-                    }`}>
-                      {waitlistMessage}
-                    </p>
-                  )}
-                </form>
-                <p className="text-xs text-muted-foreground text-center mt-4">
-                  Save 70-75% compared to future Pro pricing. Get all Pro features forever.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
 

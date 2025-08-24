@@ -353,14 +353,9 @@ export default function UsagePage() {
                               <span className="text-orange-500 ml-2 font-medium">⚠️ Running low!</span>
                             )}
                           </p>
-                          <div className="mt-3 pt-3 border-t">
-                            <p className="text-sm text-muted-foreground mb-2">
-                              {tierInfo.blocks} blocks per channel limit
-                            </p>
-                          </div>
                         </>
                       )}
-                      <div className="space-y-2">
+                      <div className="space-y-2 mt-4">
                         {tierInfo.features.map((feature, index) => (
                           <div key={index} className="flex items-center text-sm">
                             <span className="w-2 h-2 bg-primary rounded-full mr-2"></span>
@@ -371,25 +366,27 @@ export default function UsagePage() {
                     </div>
                   ) : (
                     <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium">
-                          Monthly Usage ({stats.monthly.month})
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          {stats.monthly.current} / {stats.monthly.limit} blocks
-                        </span>
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-sm font-medium">Block Usage</span>
+                        <span className="text-sm text-muted-foreground">Unlimited blocks</span>
                       </div>
-                      <Progress value={progressPercentage} className="h-2" />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {stats.monthly.remaining} blocks remaining this month
-                      </p>
-                      <div className="space-y-2 mt-4">
-                        {tierInfo.features.map((feature, index) => (
-                          <div key={index} className="flex items-center text-sm">
-                            <span className="w-2 h-2 bg-primary rounded-full mr-2"></span>
-                            {feature}
-                          </div>
-                        ))}
+                      <div className="space-y-2">
+                        <div className="flex items-center text-sm">
+                          <span className="w-2 h-2 bg-primary rounded-full mr-2"></span>
+                          Limited to first 100 members
+                        </div>
+                        <div className="flex items-center text-sm">
+                          <span className="w-2 h-2 bg-primary rounded-full mr-2"></span>
+                          Private channels access
+                        </div>
+                        <div className="flex items-center text-sm">
+                          <span className="w-2 h-2 bg-primary rounded-full mr-2"></span>
+                          Priority support
+                        </div>
+                        <div className="flex items-center text-sm">
+                          <span className="w-2 h-2 bg-primary rounded-full mr-2"></span>
+                          Early access to features
+                        </div>
                       </div>
                     </div>
                   )}
@@ -508,7 +505,7 @@ export default function UsagePage() {
                   <Alert>
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
-                      Private channel access requires a Starter plan or higher. 
+                      Private channel access requires a Founding Member plan. 
                       <Button 
                         variant="link" 
                         className="p-0 h-auto font-semibold text-primary ml-1"
@@ -607,31 +604,35 @@ export default function UsagePage() {
             {stats.tier === 'free' && (
               <Card className="border-primary/50 bg-primary/5">
                 <CardHeader>
-                  <CardTitle>Ready to Process More?</CardTitle>
+                  <CardTitle>Ready to Go Unlimited?</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Upgrade to Starter for 200 blocks per month across unlimited channels.
+                    Upgrade to Founding Member for unlimited blocks forever at an exclusive price.
                   </p>
                   <div className="space-y-2">
                     <div className="flex items-center text-sm">
                       <span className="w-2 h-2 bg-primary rounded-full mr-2"></span>
-                      200 blocks per month (8x more than free)
+                      Everything unlimited forever
                     </div>
                     <div className="flex items-center text-sm">
                       <span className="w-2 h-2 bg-primary rounded-full mr-2"></span>
-                      Process unlimited channels
+                      Private channels access
                     </div>
                     <div className="flex items-center text-sm">
                       <span className="w-2 h-2 bg-primary rounded-full mr-2"></span>
-                      Email support
+                      All future features included
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <span className="w-2 h-2 bg-primary rounded-full mr-2"></span>
+                      70%+ savings vs future pricing
                     </div>
                   </div>
                   <Button 
                     className="mt-4" 
                     onClick={() => window.location.href = '/pricing'}
                   >
-                    Upgrade to Starter - $5/month
+                    Become a Founding Member - $5/month forever
                   </Button>
                 </CardContent>
               </Card>
