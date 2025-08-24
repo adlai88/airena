@@ -1,10 +1,10 @@
 # Self-Hosting Guide
 
-This guide will help you deploy Airena on your own infrastructure to process public Are.na channels with complete multimodal intelligence.
+This guide will help you deploy Aryn on your own infrastructure to process public Are.na channels with complete multimodal intelligence.
 
 ## 🏗️ Architecture Overview
 
-Airena consists of:
+Aryn consists of:
 - **Frontend**: Next.js application
 - **Backend**: Vercel Edge Functions / Node.js API routes
 - **Database**: PostgreSQL with pgvector extension
@@ -29,8 +29,8 @@ Airena consists of:
 
 ```bash
 # Clone the repository
-git clone https://github.com/adlai88/airena.git
-cd airena
+git clone https://github.com/adlai88/aryn.git
+cd aryn
 
 # Install dependencies
 npm install
@@ -51,8 +51,8 @@ sudo apt-get install postgresql postgresql-contrib
 
 Create database and enable pgvector:
 ```sql
-CREATE DATABASE airena;
-\c airena;
+CREATE DATABASE aryn;
+\c aryn;
 CREATE EXTENSION IF NOT EXISTS vector;
 ```
 
@@ -98,7 +98,7 @@ YOUTUBE_API_KEY="your-youtube-api-key"
 JINA_API_KEY="your-jina-api-key"
 
 # Optional - Application URL (for production)
-NEXT_PUBLIC_APP_URL="https://www.airena.io"
+NEXT_PUBLIC_APP_URL="https://www.aryn.io"
 ```
 
 ### 4. Database Migration
@@ -121,7 +121,7 @@ psql $DATABASE_URL -f supabase/migrations/*.sql
 npm run dev
 ```
 
-Visit `http://localhost:3000` to access Airena.
+Visit `http://localhost:3000` to access Aryn.
 
 ## 🔧 Production Deployment
 
@@ -156,8 +156,8 @@ CMD ["npm", "start"]
 
 ```bash
 # Build and run
-docker build -t airena .
-docker run -p 3000:3000 --env-file .env.local airena
+docker build -t aryn .
+docker run -p 3000:3000 --env-file .env.local aryn
 ```
 
 ### Traditional VPS
@@ -168,7 +168,7 @@ npm run build
 
 # Start with PM2
 npm install -g pm2
-pm2 start npm --name "airena" -- start
+pm2 start npm --name "aryn" -- start
 
 # Or use forever
 npm install -g forever
@@ -266,7 +266,7 @@ CREATE INDEX idx_channels_arena_id ON channels(arena_id);
 
 ### Rate Limiting
 
-Airena includes built-in rate limiting:
+Aryn includes built-in rate limiting:
 - **Are.na API**: 100ms delays between requests
 - **OpenAI API**: Batch processing with exponential backoff
 - **Content extraction**: Parallel processing with limits
@@ -281,8 +281,8 @@ Airena includes built-in rate limiting:
 ### Database Security
 ```sql
 -- Create restricted user for application
-CREATE USER airena_app WITH PASSWORD 'secure_password';
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO airena_app;
+CREATE USER aryn_app WITH PASSWORD 'secure_password';
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO aryn_app;
 ```
 
 ### Network Security
@@ -320,7 +320,7 @@ npm run build
 Enable debug logging:
 ```bash
 # Set debug environment
-DEBUG=airena:* npm run dev
+DEBUG=aryn:* npm run dev
 ```
 
 Check logs:

@@ -46,8 +46,8 @@ Visit [www.aryn.im](https://www.aryn.im/) and paste any public Are.na channel UR
 ### Option 2: Self-Host (Open Source)
 ```bash
 # Clone the repository
-git clone https://github.com/adlai88/airena.git
-cd airena
+git clone https://github.com/adlai88/aryn.git
+cd aryn
 
 # Install dependencies
 npm install

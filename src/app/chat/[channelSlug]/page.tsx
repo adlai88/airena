@@ -139,7 +139,7 @@ function ChatContent() {
       return;
     }
     
-    const storageKey = `airena-chat-messages-${channelSlug}`;
+    const storageKey = `aryn-chat-messages-${channelSlug}`;
     const savedMessages = sessionStorage.getItem(storageKey);
     if (savedMessages) {
       try {
@@ -160,7 +160,7 @@ function ChatContent() {
   useEffect(() => {
     if (!channelSlug) return;
     
-    const storageKey = `airena-chat-messages-${channelSlug}`;
+    const storageKey = `aryn-chat-messages-${channelSlug}`;
     if (messages.length > 0) {
       sessionStorage.setItem(storageKey, JSON.stringify(messages));
     } else {
@@ -193,7 +193,7 @@ function ChatContent() {
     setMessages([]);
     setError(null);
     if (channelSlug) {
-      const storageKey = `airena-chat-messages-${channelSlug}`;
+      const storageKey = `aryn-chat-messages-${channelSlug}`;
       sessionStorage.removeItem(storageKey);
     }
   };

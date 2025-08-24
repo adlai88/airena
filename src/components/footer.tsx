@@ -8,7 +8,7 @@ export function Footer() {
           <p className="text-sm text-muted-foreground text-center sm:text-left">© Aryn 2025</p>
           <div className="flex space-x-4 sm:space-x-6 items-center">
             <Link href="/about" className="text-sm text-muted-foreground hover:text-foreground">About</Link>
-            <Link href="https://github.com/adlai88/airena" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground">GitHub</Link>
+            <Link href="https://github.com/adlai88/aryn" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground">GitHub</Link>
             <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">Terms</Link>
             <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">Privacy</Link>
           </div>

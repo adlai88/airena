@@ -1,6 +1,6 @@
-# Contributing to Airena
+# Contributing to Aryn
 
-We love your input! We want to make contributing to Airena as easy and transparent as possible, whether it's:
+We love your input! We want to make contributing to Aryn as easy and transparent as possible, whether it's:
 
 - Reporting a bug
 - Discussing the current state of the code
@@ -28,8 +28,8 @@ Pull requests are the best way to propose changes to the codebase. We actively w
 
 ```bash
 # Fork and clone your fork
-git clone https://github.com/your-username/airena.git
-cd airena
+git clone https://github.com/your-username/aryn.git
+cd aryn
 
 # Install dependencies
 npm install
@@ -136,7 +136,7 @@ Enhance the user experience:
 - **Dark mode**: Comprehensive dark theme support
 
 ### 📚 Documentation
-Help others understand and use Airena:
+Help others understand and use Aryn:
 
 - **Tutorials**: Step-by-step guides
 - **API documentation**: Function and endpoint docs
@@ -153,7 +153,7 @@ Improve reliability and performance:
 
 ## Bug Reports
 
-We use GitHub issues to track public bugs. Report a bug by [opening a new issue](https://github.com/your-username/airena/issues).
+We use GitHub issues to track public bugs. Report a bug by [opening a new issue](https://github.com/your-username/aryn/issues).
 
 **Great Bug Reports** tend to have:
 

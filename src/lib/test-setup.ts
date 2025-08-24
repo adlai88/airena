@@ -6,7 +6,7 @@ import { createClient } from '@supabase/supabase-js';
 config({ path: '.env.local' });
 
 export async function testSetup() {
-  console.log('🧪 Testing Airena setup...\n');
+  console.log('🧪 Testing Aryn setup...\n');
   
   // Test 1: Environment variables
   console.log('1. Testing environment variables...');

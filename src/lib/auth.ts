@@ -51,8 +51,8 @@ export const auth = betterAuth({
     "http://localhost:3002",
     "https://aryn.im",
     "https://www.aryn.im",
-    "https://airena.io",
-    "https://www.airena.io",
+    "https://aryn.im",
+    "https://www.aryn.im",
     process.env.BETTER_AUTH_URL || "http://localhost:3000",
     ...(process.env.NEXT_PUBLIC_APP_URL ? [process.env.NEXT_PUBLIC_APP_URL] : [])
   ].filter(Boolean) as string[],

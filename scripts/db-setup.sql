@@ -1,4 +1,4 @@
--- Airena Database Setup Script
+-- Aryn Database Setup Script
 -- This script creates the complete database schema for self-hosting
 -- Schema matches production database exactly
 
@@ -249,7 +249,7 @@ $$;
 DO $$
 BEGIN
   RAISE NOTICE '============================================================================';
-  RAISE NOTICE 'Airena database setup completed successfully!';
+  RAISE NOTICE 'Aryn database setup completed successfully!';
   RAISE NOTICE '============================================================================';
   RAISE NOTICE 'Tables created: channels, blocks, channel_usage, monthly_usage, channel_limits';
   RAISE NOTICE 'Unique constraints: arena_id uniqueness for channels and blocks';
@@ -258,7 +258,7 @@ BEGIN
   RAISE NOTICE 'Functions created: search_blocks, get_channel_stats';
   RAISE NOTICE 'Triggers created: Automatic updated_at handling';
   RAISE NOTICE '============================================================================';
-  RAISE NOTICE 'Ready for Airena deployment!';
+  RAISE NOTICE 'Ready for Aryn deployment!';
   RAISE NOTICE '============================================================================';
 END
 $$;

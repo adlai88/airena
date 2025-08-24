@@ -5,11 +5,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/adlai88/airena.git"
+    "url": "https://github.com/adlai88/aryn.git"
   },
   "homepage": "https://www.aryn.im",
   "bugs": {
-    "url": "https://github.com/adlai88/airena/issues"
+    "url": "https://github.com/adlai88/aryn/issues"
   },
   "scripts": {
     "dev": "next dev",

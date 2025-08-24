@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
       customer_metadata: {
         userId,
         tier,
-        source: 'airena',
+        source: 'aryn',
         previousTier: currentUserTier,
         action: currentUserTier === 'free' ? 'subscribe' : 
                currentUserTier === tier ? 'renew' : 'upgrade'

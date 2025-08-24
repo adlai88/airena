@@ -893,7 +893,7 @@ npm run dev
    - 33 Image blocks - perfect for testing thumbnails
    - Good for visual demo impact
 
-2. **Mixed content**: http://localhost:3000/canvas/airena-demo
+2. **Mixed content**: http://localhost:3000/canvas/aryn-demo
    - Mix of Images, Links, and Text blocks
    - Good for testing different block types
 

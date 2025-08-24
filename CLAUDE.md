@@ -47,7 +47,7 @@ This is because Better Auth created these tables and uses singular naming. All n
 ✅ **CSV to Are.na Import Tool** - Added standalone script for bulk importing reading lists
 
 **Live Application**: https://www.aryn.im/  
-**Open Source Repository**: https://github.com/adlai88/airena
+**Open Source Repository**: https://github.com/adlai88/aryn
 
 ## Architecture Highlights
 
