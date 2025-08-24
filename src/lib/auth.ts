@@ -59,12 +59,11 @@ export const auth = betterAuth({
   
   // Configure cookies for cross-subdomain access after rebrand
   advanced: {
-    cookies: {
-      domain: process.env.NODE_ENV === 'production' ? '.aryn.im' : undefined,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/'
-    }
+    crossSubDomainCookies: {
+      enabled: process.env.NODE_ENV === 'production',
+      domain: '.aryn.im'
+    },
+    useSecureCookies: process.env.NODE_ENV === 'production'
   },
   
   // Email/password authentication
