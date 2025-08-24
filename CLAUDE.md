@@ -317,9 +317,4 @@ For self-hosting instructions, see `/_ai-docs/SELF_HOSTING.md`
 - Consider weekly reset for free tier engagement
 
 ## Environment Variables to Clean Up
-Clerk environment variables need manual removal from .env.local:
-- NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-- CLERK_SECRET_KEY
-- CLERK_WEBHOOK_SECRET
-- NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL
-- NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL
+**Completed**: Clerk environment variables have been removed from .env.local (migration complete)
