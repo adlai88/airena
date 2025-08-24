@@ -137,7 +137,7 @@ async function handleSubscriptionCreated(event: PolarWebhookEvent) {
     const tier = determineTierFromProduct(event.data.product_id, metadata);
     console.log('🔍 Subscription created - userId:', userId, 'tier:', tier);
     
-    // Update user subscription in Clerk
+    // Update user subscription
     await UserService.updateUserTier(userId, tier, {
       polarCustomerId: event.data.customer_id,
       subscriptionId: subscription_id,

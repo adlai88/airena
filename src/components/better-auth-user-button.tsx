@@ -125,12 +125,12 @@ export function BetterAuthUserButton({ children }: BetterAuthUserButtonProps) {
   );
 }
 
-// Helper component to mimic Clerk's UserButton.MenuItems API
+// Helper component for UserButton MenuItems API
 BetterAuthUserButton.MenuItems = function MenuItems({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 };
 
-// Helper component to mimic Clerk's UserButton.Link API
+// Helper component for UserButton Link API
 BetterAuthUserButton.Link = function Link({ 
   label, 
   labelIcon, 

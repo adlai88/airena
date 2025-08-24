@@ -1,6 +1,5 @@
 /**
- * Unified UserService that now directly uses UserService (Better Auth)
- * Since Clerk has been removed, this is now a simple re-export
+ * Unified UserService that directly uses UserService (Better Auth)
  */
 
 import { UserService } from './user-service';

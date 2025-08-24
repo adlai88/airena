@@ -290,32 +290,7 @@ Generate a detailed report with:
 Focus on synthesis and analysis rather than just summarization.`;
   }
 
-  /**
-   * Generate brainstorming ideas (future template)
-   */
-  static brainstorm(
-    context: ContextBlock[],
-    channelTitle: string,
-    prompt: string
-  ): string {
-    const contextText = context.map((block, i) => 
-      `[${i + 1}] ${block.title}\nURL: ${block.url}\nContent: ${block.content.substring(0, 600)}...\n`
-    ).join('\n');
-
-    return `Use the curated research from "${channelTitle}" to brainstorm ideas for: ${prompt}
-
-INSPIRATION SOURCES:
-${contextText}
-
-Generate creative ideas that:
-- Build on concepts from the research
-- Connect ideas across different sources
-- Are practical and actionable
-- Reference specific inspiration points
-
-Format as a list of ideas with brief explanations and source connections.`;
-  }
 }
 
 // Export commonly used types
-export type TemplateType = 'newsletter' | 'chat' | 'research' | 'brainstorm';
+export type TemplateType = 'newsletter' | 'chat' | 'research';

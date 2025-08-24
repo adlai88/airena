@@ -43,6 +43,8 @@ This is because Better Auth created these tables and uses singular naming. All n
 ✅ **Better Auth + Polar** - Unified auth/billing system
 ✅ **Supabase AI Migration** - Native embeddings integration
 ✅ **Open Source Launch** - Repository public with self-hosting support
+✅ **Codebase Cleanup** - Removed deprecated features and legacy code  
+✅ **CSV to Are.na Import Tool** - Added standalone script for bulk importing reading lists
 
 **Live Application**: https://www.aryn.im/  
 **Open Source Repository**: https://github.com/adlai88/airena
@@ -100,3 +102,11 @@ For self-hosting instructions, see [/docs/SELF_HOSTING.md](/docs/SELF_HOSTING.md
 - [Spatial Canvas Implementation](/docs/SPATIAL_PROTOTYPE_PLAN.md)
 - [Better Auth Testing Guide](/docs/BETTER_AUTH_TESTING_GUIDE.md)
 - [Migration History](/docs/CLERK_TO_POLAR_MIGRATION_PLAN_SUPABASE.md)
+
+## Recent Changes
+
+### Latest Updates
+- **CSV Import Tool**: Added `scripts/csv-to-arena.js` for bulk importing reading lists from CSV to Are.na channels
+- **Template Cleanup**: Removed deprecated brainstorm template from generation system
+- **Clerk References**: Cleaned up remaining references after migration to Better Auth
+- **Usage Caps**: Currently disabled pending pricing restructure (search "TEMPORARILY DISABLED" in codebase)

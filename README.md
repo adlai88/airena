@@ -31,7 +31,6 @@ Paste any public Are.na channel URL → Instant AI intelligence
 ### Content Generation
 - **Newsletter creation**: Transform research into readable insights
 - **Research summaries**: Extract key patterns and themes
-- **Custom templates**: Generate content tailored to your needs
 
 ### 🗺️ Spatial Canvas (NEW - Supabase LW15 Feature)
 - **Semantic clustering**: Automatically organizes blocks by meaning using pgvector
@@ -142,7 +141,6 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 6. Open a Pull Request
 
 ### Areas for Contribution
-- **Templates**: New content generation templates
 - **Integrations**: Additional content sources and APIs
 - **UI/UX**: Design improvements and accessibility
 - **Documentation**: Setup guides and tutorials
