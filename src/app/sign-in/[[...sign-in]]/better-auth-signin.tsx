@@ -36,10 +36,28 @@ export default function BetterAuthSignIn() {
       const searchParams = new URLSearchParams(window.location.search);
       const redirectUrl = searchParams.get('redirect_url') || '/channels';
       
-      // Add small delay to ensure session is established before redirect
-      setTimeout(() => {
-        window.location.href = redirectUrl;
-      }, 100);
+      // Poll for session cookie before redirecting
+      const checkSessionAndRedirect = () => {
+        const hasSessionCookie = document.cookie.includes('better-auth.session_token');
+        if (hasSessionCookie) {
+          window.location.href = redirectUrl;
+        } else {
+          // Check again in 50ms, max 10 attempts (500ms total)
+          const attempts = parseInt(sessionStorage.getItem('auth-attempts') || '0');
+          if (attempts < 10) {
+            sessionStorage.setItem('auth-attempts', (attempts + 1).toString());
+            setTimeout(checkSessionAndRedirect, 50);
+          } else {
+            // Fallback: force redirect after max attempts
+            sessionStorage.removeItem('auth-attempts');
+            window.location.href = redirectUrl;
+          }
+        }
+      };
+      
+      // Reset attempts counter and start checking
+      sessionStorage.removeItem('auth-attempts');
+      checkSessionAndRedirect();
     } catch (err) {
       console.error('Sign in error:', err);
       setError('An unexpected error occurred. Please try again.');
