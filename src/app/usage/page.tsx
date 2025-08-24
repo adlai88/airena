@@ -65,19 +65,39 @@ export default function UsagePage() {
 
   // Fetch usage stats and API key data
   useEffect(() => {
+    console.log('[usage-page] useEffect triggered:', { 
+      isSignedIn, 
+      userExists: !!user, 
+      userId: user?.id,
+      isLoading 
+    });
+
     const fetchData = async () => {
-      if (!isSignedIn || !user) return;
+      if (!isSignedIn || !user) {
+        console.log('[usage-page] User not signed in, skipping fetch');
+        return;
+      }
+
+      // Only prevent duplicate requests if we already have data
+      if (isLoading && stats) {
+        console.log('[usage-page] Already loading and have data, skipping fetch');
+        return;
+      }
+
+      console.log('[usage-page] Starting data fetch for user:', user.id);
 
       try {
         setIsLoading(true);
         
-        // Fetch usage stats with timeout
+        // Fetch usage stats with longer timeout for slow queries
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
         
+        console.log('[usage-page] Fetching usage stats...');
         const statsResponse = await fetch('/api/usage-stats', {
           signal: controller.signal
         });
+        console.log('[usage-page] Usage stats response:', statsResponse.status);
         
         clearTimeout(timeoutId);
         
@@ -86,9 +106,14 @@ export default function UsagePage() {
           throw new Error(errorData.error || `Failed to fetch usage statistics (${statsResponse.status})`);
         }
         const statsData = await statsResponse.json();
+        console.log('[usage-page] Stats data received:', {
+          tier: statsData.tier,
+          channelsCount: statsData.channels?.length
+        });
         
         // For free tier, also fetch lifetime usage
         if (statsData.tier === 'free') {
+          console.log('[usage-page] Fetching lifetime usage...');
           const lifetimeResponse = await fetch('/api/lifetime-usage');
           if (lifetimeResponse.ok) {
             const lifetimeData = await lifetimeResponse.json();
@@ -98,9 +123,11 @@ export default function UsagePage() {
               percentUsed: lifetimeData.percentUsed,
               limit: lifetimeData.limit
             };
+            console.log('[usage-page] Lifetime data added');
           }
         }
         
+        console.log('[usage-page] Setting stats data...');
         setStats(statsData);
 
         // Fetch API key status
@@ -117,14 +144,21 @@ export default function UsagePage() {
           }
         }
       } catch (err) {
+        console.error('[usage-page] Error:', err);
         setError(err instanceof Error ? err.message : 'Failed to load data');
       } finally {
+        console.log('[usage-page] Setting loading to false');
         setIsLoading(false);
       }
     };
 
-    fetchData();
-  }, [isSignedIn, user]);
+    console.log('[usage-page] Calling fetchData...');
+    fetchData().catch(err => {
+      console.error('[usage-page] fetchData error:', err);
+      setError(err.message);
+      setIsLoading(false);
+    });
+  }, [isSignedIn, user?.id]);
 
   // Get tier info from the stats response instead of UsageTracker
   const tierInfo = stats?.tierInfo || null;

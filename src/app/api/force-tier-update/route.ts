@@ -16,14 +16,14 @@ export async function POST(request: NextRequest) {
 
     const { tier } = await request.json();
     
-    if (!tier || !['free', 'starter', 'pro'].includes(tier)) {
+    if (!tier || !['free', 'founding'].includes(tier)) {
       return NextResponse.json({ error: 'Invalid tier' }, { status: 400 });
     }
 
     console.log(`🔧 Manual tier update for user ${userId} to ${tier}`);
 
     // Update user tier manually
-    await UserService.updateUserTier(userId, tier as 'free' | 'starter' | 'pro', {
+    await UserService.updateUserTier(userId, tier as 'free' | 'founding', {
       status: 'active'
     });
 

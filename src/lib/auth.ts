@@ -358,9 +358,9 @@ export const auth = betterAuth({
             if (metadata.tier) {
               const tier = metadata.tier as string;
               // Clean up tier value (remove any suffixes like "-t")
-              const cleanTier = tier.replace(/-.*$/, '') as 'free' | 'starter' | 'pro';
+              const cleanTier = tier.replace(/-.*$/, '') as 'free' | 'founding';
               
-              if (['free', 'starter', 'pro'].includes(cleanTier)) {
+              if (['free', 'founding'].includes(cleanTier)) {
                 console.log(`Updating tier based on customer metadata: ${cleanTier}`);
                 
                 await pool.query(
@@ -377,13 +377,14 @@ export const auth = betterAuth({
 });
 
 // Helper function to determine tier from product ID
-function determineTierFromProduct(productId: string): 'free' | 'starter' | 'pro' {
-  const productTierMap: Record<string, 'free' | 'starter' | 'pro'> = {
+function determineTierFromProduct(productId: string): 'free' | 'founding' {
+  const productTierMap: Record<string, 'free' | 'founding'> = {
     '2939287a-ef9c-41de-9d8b-e89dad1be367': 'free',
-    '2d078db5-1c02-43ae-bf7a-8b763fd26140': 'starter', // starter monthly
-    '3fff0f35-d90b-4f2d-bad9-6901128e5f28': 'starter', // starter annual
-    'bda6be16-5294-4b12-8973-6ccdd0bf05e7': 'pro',     // pro monthly
-    'dc8f5557-4783-4226-970a-7e1f200a1f8c': 'pro'      // pro annual
+    '2d078db5-1c02-43ae-bf7a-8b763fd26140': 'founding', // founding monthly
+    '3fff0f35-d90b-4f2d-bad9-6901128e5f28': 'founding', // founding annual
+    // Legacy product IDs (mapped to founding)
+    'bda6be16-5294-4b12-8973-6ccdd0bf05e7': 'founding', // was pro monthly
+    'dc8f5557-4783-4226-970a-7e1f200a1f8c': 'founding'  // was pro annual
   };
   
   return productTierMap[productId] || 'free';

@@ -30,12 +30,11 @@ export interface MonthlyUsageRecord {
   updated_at: string;
 }
 
-export type UserTier = 'free' | 'starter' | 'pro';
+export type UserTier = 'free' | 'founding';
 
 export interface TierLimits {
-  free: { blocks: 25; type: 'per_channel'; chatMessages: 10; generations: 2 };
-  starter: { blocks: 200; type: 'per_month'; chatMessages: -1; generations: -1 }; // -1 = unlimited
-  pro: { blocks: 500; type: 'per_month'; chatMessages: -1; generations: -1 };
+  free: { blocks: 50; type: 'lifetime'; chatMessages: -1; generations: -1 }; // Simplified free tier
+  founding: { blocks: -1; type: 'unlimited'; chatMessages: -1; generations: -1 }; // -1 = unlimited
 }
 
 export interface UsageCheckResult {
@@ -900,43 +899,26 @@ export class UsageTracker {
           blocks: config.blocks,
           type: config.type,
           features: [
-            '25 blocks per channel',
-            '3 channels maximum',
-            '10 chat messages per channel/month',
-            '2 generations per channel/month',
+            '50 blocks lifetime limit',
             'Public channels only',
-            'Complete multimodal intelligence'
+            'Chat with your channels',
+            'Generate content',
+            'Spatial canvas view'
           ]
         };
-      case 'starter':
+      case 'founding':
         return {
-          name: 'Starter',
+          name: 'Founding Member',
           blocks: config.blocks,
           type: config.type,
-          price: '$5/month',
+          price: '$5/month forever',
           features: [
-            '200 blocks per month',
-            'Unlimited chat & generations',
+            'Everything unlimited forever',
             'Private channels access',
-            'Unlimited channels',
-            'Advanced templates',
-            'Export generated content'
-          ]
-        };
-      case 'pro':
-        return {
-          name: 'Pro',
-          blocks: config.blocks,
-          type: config.type,
-          price: '$14/month',
-          features: [
-            '500 blocks per month',
-            'Everything in Starter',
-            'MCP server generation',
-            'API access',
-            'Webhook support',
-            'Priority processing',
-            'Channel isolation'
+            'Priority support',
+            'All future features',
+            '70%+ savings vs future pricing',
+            'Limited to first 100 members'
           ]
         };
       default:

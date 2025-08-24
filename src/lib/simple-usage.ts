@@ -70,8 +70,8 @@ export class SimpleUsageTracker {
       const blocksUsed = user.lifetime_blocks_used || 0;
       const userTier = user.tier || 'free';
 
-      // Paid tiers have no lifetime limit
-      if (userTier !== 'free') {
+      // Founding tier has no lifetime limit
+      if (userTier === 'founding') {
         return {
           canProcess: true,
           blocksUsed: blocksUsed,

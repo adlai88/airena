@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     console.log('🔍 Request body:', body);
     const { tier, billing = 'monthly' } = body;
 
-    if (!tier || !['free', 'starter', 'pro'].includes(tier)) {
+    if (!tier || !['free', 'founding'].includes(tier)) {
       console.log('❌ Invalid tier:', tier);
       return NextResponse.json(
         { error: 'Invalid tier' },
@@ -35,6 +35,9 @@ export async function POST(request: NextRequest) {
     // Map tier and billing to product ID
     const PRODUCT_IDS = {
       free: '2939287a-ef9c-41de-9d8b-e89dad1be367',
+      founding_monthly: '2d078db5-1c02-43ae-bf7a-8b763fd26140',
+      founding_annual: '3fff0f35-d90b-4f2d-bad9-6901128e5f28',
+      // Legacy product IDs (for backward compatibility)
       starter_monthly: '2d078db5-1c02-43ae-bf7a-8b763fd26140',
       starter_annual: '3fff0f35-d90b-4f2d-bad9-6901128e5f28',
       pro_monthly: 'bda6be16-5294-4b12-8973-6ccdd0bf05e7',

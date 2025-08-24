@@ -8,36 +8,63 @@ export async function GET() {
   try {
     console.log('[usage-stats] Starting request');
     
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-    const userId = session?.user?.id;
+    let session;
+    let userId;
     
-    console.log('[usage-stats] User ID:', userId ? 'found' : 'not found');
+    try {
+      const headersList = await headers();
+      session = await auth.api.getSession({
+        headers: headersList,
+      });
+      userId = session?.user?.id;
+      console.log('[usage-stats] Session retrieved, User ID:', userId ? 'found' : 'not found');
+    } catch (sessionError) {
+      console.error('[usage-stats] Session retrieval error:', sessionError);
+      return NextResponse.json(
+        { error: 'Failed to authenticate user' },
+        { status: 401 }
+      );
+    }
     
     if (!userId) {
+      console.log('[usage-stats] No user ID found in session');
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
 
+    console.log('[usage-stats] Getting user stats...');
     // Get user stats from SimpleUsageTracker
     const simpleStats = await SimpleUsageTracker.getUserStats(userId);
+    console.log('[usage-stats] User stats retrieved:', simpleStats.tier);
     
+    console.log('[usage-stats] Getting channel usage data...');
     // Get channel usage data with channels
-    const { data: channelUsage } = await supabaseServiceRole
+    const { data: channelUsage, error: usageError } = await supabaseServiceRole
       .from('channel_usage')
       .select('*')
       .eq('user_id', userId)
       .order('last_processed_at', { ascending: false });
     
+    if (usageError) {
+      console.error('[usage-stats] Channel usage query error:', usageError);
+    }
+    console.log('[usage-stats] Channel usage retrieved:', (channelUsage || []).length, 'records');
+    
     // Get channel details for each usage record
     const channelIds = (channelUsage || []).map(usage => usage.channel_id);
-    const { data: channelsData } = await supabaseServiceRole
+    console.log('[usage-stats] Getting channel details for', channelIds.length, 'channels...');
+    
+    const { data: channelsData, error: channelsError } = await supabaseServiceRole
       .from('channels')
       .select('id, title, slug, thumbnail_url')
       .in('id', channelIds);
+    
+    if (channelsError) {
+      console.error('[usage-stats] Channels query error:', channelsError);
+    }
+    console.log('[usage-stats] Channel details retrieved:', (channelsData || []).length, 'channels');
     
     // Create a map for quick lookup
     const channelMap = new Map((channelsData || []).map(ch => [ch.id, ch]));
@@ -71,20 +98,34 @@ export async function GET() {
 
     // Calculate totals
     const totalChannelsProcessed = processedChannels.length;
-    const totalBlocksProcessed = simpleStats.blocksUsed;
+    // Sum up blocks from all channel usage records for accurate total
+    const totalBlocksFromChannels = processedChannels.reduce((sum, ch) => sum + (ch.total_blocks_processed || 0), 0);
+    const totalBlocksProcessed = totalBlocksFromChannels;
+    
+    console.log('[usage-stats] Final stats:', {
+      tier: simpleStats.tier,
+      blocksUsed: simpleStats.blocksUsed,
+      channelsFound: totalChannelsProcessed,
+      blocksFromChannels: processedChannels.reduce((sum, ch) => sum + (ch.total_blocks_processed || 0), 0)
+    });
 
     // Get tier info based on user's tier
     const tierInfo = getTierInfo(simpleStats.tier);
+    
+    // Calculate monthly usage (blocks processed this month)
+    const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
+    const monthlyBlocks = processedChannels
+      .filter(ch => ch.last_processed_at && ch.last_processed_at.startsWith(currentMonth))
+      .reduce((sum, ch) => sum + (ch.total_blocks_processed || 0), 0);
     
     // Format response for usage page
     const stats = {
       tier: simpleStats.tier,
       monthly: {
-        // For free tier, we'll show lifetime usage instead of monthly
-        current: simpleStats.tier === 'free' ? simpleStats.blocksUsed : 0,
-        limit: simpleStats.tier === 'free' ? 50 : (simpleStats.tier === 'starter' ? 200 : 500),
-        remaining: simpleStats.tier === 'free' ? simpleStats.blocksRemaining : 999999,
-        month: new Date().toISOString().slice(0, 7)
+        current: monthlyBlocks,
+        limit: simpleStats.tier === 'free' ? 50 : -1,
+        remaining: simpleStats.tier === 'free' ? Math.max(0, 50 - monthlyBlocks) : 999999,
+        month: currentMonth
       },
       channels: processedChannels,
       totalChannelsProcessed,
@@ -123,33 +164,19 @@ function getTierInfo(tier: string): {
           'Spatial canvas view'
         ]
       };
-    case 'starter':
+    case 'founding':
       return {
-        name: 'Starter',
-        blocks: 200,
-        type: 'per_month',
-        price: '$5/month',
+        name: 'Founding Member',
+        blocks: -1,
+        type: 'unlimited',
+        price: '$5/month forever',
         features: [
-          'No lifetime limit',
+          'Everything unlimited forever',
           'Private channels access',
-          'Unlimited channels',
-          'Advanced templates',
-          'Export generated content'
-        ]
-      };
-    case 'pro':
-      return {
-        name: 'Pro',
-        blocks: 500,
-        type: 'per_month',
-        price: '$14/month',
-        features: [
-          'No lifetime limit',
-          'Everything in Starter',
-          'MCP server generation',
-          'API access',
-          'Webhook support',
-          'Priority processing'
+          'Priority support',
+          'All future features',
+          '70%+ savings vs future pricing',
+          'Limited to first 100 members'
         ]
       };
     default:

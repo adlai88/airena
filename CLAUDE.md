@@ -58,7 +58,7 @@ This is because Better Auth created these tables and uses singular naming. All n
 ### Authentication System
 - **Better Auth** with Supabase adapter
 - **Polar.sh** for billing and subscriptions
-- **OAuth Support** ready for Google/GitHub providers
+- **OAuth Support**: Google and GitHub authentication implemented
 - Password reset functionality implemented
 
 ### Spatial Intelligence Canvas
@@ -227,20 +227,6 @@ WHERE email = 'user@example.com';
 
 ## 📧 Future Enhancements
 
-### Email Service for Password Reset (Resend)
-Currently, password reset emails are only logged to console in development. To enable actual email delivery in production:
-
-1. **Sign up for Resend** at https://resend.com
-2. **Verify your domain** (aryn.im) in Resend dashboard
-3. **Get your API key** from Resend
-4. **Add to Vercel environment variables**:
-   - `RESEND_API_KEY` = your-resend-api-key
-   - `NODE_ENV` = production
-
-The code is already set up to use Resend when the API key is present. This will enable:
-- Password reset emails
-- Future: Welcome emails, notification emails, weekly digests
-
 ### Image Generation in Spatial Canvas
 Future enhancement idea for the spatial canvas: Allow users to generate new images using existing blocks as visual references.
 
@@ -292,46 +278,16 @@ For self-hosting instructions, see `/_ai-docs/SELF_HOSTING.md`
 ## ✅ Recent Completions (August 2025)
 - ✅ **50-block lifetime limit system tested and working** - Database shows proper enforcement
 - ✅ **Usage system cleanup completed** - Removed deprecated monthly limits, clean codebase
-- ✅ **Google OAuth added to Better Auth** - Sign-in/up forms include Google authentication
-- ✅ **GitHub OAuth added to Better Auth** - Sign-in/up forms include GitHub authentication
+- ✅ **OAuth Authentication** - Google and GitHub login fully implemented and working
+- ✅ **Password Reset Emails** - Resend integration complete for production email delivery
+- ✅ **Navigation UX Fix** - Resolved dropdown focus issues affecting sticky navigation
 
 ## 🎯 Next Steps
 
-### 📧 Resend Email Setup (Required for Production)
-To enable password reset emails and future email features:
-
-1. **Domain Verification** (DNS setup required):
-   - Login to [Resend Dashboard](https://resend.com/domains)
-   - Add domain: `arin.im`
-   - Add these DNS records to your domain:
-     ```
-     Type: TXT
-     Name: arin.im
-     Value: [Resend will provide verification record]
-     
-     Type: MX
-     Name: arin.im  
-     Value: [Resend MX record]
-     
-     Type: TXT
-     Name: _dmarc.arin.im
-     Value: [Resend DMARC record]
-     ```
-
-2. **Environment Variables** (already configured):
-   - `RESEND_API_KEY` - ✅ Already set in .env.local
-   - `NODE_ENV=production` - ✅ Already set
-
-3. **Test Email Functionality**:
-   - After domain verification, test password reset emails
-   - Future: Welcome emails, notification emails, weekly digests
-
 ### 🚀 Growth & Engagement Features
-- **Template Priority 1**: Activate brainstorm template (increases engagement)
-- **Template Priority 2**: Enhanced research report with web search (premium value)
+- **Template Priority 1**: Enhanced research report with web search (premium value)
 - **Intelligence Score Feature**: Analyze private channels for upgrade conversion
 - **Weekly reset system**: For enhanced free tier engagement strategy
-  - Test password reset email functionality in production
 
 ## Environment Variables to Clean Up
 **Completed**: Clerk environment variables have been removed from .env.local (migration complete)

@@ -847,6 +847,29 @@ export class SyncService {
           // The blocks are already stored, so the sync was successful
         }
       }
+
+      // Create/update channel_usage record for tracking
+      if (actualBlocksRecorded > 0 && dbChannelId) {
+        try {
+          console.log(`Recording channel usage: ${actualBlocksRecorded} blocks for channel ${dbChannelId}`);
+          
+          // Import the full UsageTracker for channel usage recording
+          const { UsageTracker } = await import('./usage-tracking');
+          
+          await UsageTracker.recordUsage(
+            dbChannelId,
+            userId, 
+            null, // sessionId (not needed for authenticated users)
+            'sync', // ipAddress placeholder
+            actualBlocksRecorded
+          );
+          
+          console.log(`✅ Channel usage record created/updated successfully`);
+        } catch (error) {
+          console.error('Failed to record channel usage (sync will continue):', error);
+          // Don't fail the sync if channel usage recording fails
+        }
+      }
       
       // Get updated usage stats
       const finalUsageStats = await SimpleUsageTracker.getUserStats(userId);
