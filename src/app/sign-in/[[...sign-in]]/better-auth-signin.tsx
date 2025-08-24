@@ -37,10 +37,10 @@ export default function BetterAuthSignIn() {
       }
 
       // If no error, sign-in was successful
-      // Add a small delay for session to propagate, then redirect
+      // Add sufficient delay for session to propagate in production, then force redirect
       setTimeout(() => {
-        window.location.href = redirectUrl;
-      }, 200);
+        window.location.replace(redirectUrl);
+      }, 1000);
     } catch (err) {
       console.error('Sign in error:', err);
       setError('An unexpected error occurred. Please try again.');
@@ -106,7 +106,7 @@ export default function BetterAuthSignIn() {
             disabled={loading}
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Sign In
+            {loading ? 'Signing in...' : 'Sign In'}
           </Button>
         </form>
       </CardContent>
