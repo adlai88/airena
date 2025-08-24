@@ -85,7 +85,19 @@ npm install
 
 # Set up environment
 cp .env.example .env.local
-# Edit .env.local with your API keys
+# Edit .env.local with your API keys and configuration
+
+# Required for basic functionality:
+# - DATABASE_URL (Supabase PostgreSQL with pgvector)
+# - SUPABASE_URL and SUPABASE_ANON_KEY 
+# - BETTER_AUTH_SECRET (generate with: openssl rand -base64 32)
+# - OPENAI_API_KEY (for chat completions)
+
+# Optional for enhanced features:
+# - ARENA_API_KEY (private channels)
+# - YOUTUBE_API_KEY (better video processing)
+# - JINA_API_KEY (enhanced web extraction)
+# - POLAR_* (billing/subscriptions)
 
 # Start development server
 npm run dev
