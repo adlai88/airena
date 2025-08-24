@@ -158,11 +158,10 @@ export default function UsagePage() {
       setError(err.message);
       setIsLoading(false);
     });
-  }, [isSignedIn, user?.id]);
+  }, [isSignedIn, user?.id, isLoading, stats, user]);
 
   // Get tier info from the stats response instead of UsageTracker
   const tierInfo = stats?.tierInfo || null;
-  const progressPercentage = stats ? Math.min((stats.monthly.current / stats.monthly.limit) * 100, 100) : 0;
 
   // API Key management functions
   const testApiKey = async (key: string) => {
@@ -632,7 +631,7 @@ export default function UsagePage() {
                     className="mt-4" 
                     onClick={() => window.location.href = '/pricing'}
                   >
-                    Become a Founding Member - $5/month forever
+                    Become a Founding Member - $7/month forever
                   </Button>
                 </CardContent>
               </Card>

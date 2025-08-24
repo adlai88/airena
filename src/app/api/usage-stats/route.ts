@@ -80,12 +80,17 @@ export async function GET() {
 
     // Flatten channel data
     interface ChannelUsageRecord {
+      id: string;
+      user_id: string;
+      channel_id: string;
+      total_blocks_processed: number;
+      last_processed_at: string;
+      is_free_tier: boolean;
       channels: {
         title?: string;
         slug?: string;
         thumbnail_url?: string;
       };
-      [key: string]: unknown;
     }
     
     const processedChannels = (channels as ChannelUsageRecord[] || []).map((record) => ({

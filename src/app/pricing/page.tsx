@@ -7,10 +7,9 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
+import { CheckCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useUser } from '@/components/auth-provider';
 import { CheckoutModal } from '@/components/checkout-modal';
-import { Input } from '@/components/ui/input';
 
 interface Plan {
   id: string;
@@ -88,9 +87,6 @@ function PricingContent() {
     tier: '',
     billing: 'monthly'
   });
-  const [waitlistEmail, setWaitlistEmail] = useState('');
-  const [waitlistStatus, setWaitlistStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [waitlistMessage, setWaitlistMessage] = useState('');
   const user = useUser();
   const isSignedIn = !!user;
   const isLoaded = user !== undefined;
@@ -174,40 +170,6 @@ function PricingContent() {
     });
   };
 
-  const handleWaitlistSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!waitlistEmail || !waitlistEmail.includes('@')) {
-      setWaitlistMessage('Please enter a valid email address');
-      setWaitlistStatus('error');
-      return;
-    }
-
-    setWaitlistStatus('loading');
-    
-    try {
-      const response = await fetch('/api/waitlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: waitlistEmail })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setWaitlistStatus('success');
-        setWaitlistMessage('You\'re on the list! We\'ll notify you when founding member spots open.');
-        setWaitlistEmail('');
-      } else {
-        setWaitlistStatus('error');
-        setWaitlistMessage(data.error || 'Failed to join waitlist. Please try again.');
-      }
-    } catch (error) {
-      console.error('Waitlist submission error:', error);
-      setWaitlistStatus('error');
-      setWaitlistMessage('Failed to join waitlist. Please try again.');
-    }
-  };
 
   return (
     <Layout>

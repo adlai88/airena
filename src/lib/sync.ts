@@ -858,10 +858,10 @@ export class SyncService {
           
           await UsageTracker.recordUsage(
             dbChannelId,
-            userId, 
-            null, // sessionId (not needed for authenticated users)
+            actualBlocksRecorded,
+            'sync-session', // sessionId placeholder
             'sync', // ipAddress placeholder
-            actualBlocksRecorded
+            userId
           );
           
           console.log(`✅ Channel usage record created/updated successfully`);

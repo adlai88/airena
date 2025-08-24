@@ -84,14 +84,13 @@ export interface ChatGenerationCheckResult {
 }
 
 export class UsageTracker {
-  private static readonly FREE_TIER_LIMIT = 25;
+  private static readonly FREE_TIER_LIMIT = 50;
   private static readonly OVERAGE_COST_PER_BLOCK = 0.15; // $0.15 per block
   
   // Tier configuration with monthly limits
   private static readonly TIER_LIMITS: TierLimits = {
-    free: { blocks: 25, type: 'per_channel', chatMessages: 10, generations: 2 },
-    starter: { blocks: 200, type: 'per_month', chatMessages: -1, generations: -1 },
-    pro: { blocks: 500, type: 'per_month', chatMessages: -1, generations: -1 }
+    free: { blocks: 50, type: 'lifetime', chatMessages: -1, generations: -1 }, // Simplified free tier
+    founding: { blocks: -1, type: 'unlimited', chatMessages: -1, generations: -1 } // -1 = unlimited
   };
 
   /**
