@@ -77,7 +77,7 @@ export default function SuccessPage() {
                 <CheckCircle className="h-8 w-8 text-green-600" />
               </div>
             </div>
-            <h1 className="text-3xl font-bold mb-2">Welcome to Aryn {currentTier?.name}!</h1>
+            <h1 className="text-3xl font-bold mb-2">Welcome to Arin {currentTier?.name}!</h1>
             <p className="text-muted-foreground">
               Your subscription is now active. Start building intelligence from your Are.na channels.
             </p>
@@ -176,7 +176,7 @@ export default function SuccessPage() {
               <div className="text-center">
                 <h3 className="font-semibold mb-2">Need Help?</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  We&apos;re here to help you get the most out of Aryn. Reach out if you have any questions.
+                  We&apos;re here to help you get the most out of Arin. Reach out if you have any questions.
                 </p>
                 <div className="flex justify-center space-x-4">
                   <Button variant="outline" size="sm">

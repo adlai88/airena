@@ -1,6 +1,6 @@
-# Contributing to Aryn
+# Contributing to Arin
 
-We love your input! We want to make contributing to Aryn as easy and transparent as possible, whether it's:
+We love your input! We want to make contributing to Arin as easy and transparent as possible, whether it's:
 
 - Reporting a bug
 - Discussing the current state of the code
@@ -197,7 +197,7 @@ Enhance the user experience:
 - **Dark mode**: Comprehensive dark theme support
 
 ### 📚 Documentation
-Help others understand and use Aryn:
+Help others understand and use Arin:
 
 - **Tutorials**: Step-by-step guides
 - **API documentation**: Function and endpoint docs

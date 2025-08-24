@@ -2313,7 +2313,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
             variant={showChat ? 'default' : 'ghost'}
             size="icon"
             onClick={() => setShowChat(!showChat)}
-            title="Chat with Aryn"
+            title="Chat with Arin"
             className="h-9 w-9"
           >
             <MessageSquare className="h-4 w-4" />
@@ -2388,7 +2388,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
             size="sm"
             onClick={() => setShowChat(!showChat)}
             className="rounded-l-none"
-            title="Chat with Aryn"
+            title="Chat with Arin"
           >
             <MessageSquare className="h-4 w-4 mr-1" />
             Chat
@@ -2432,7 +2432,7 @@ export default function SpatialCanvas({ blocks, channelInfo }: SpatialCanvasProp
               }
             }}
           >
-            <h3 className="font-semibold select-none">Chat with Aryn</h3>
+            <h3 className="font-semibold select-none">Chat with Arin</h3>
             <div className="flex items-center gap-2">
               {messages.length > 0 && (
                 <Button

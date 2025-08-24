@@ -1,6 +1,6 @@
 # Featured Are.na Channels
 
-Discover amazing examples of Aryn's multimodal intelligence with these carefully curated Are.na channels. Each demonstrates different content types and use cases.
+Discover amazing examples of Arin's multimodal intelligence with these carefully curated Are.na channels. Each demonstrates different content types and use cases.
 
 ## 🎨 Design & Visual Research
 
@@ -115,7 +115,7 @@ Discover amazing examples of Aryn's multimodal intelligence with these carefully
 ## How to Use These Examples
 
 ### 1. **Try the Live Demo**
-Visit [Aryn](https://www.aryn.io/) and paste any channel URL
+Visit [Arin](https://www.arin.im/) and paste any channel URL
 
 ### 2. **Self-Host for Full Access**
 Clone the repository and process these channels locally for unlimited exploration
@@ -128,9 +128,9 @@ Try various query types to understand AI capabilities across domains
 
 ## Contributing Examples
 
-Found an amazing Are.na channel that showcases Aryn's capabilities?
+Found an amazing Are.na channel that showcases Arin's capabilities?
 
-1. **Test the channel** with Aryn
+1. **Test the channel** with Arin
 2. **Document interesting insights** discovered
 3. **Submit via Pull Request** with description
 4. **Include sample questions** that work well
@@ -165,4 +165,4 @@ Found an amazing Are.na channel that showcases Aryn's capabilities?
 
 ---
 
-**Want to see your channel featured?** [Submit a suggestion](https://github.com/your-username/aryn/discussions) with why it showcases Aryn's capabilities!
+**Want to see your channel featured?** [Submit a suggestion](https://github.com/your-username/arin/discussions) with why it showcases Arin's capabilities!

@@ -7,7 +7,7 @@ import { embeddingService } from './embeddings';
 config({ path: '.env.local' });
 
 async function testFullPipeline() {
-  console.log('🧪 Testing complete Aryn pipeline...\n');
+  console.log('🧪 Testing complete Arin pipeline...\n');
 
   // Test with a channel that likely has link blocks
   const testChannels = [

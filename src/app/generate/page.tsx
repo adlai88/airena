@@ -198,7 +198,7 @@ function GenerateContent() {
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({
-          title: `${selectedTemplate?.name} from Aryn`,
+          title: `${selectedTemplate?.name} from Arin`,
           text: completion,
           url: window.location.href
         });

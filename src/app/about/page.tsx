@@ -10,7 +10,7 @@ export default function AboutPage() {
   return (
     <Layout>
       <PageHeader 
-        title="About Aryn"
+        title="About Arin"
         subtitle="Your curation advantage becomes your intelligence advantage"
         variant="narrow"
       />
@@ -21,13 +21,13 @@ export default function AboutPage() {
       <h2 className="text-xl font-bold mb-2 mt-8">The Vision</h2>
       <p className="mb-4">We believe the future of knowledge work isn&apos;t about consuming more information—it&apos;s about thinking better with what you&apos;ve already chosen to save.</p>
       <p className="mb-4">Are.na users are natural researchers. You collect not just for aesthetic inspiration, but because each saved piece contains an idea worth remembering. Yet that intelligence remains trapped, unsearchable, disconnected from your thinking process.</p>
-      <p className="mb-4">Aryn transforms your visual curation into conversational intelligence. Instead of manually browsing through bookmarks, you can now generate insights, explore patterns, and have conversations with your own research.</p>
+      <p className="mb-4">Arin transforms your visual curation into conversational intelligence. Instead of manually browsing through bookmarks, you can now generate insights, explore patterns, and have conversations with your own research.</p>
       <h2 className="text-xl font-bold mb-2 mt-8">A New Kind of Intelligence</h2>
       <p className="mb-4">This isn&apos;t another AI tool trained on generic web data. It&apos;s intelligence built from <em>your taste</em>—the articles you found compelling, the designs that caught your eye, the ideas you deemed worth saving.</p>
       <p className="mb-4">While others search through noise, you query signal. While others get generic outputs, you get insights grounded in your own curatorial judgment.</p>
       <h2 className="text-xl font-bold mb-2 mt-8">Why This Matters</h2>
       <p className="mb-4">Your are.na channels become more than mood boards—they become thinking partners.</p>
-      <p className="mb-4">Every piece you&apos;ve curated is a vote for what matters. Aryn turns those votes into a knowledge base that thinks like you do.</p>
+      <p className="mb-4">Every piece you&apos;ve curated is a vote for what matters. Arin turns those votes into a knowledge base that thinks like you do.</p>
       <p className="mt-8 font-semibold">Start exploring with the research others have curated, then connect your own channels to unlock the intelligence in your collection.</p>
       </div>
     </Layout>

@@ -1,11 +1,11 @@
-# Aryn: Spatial Intelligence for Are.na Channels
+# Arin: Spatial Intelligence for Are.na Channels
 
 Transform any Are.na channel into an intelligent knowledge base. Experience multimodal AI across websites, PDFs, images, and videos.
 
 ## ✨ Try It Now (No Signup Required)
 Paste any public Are.na channel URL → Instant AI intelligence
 
-**Live Demo**: https://www.aryn.im/
+**Live Demo**: https://www.arin.im/
 
 ## 🎯 Perfect For
 

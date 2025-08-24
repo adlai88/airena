@@ -91,7 +91,7 @@ We use a hybrid approach:
 - **CLAUDE.md**: For quick fixes, internal notes, and sensitive planning
 
 ### Linear Integration
-- **Team**: Aryn (ID: cec7d78e-2a34-4ceb-9600-f2d23823c1c5)
+- **Team**: Arin (ID: cec7d78e-2a34-4ceb-9600-f2d23823c1c5)
 - **Active Issues**: Check Linear for current sprint
 - **Devin Integration**: See ARY-6 for learnings about using Devin for research/investigation
 

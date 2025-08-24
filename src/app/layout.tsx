@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Aryn – AI for Are.na",
+  title: "Arin – AI for Are.na",
   description: "Chat with your channels, generate content, and discover patterns across everything you've curated.",
   icons: [
     { rel: "icon", url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },

@@ -1,6 +1,6 @@
 # Supabase Edge Functions
 
-This directory contains Supabase Edge Functions for the Aryn spatial canvas project.
+This directory contains Supabase Edge Functions for the Arin spatial canvas project.
 
 ## Functions
 
