@@ -308,6 +308,10 @@ For self-hosting instructions, see `/_ai-docs/SELF_HOSTING.md`
 - Re-enable monthly limits after testing
 - Add OAuth providers (Google, GitHub) to Better Auth
 - Consider weekly reset for free tier engagement
+- **Set up Resend email domain verification for arin.im**
+  - Verify arin.im domain in Resend dashboard
+  - Add required DNS records (SPF, DKIM, etc.)
+  - Test password reset email functionality in production
 
 ## Environment Variables to Clean Up
 **Completed**: Clerk environment variables have been removed from .env.local (migration complete)
