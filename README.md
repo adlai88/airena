@@ -168,8 +168,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 - ✅ Private channel access
 - ✅ User account management
 - ✅ Professional support
-- 💰 **Starter**: $5/month (200 blocks, private channels)
-- 💰 **Pro**: $14/month (500 blocks, advanced features)
+- 💰 **Founding Member**: $7/month forever (unlimited blocks, private channels)
 
 ## 🌟 Community & Support
 

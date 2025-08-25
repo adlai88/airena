@@ -241,6 +241,17 @@ Future enhancement idea for the spatial canvas: Allow users to generate new imag
 
 This would transform the spatial canvas from an organizational tool into a generative creative companion, extending the "curation to creation" philosophy.
 
+### Real-time Embedding Pipeline
+**Highest UX Impact Enhancement** analyzed in detail on August 25, 2025.
+
+**Current State**: Manual embedding during sync cycles creates delays between content addition and searchability.
+
+**Enhancement**: Automatic database triggers for real-time embedding generation would transform Arin from "batch processor" to "live research companion."
+
+**User Experience**: Add block to Are.na → Ask about it within seconds instead of waiting for next sync.
+
+**See detailed analysis**: `/_ai-docs/backlog/supabase-ai-feature-analysis-2025-08-25.md`
+
 ## Recent Changes
 
 ### Latest Updates (August 2025)

@@ -58,7 +58,7 @@ export default function HomePage() {
             <ul className="list-disc pl-6 space-y-2 text-foreground">
               <li>Your taste, amplified: Every answer is informed by your personally curated knowledge</li>
               <li>Simple start: Sign up free and get 50 blocks to explore the power of AI-enhanced curation</li>
-              <li>Open source: Self-host for free or upgrade to Starter ($5/month) for 200 blocks monthly</li>
+              <li>Open source: Self-host for free or upgrade to Founding Member ($7/month forever) for unlimited processing</li>
             </ul>
             <p className="mt-6 text-foreground text-base font-medium">
               Join researchers, designers, and strategists who are turning their Are.na channels into spatial intelligence.
